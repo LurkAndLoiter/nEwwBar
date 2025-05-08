@@ -16,27 +16,30 @@
     (_power)))
 
 (defwidget _power []
-  (box 
-    :class "btns-box"
-    :halign "center"
-    :space-evenly false
-    (button 
-      :class "inactive"
-      :width 75
-      :height 75
-      :onclick "shutdown -P now" "󰐥")
-    (button 
-      :class "inactive"
-      :width 75 
-      :height 75
-      :onclick "shutdown -r now" "󰜉")
-    (button 
-      :class "inactive"
-      :width 75 
-      :height 75
-      :onclick "eww close-all && hyprctl dispatch exit 1" "󰍃")
-    (button 
-      :class "inactive"
-      :width 75
-      :height 75
-      :onclick "hyprctl reload" "󰑓")))
+  (eventbox
+    :onhover 'eww update hover_state="powerPanel"'
+    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh powerPanel &'
+    (box 
+       :class "btns-box"
+       :halign "center"
+       :space-evenly false
+       (button 
+         :class "inactive"
+         :width 75
+         :height 75
+         :onclick "shutdown -P now" "󰐥")
+       (button 
+         :class "inactive"
+         :width 75 
+         :height 75
+         :onclick "shutdown -r now" "󰜉")
+       (button 
+         :class "inactive"
+         :width 75 
+         :height 75
+         :onclick "eww close-all && hyprctl dispatch exit 1" "󰍃")
+       (button 
+         :class "inactive"
+         :width 75
+         :height 75
+         :onclick "hyprctl reload" "󰑓"))))

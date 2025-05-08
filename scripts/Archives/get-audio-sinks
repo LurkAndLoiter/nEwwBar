@@ -1,0 +1,22 @@
+#!/usr/bin/bash
+
+getData (){
+  defref=$(pactl get-default-sink)
+  output='['
+  for sink in $(pactl list short sinks | awk '{print $2}')
+  do 
+    read -r id icon name <<< "$(pactl --format=json list sources | jq -r '.[] | select(.monitor_source=="'"$sink"'") | [.properties["object.id"], .properties["device.icon_name"], .properties["device.description"]] | @tsv')" 
+    ismute=$(pactl get-sink-mute "$sink" | awk '{print $2}')
+    volume=$(wpctl get-volume "$id" | awk '{print $2*100}')
+    [ "$defref" = "$sink" ] && default=true || default=false
+    output=$output'{"id": '$id', "mute": "'$ismute'", "volume": '$volume', "default": '$default', "sink": "'$sink'", "name": "'$name'", "icon": "'$icon'"},'
+  done
+  echo "${output%?}]"
+}
+
+getData
+pactl subscribe | while read -r line; do
+    if echo "$line" | grep " on sink " > /dev/null; then
+        getData
+    fi
+done

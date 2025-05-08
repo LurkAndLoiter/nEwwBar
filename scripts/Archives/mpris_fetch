@@ -1,0 +1,82 @@
+#!/bin/env bash
+
+pactlPull() {
+  local Player="$1"
+  Data=$(pactl --format=json list sink-inputs | jq --arg player $Player 'map(select((.properties["application.name"] | ascii_downcase == $player) and .corked == false) | {
+    "sinkID": .properties["node.driver-id"], 
+    "id": .properties["object.id"], 
+    "serial": .properties["object.serial"], 
+    "volume": .volume["front-left"].value_percent
+}) | first') 
+  # echo ${Data:2:-4}"\", "
+  [ "$Data" != "null" ] && echo ${Data:2:-4}"\", "
+}
+
+buildHMS (){
+  local Message="$1"
+  echo "$Message" | awk -F ' |,' '/Position/{ 
+      hours = int($2 / 3600000000); 
+      minutes = int((($2 / 1000000) % 3600) / 60); 
+      seconds = ($2 / 1000000) % 60; 
+      printf "\"PositionHMS\": \"%02d:%02d:%02d\",", hours, minutes, seconds }'
+  echo "$Message" | awk -F ' |,' '/length/{ 
+      hours = int($2 / 3600000000); 
+      minutes = int((($2 / 1000000) % 3600) / 60); 
+      seconds = ($2 / 1000000) % 60; 
+      printf "\"lengthHMS\": \"%02d:%02d:%02d\", ", hours, minutes, seconds }'
+}
+
+metadataPull (){
+  local Player="$1"
+  Data=$(gdbus call --session \
+    --dest "org.mpris.MediaPlayer2.$Player"\
+    --object-path /org/mpris/MediaPlayer2 \
+    --method org.freedesktop.DBus.Properties.GetAll \
+    org.mpris.MediaPlayer2.Player )
+    echo "$Data" | sed \
+      -e 's/, /,\n/g' \
+      -e 's/xesam://g' \
+      -e 's/mpris://g' \
+      -e "s/'Metadata': //g" \
+      -e 's/<//g' \
+      -e 's/>//g' \
+      -e 's/{//g' \
+      -e 's/}//g' \
+      -e 's/(//g' \
+      -e 's/)//g' \
+      -e 's/\[//g' \
+      -e 's/\]//g' \
+      -e 's/uint64 //g' \
+      -e 's/int64 //g' \
+      -e 's/objectpath //g' \
+      -e 's/https:\/\/i.scdn.co\/image/\/run\/user\/1000\/album_art_cache/' \
+      -e 's/file:\/\///g' \
+      -e 's/"/\\\"/g' \
+      -e "s/^./\"/" \
+      -e "s/\n'/\n\"/g" \
+      -e "s/':/\":/g" \
+      -e "s/\": '/\": \"/g" \
+      -e "s/',\n/\",\n/g" \
+      -e 's/": \\"/": "/g' \
+      -e 's/\\",/",/g'
+}
+
+OldMessage=""
+while true; do 
+  Message="["
+  for Player in $(playerctl --list-all 2>/dev/null | sort); do 
+    Message="$Message{\"Player\": \"$Player\", \"DesktopEntry\": \"${Player%%.*}\", "
+    Data="$(metadataPull "$Player")"
+    Message="$Message$Data$(buildHMS "$Data")$(pactlPull "${Player%%.*}")"
+    # pactlPull "${Player%%.*}"
+    Message=${Message::-2}"}, " # Remove last , of Player(s) variables
+  done
+  if [ "$Message" == "[" ]; then 
+    Message="[]"
+  else
+    Message=${Message::-2}"]" # Remove last , of Last Player -> close json
+  fi
+  # echo $Message
+  [ "$Message" != "$OldMessage" ] && OldMessage=$Message && echo $Message
+  sleep 1
+done

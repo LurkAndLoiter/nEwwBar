@@ -1,0 +1,20 @@
+#!/usr/bin/sh
+
+getData (){
+  output='['
+  
+  for device in $(bluetoothctl devices | awk '{ print $2 }');do
+    data=$(bluetoothctl info $device)
+    name=$(echo "$data" | awk -F': ' '/Name/{print $2}')
+    icon=$(echo "$data" | awk -F': ' '/Icon/{print $2}')
+    connected=$(echo "$data" | awk -F': ' '/Connected/{print $2}')
+    battery=$(echo "$data" | awk -F'[()]+' '/Battery Percentage/{print $2}')
+    output=$output'{"id": "'$device'", "Name": "'$name'", "Icon": "'$icon'", "Connected": "'$connected'", "Battery": "'$battery'"},'
+  done
+  echo ${output%?}]
+}
+
+getData
+gdbus monitor --system --dest org.bluez | while read -r line; do
+    getData
+done

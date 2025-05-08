@@ -1,0 +1,6 @@
+#!/usr/bin/sh
+
+id=$(rfkill | awk '/wlan/{print $1}')
+
+rfkill event |
+  stdbuf -o0 awk -v idx="$id" '$0 ~ "idx " idx {print $10}'

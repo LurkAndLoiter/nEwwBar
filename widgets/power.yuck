@@ -1,0 +1,42 @@
+(defwidget _powerButton []
+ (box 
+   (button :onclick "eww open --toggle powerPanel" "󰐥")))
+
+(defwindow powerPanel
+  :monitor 1
+  :stacking "fg"
+  :windowtype "normal"
+  :wm-ignore true
+  :geometry (geometry
+              :anchor "top right")
+  (box 
+    :class "window"
+    :space-evenly false
+    :orientation "v"
+    (_power)))
+
+(defwidget _power []
+  (box 
+    :class "btns-box"
+    :halign "center"
+    :space-evenly false
+    (button 
+      :class "inactive"
+      :width 75
+      :height 75
+      :onclick "shutdown -P now" "󰐥")
+    (button 
+      :class "inactive"
+      :width 75 
+      :height 75
+      :onclick "shutdown -r now" "󰜉")
+    (button 
+      :class "inactive"
+      :width 75 
+      :height 75
+      :onclick "eww close-all && hyprctl dispatch exit 1" "󰍃")
+    (button 
+      :class "inactive"
+      :width 75
+      :height 75
+      :onclick "hyprctl reload" "󰑓")))

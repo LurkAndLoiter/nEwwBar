@@ -1,0 +1,334 @@
+$Rosewater: #f5e0dc;
+$Flamingo: #f2cdcd;
+$Pink: #f5c2e7;
+$Mauve: #cba6f7;
+$Red: #f38ba8;
+$Maroon: #eba0ac;
+$Peach: #fab387;
+$Yellow: #f9e2af;
+$Green: #a6e3a1;
+$Teal: #94e2d5;
+$Sky: #89dceb;
+$Saphire: #74c7ec;
+$Blue: #89b4fa;
+$Lavender: #b4befe;
+$Text: #cdd6f4;
+$Subtext0: #bac2de;
+$Subtext1: #a6adc8;
+$Overlay0: #9399b2;
+$Overlay1: #7f849c;
+$Overlay2: #6c7086;
+$Surface0: #585b70;
+$Surface1: #45475a;
+$Surface2: #313244;
+$Base: #1e1e2e;
+$Mantle: #181825;
+$Crust: #11111b;
+
+$inactive: $Surface1;
+$highlight: $Red;
+
+* {
+  all: unset;
+}
+
+/* * {background-color: unset;} */
+
+.blue {
+  color: $Blue;
+}
+
+.purple {
+  color: $Mauve;
+}
+
+.green {
+  color: $Green;
+}
+
+.yellow {
+  color: $Yellow;
+}
+
+.orange {
+  color: $Peach;
+}
+
+.red {
+  color: $Red;
+}
+
+.subtext {
+  color: $Subtext1;
+}
+
+.text {
+  color: $Text;
+}
+
+.disabled {
+  color: $inactive;
+}
+
+label {
+  &.active {
+    color: $Red;
+  }
+
+  &.inactive {
+    color: $inactive;
+  }
+
+  &.bluetooth {
+    color: $Blue;
+  }
+}
+
+.spacerbar {
+  margin: 5px 30px 20px;
+  min-height: 1px;
+  border-radius: 10px;
+  background-color: transparent;
+  box-shadow: 0 1px 2px 1px $Text;
+}
+
+.bar-expansion {
+  font-family: "MonaspiceNe NF", monospace;
+}
+
+.bar-box {
+  background-color: rgba($Crust, 1);
+  border-radius: 10px;
+  margin: 0 10px;
+  padding: 0 5px;
+
+  label {
+    font-size: 1.5em;
+  }
+}
+
+.window {
+  margin: 5px 0 32px;
+  padding: 15px;
+  background-color: $Crust;
+  transition: all 10s;
+
+  &.right {
+    border-top-left-radius: 30px;
+    border-bottom-left-radius: 30px;
+  }
+
+  &.left {
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+  }
+}
+
+.panel {
+  background-color: $Base;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 5px;
+}
+
+.barspacer {
+  margin: 5px;
+}
+
+.btns-bar {
+  background-color: $Surface2;
+  text-shadow: 1px 1px $Crust;
+  border-radius: 0.1em;
+  transition: all 0.5s;
+
+  &.disabled {
+    background-color: $Base;
+  }
+
+  &.enabled {
+    &:hover {
+      background-image: linear-gradient(135deg, $Mauve 2.5%, transparent 7.5%);
+    }
+
+    &.active {
+      background-image: linear-gradient(0deg, $Mauve 5%, transparent 15%);
+
+      &:hover {
+        background-image: linear-gradient(135deg, $Red 2.5%, transparent 7.5%);
+      }
+    }
+  }
+}
+
+.btns-bar-box {
+  font-size: 1.2em;
+  padding: 5px 10px;
+}
+
+.baricon {
+  font-size: 2em;
+}
+
+.btns-box {
+  button {
+    background-color: $Surface2;
+    font-size: 2em;
+    text-shadow: 1px 1px $Crust;
+    padding: 0.4em;
+    margin: 5px;
+    border-radius: 0.1em;
+    transition: all 0.5s;
+
+    &.active {
+      color: rgba($Red, 1);
+      background-image: linear-gradient(0deg, $Mauve 5%, transparent 15%);
+
+      &:hover {
+        color: $Text;
+        background-image: linear-gradient(135deg, $Red 10%, transparent 30%);
+      }
+    }
+
+    &.inactive {
+      color: $Text;
+
+      /* background-color: $inactive; */
+
+      &:hover {
+        color: $Red;
+        background-image: linear-gradient(135deg, $Mauve 10%, transparent 30%);
+      }
+    }
+  }
+}
+
+.workspace {
+  &.occupied {
+    color: rgba($Text, 1);
+  }
+
+  &.empty {
+    color: rgba($Text, 0.6);
+  }
+
+  &.current {
+    color: rgba($Red, 1);
+  }
+}
+
+trough highlight {
+  // NOLINT(selector-type-unknown)
+  background-image: linear-gradient(to right, $Mauve 30%, $Red 100% * 50);
+  border-radius: 4px;
+}
+
+scale trough {
+  // NOLINT(selector-type-unknown)
+  all: unset;
+  background-color: rgba($Surface2, 1);
+  box-shadow: 0 1px 2px 1px #06060b;
+  border-radius: 9px;
+  min-height: 8px;
+  min-width: 8px;
+  margin: 0 0 7px;
+}
+
+.pushright {
+  margin-left: 7px;
+}
+
+.pushleft {
+  margin-right: 7px;
+}
+
+.pushdown {
+  margin-top: 3.5px;
+}
+
+slider {
+  // NOLINT(selector-type-unknown)
+  border-radius: 10px;
+  background-color: #d8dee9;
+  margin: -7px;
+}
+
+.inactive {
+  slider {
+    // NOLINT(selector-type-unknown)
+    all: unset;
+
+    /* background-color: $inactive; */
+  }
+
+  trough highlight {
+    // NOLINT(selector-type-unknown)
+    all: unset;
+  }
+
+  scale trough {
+    // NOLINT(selector-type-unknown)
+    background-color: rgb(255 0 0 / 100%);
+  }
+}
+
+.low-vis {
+  color: $inactive;
+
+  slider {
+    // NOLINT(selector-type-unknown)
+    background-color: $inactive;
+  }
+
+  trough highlight {
+    // NOLINT(selector-type-unknown)
+    background-image: linear-gradient(
+      to right,
+      rgba($Mauve, 0.5) 30%,
+      rgba($Red, 0.5) 100% * 50
+    );
+  }
+}
+
+menu {
+  padding: 5px;
+  background-color: $Crust;
+  color: $Text;
+
+  menuitem {
+    font-size: unset;
+    border-radius: 5px;
+    background-color: $Base;
+    padding: 8px 12px;
+  }
+
+  menuitem:hover {
+    color: $Crust;
+    background-color: $Green;
+    transition: 0.5s;
+  }
+}
+
+.footer {
+  font-size: 1em;
+  color: $Green;
+}
+
+.media-buttons {
+  button {
+    font-size: 2em;
+  }
+}
+
+.media {
+  &.disabled {
+    color: $inactive;
+  }
+
+  &.inactive {
+    color: $inactive;
+  }
+
+  &.active {
+    color: $Text;
+  }
+}

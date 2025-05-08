@@ -1,0 +1,101 @@
+;; Comiled C
+(deflisten wifiScan
+  `~/.config/eww/bin/wlan_scan`)
+
+(deflisten wlan-monitor :initial ""
+  `~/.config/eww/bin/wlan_monitor`)
+
+;; Bash scripts (Archived)
+; (deflisten net-active :initial ""
+  ; `/usr/bin/sh ~/.config/eww/scripts/Archives/get-wlan-active`)
+
+; (deflisten net-strength :initial ""
+  ; `/usr/bin/sh ~/.config/eww/scripts/Archives/get-wlan-strength`)
+
+(defwidget _wifiButton []
+  (box 
+    (button 
+      :onclick "eww open --toggle wifiPanel"
+      :onrightclick "rfkill toggle wlan" 
+      (label
+        :text {wlan-monitor.state == 20 ? '󰤮':
+                 wlan-monitor.state == 10 ? "":
+                 wlan-monitor.state == 60 ? "󰤬" :
+                 wlan-monitor.state != 100 ? "" :
+                 wlan-monitor.strength > 70 ? '󰤨':
+                 wlan-monitor.strength > 50 ? '󰤥':
+                 wlan-monitor.strength > 35 ? '󰤟': 
+                 wlan-monitor.strength > 20 ? '󰤯': "󰤮"}
+        :class {wlan-monitor.state == 20 ? 'disabled' :
+                 wlan-monitor.state == 60 ? 'red' :
+                 wlan-monitor.state != 100 ? 'purple':
+                 wlan-monitor.strength > 70 ? 'blue' :
+                 wlan-monitor.strength > 50 ? 'green' :
+                 wlan-monitor.strength > 35 ? 'yellow' :
+                 wlan-monitor.strength > 20 ? 'orange' : 'red'}))))
+
+
+(defwindow wifiPanel
+  :monitor 1
+  :stacking "fg"
+  :geometry (geometry
+              :width 500
+              :anchor "top right")
+  (eventbox
+    :onhover 'eww update hover_state="wifiPanel"'
+    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh wifiPanel &'
+    (box
+      :class "window"
+      :space-evenly false 
+      :orientation "v"
+      (_wifi))))
+
+
+(defwidget _wifi []
+  (box 
+    :orientation "v"
+    :space-evenly false
+    (button :onclick "nmcli device wifi rescan ifname wlan0" 
+      (label :halign "end" :hexpand true :class "baricon" :text ""))
+    (box :orientation "v"
+      (for w in wifiScan
+        (box :class "barspacer" :space-evenly false
+          (eventbox :hexpand true :class "btns-bar ${w.connected == true ? "active enabled": "enabled"}"
+            (box :space-evenly false :hexpand true
+              (box :space-evenly false
+                 (_StrengthLabel :strength "${w.Strength}")
+                 (label :yalign 1 :text "${w.Frequency > 5000 ? "󰩯" :
+                                            w.Frequency > 4000 ? "󰜔" :
+                                            w.Frequency > 3000 ? "󰜓" : "󰜒"}"))
+              (box :space-evenly false :halign "end" :hexpand true
+                  (_wifiCode :connected "${w.connected}")
+                  (label :text "${w.SSID} ")))))))))
+
+(defwidget _StrengthLabel [strength]
+  (label
+    :text {strength > 70 ? '󰤨':
+           strength > 50 ? '󰤥':
+           strength > 35 ? '󰤟': 
+           strength > 20 ? '󰤯': "󰤮"}
+    :class "baricon pushleft ${strength > 70 ? 'blue' :
+                          strength > 50 ? 'green' :
+                          strength > 35 ? 'yellow' :
+                          strength > 20 ? 'orange' : 'red'}"))
+
+(defwidget _wifiCode [connected]
+  (label 
+    :visible connected
+    :text "${wlan-monitor.state == 10 ? "Not Managed By NetworkManager: Unsupported":
+                wlan-monitor.state == 20 ? "Wireless Dsiabled" :
+                wlan-monitor.state == 30 ? "Not Connected to Network" :
+                wlan-monitor.state == 40 ? "Preparing to connect to Network" :
+                wlan-monitor.state == 50 ? "Configuring connection to Network" :
+                wlan-monitor.state == 60 ? "Authentication to Network Required" :
+                wlan-monitor.state == 70 ? "Getting IP configuration" :
+                wlan-monitor.state == 80 ? "Checking IP Connectivity" :
+                wlan-monitor.state == 90 ? "Waiting for secondary connections" :
+                wlan-monitor.state == 100 ? "Fully Connected and active" :
+                wlan-monitor.state == 110 ? "Disconnecting from Network" :
+                wlan-monitor.state == 120 ? "Connection to Network Failed!" :
+                wlan-monitor.state == 0 ? "Returned in error. D-Bus Failure!" : "Unknown State!"} - "))
+  

@@ -1,0 +1,29 @@
+;; Comiled C
+(deflisten workspaces :initial "[]"
+  "~/.config/eww/bin/workspace_list")
+
+(deflisten current_workspace :initial "1"
+  "~/.config/eww/bin/workspace_focus")
+
+;; Bash Scripts (Archived)
+; (deflisten workspaces :initial "[]"
+  ; "/usr/bin/sh ~/.config/eww/scripts/Archives/get-workspaces")
+
+; (deflisten current_workspace :initial "1"
+  ; "/usr/bin/sh ~/.config/eww/scripts/Archives/get-workspace-active")
+
+(defwidget _workspaces []
+  (box
+    :class "workspaces-widget"
+    :space-evenly true
+    (label
+      :text "${workspaces}${current_workspace}"
+      :visible false)
+    (for workspace in workspaces
+      (eventbox
+        :tooltip "${workspace.id}"
+        :onclick "hyprctl dispatch workspace ${workspace.id}"
+        (box
+          :class "workspace ${workspace.id == current_workspace ? "current" : ""} ${workspace.windows > 0 ? "occupied" : "empty"}"
+          (label
+           :text "${workspace.id == current_workspace ? " " : " "}"))))))

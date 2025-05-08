@@ -1,0 +1,162 @@
+/* Copyright © 2025, LurkAndLoiter and contributors.
+ *
+ * This file is part of LurkAndLoiter's eww config.
+ *
+ * LurkAndLoiter's eww is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or (at your 
+ * option) any later version.
+ *
+ * This is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with playerctl If not, see <http://www.gnu.org/licenses/>.
+*/
+
+// dependencies for compilation 'json-c'
+// gcc -o workspace_list workspace_list.c -ljson-c
+// ./workspace_list > output.log 2> debug.log
+#include <json-c/json.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+
+#define MAX_WORKSPACES 6
+#define BUFFER_SIZE 1024
+
+// Function to get workspace information
+void print_workspaces() {
+  // Execute hyprctl command and capture output
+  FILE *fp = popen("hyprctl workspaces -j", "r");
+  if (!fp) {
+    perror("popen failed");
+    return;
+  }
+
+  // Read the JSON output
+  char buffer[BUFFER_SIZE];
+  size_t bytes_read;
+  char *json_str = NULL;
+  size_t total_size = 0;
+
+  while ((bytes_read = fread(buffer, 1, BUFFER_SIZE - 1, fp)) > 0) {
+    buffer[bytes_read] = '\0';
+    json_str = realloc(json_str, total_size + bytes_read + 1);
+    memcpy(json_str + total_size, buffer, bytes_read);
+    total_size += bytes_read;
+    json_str[total_size] = '\0';
+  }
+  pclose(fp);
+
+  if (!json_str) {
+    printf("Failed to read hyprctl output\n");
+    return;
+  }
+
+  // Parse JSON
+  json_object *root = json_tokener_parse(json_str);
+  if (!root) {
+    printf("Failed to parse JSON\n");
+    free(json_str);
+    return;
+  }
+
+  // Create workspace windows object similar to jq processing
+  json_object *workspace_windows = json_object_new_object();
+  int len = json_object_array_length(root);
+  for (int i = 0; i < len; i++) {
+    json_object *obj = json_object_array_get_idx(root, i);
+    json_object *id = json_object_object_get(obj, "id");
+    json_object *windows = json_object_object_get(obj, "windows");
+    char id_str[16];
+    snprintf(id_str, sizeof(id_str), "%d", json_object_get_int(id));
+    json_object_object_add(workspace_windows, id_str, json_object_get(windows));
+  }
+
+  // Generate output for workspaces 1-6
+  json_object *output = json_object_new_array();
+  for (int i = 1; i <= MAX_WORKSPACES; i++) {
+    char id_str[16];
+    snprintf(id_str, sizeof(id_str), "%d", i);
+    json_object *entry = json_object_new_object();
+    json_object_object_add(entry, "id", json_object_new_string(id_str));
+
+    json_object *win_count = json_object_object_get(workspace_windows, id_str);
+    int windows = win_count ? json_object_get_int(win_count) : 0;
+    json_object_object_add(entry, "windows", json_object_new_int(windows));
+
+    json_object_array_add(output, entry);
+  }
+
+  // Print compact JSON
+  printf("%s\n",
+         json_object_to_json_string_ext(output, JSON_C_TO_STRING_PLAIN));
+  fflush(stdout);
+
+  // Cleanup
+  json_object_put(root);
+  json_object_put(workspace_windows);
+  json_object_put(output);
+  free(json_str);
+}
+
+int main() {
+  // Get required environment variables
+  char *xdg_runtime = getenv("XDG_RUNTIME_DIR");
+  char *hyprland_instance = getenv("HYPRLAND_INSTANCE_SIGNATURE");
+  if (!xdg_runtime || !hyprland_instance) {
+    fprintf(stderr, "Required environment variables not set\n");
+    return 1;
+  }
+
+  // Construct socket path
+  char socket_path[256];
+  snprintf(socket_path, sizeof(socket_path), "%s/hypr/%s/.socket2.sock",
+           xdg_runtime, hyprland_instance);
+
+  // Create UNIX socket
+  int sock = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (sock < 0) {
+    perror("socket creation failed");
+    return 1;
+  }
+
+  struct sockaddr_un addr;
+  memset(&addr, 0, sizeof(addr));
+  addr.sun_family = AF_UNIX;
+  strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
+
+  // Connect to socket
+  if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+    perror("socket connect failed");
+    close(sock);
+    return 1;
+  }
+
+  // Initial workspace print
+  print_workspaces();
+
+  // Main event loop
+  char buffer[BUFFER_SIZE];
+  while (1) {
+    ssize_t bytes = read(sock, buffer, BUFFER_SIZE - 1);
+    if (bytes <= 0) {
+      if (bytes == 0) {
+        printf("Socket closed\n");
+      } else {
+        perror("socket read failed");
+      }
+      break;
+    }
+    buffer[bytes] = '\0';
+    print_workspaces();
+  }
+
+  close(sock);
+  return 0;
+}

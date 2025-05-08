@@ -1,0 +1,118 @@
+;; Compiled C
+(deflisten bt-active :initial ""
+  `~/.config/eww/bin/bt_active`)
+
+(deflisten bt-devices :initial ""
+  `~/.config/eww/bin/bt_devices`)
+
+; (deflisten bt-active :initial ""
+  ; `/usr/bin/sh ~/.config/eww/scripts/Archives/get-bluetooth-active`)
+
+; (deflisten bt-devices :initial ""
+  ; `/usr/bin/sh ~/.config/eww/scripts/Archives/get-bluetooth-devices`)
+
+(defwidget _btButton []
+  (box 
+    (button 
+      ; :onclick `eww update MiscVars='${jq(MiscVars, '.menu = ""')}' && eww open --toggle btPanel`
+      :onclick `eww open --toggle btPanel`
+      :onrightclick "bluetoothctl power ${bt-active == 1 ? "off" : "on"}"
+      (label 
+                :text "${bt-active == 1 ? "󰂯" : "󰂲"}"
+                :class "${bt-active == 1 ? "blue" : "disabled"}"))))
+
+(defwindow btPanel
+  :monitor 1
+  :stacking "fg"
+  :geometry (geometry
+              :width 500
+              :anchor "top right")
+  (eventbox
+    :onhover 'eww update hover_state="btPanel"'
+    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh btPanel &'
+    (box
+      :class "window"
+      :space-evenly false 
+      :orientation "v"
+      (_bluetooth))))
+
+(defwidget _bluetooth []
+  (box 
+    :orientation "v"
+    :space-evenly false
+    (label 
+      :text "${bt-devices}${bt-active}${bluetoothhov}"
+      :visible false
+      :show-truncated false
+      :wrap true)
+    (box 
+      :class "btns-box"
+      :halign "center"
+      (button
+        :width 75
+        :height 75
+        :onclick "bluetoothctl power ${bt-active == 1 ? "off" : "on" }"
+        :class "${bt-active == 1 ? "active" : "inactive"}"
+        (image 
+          :image-height 42
+          :path "/home/hermit/.local/share/icons/catppuccin-icons/scalable/status/bluetooth-${bt-active == 1 ? "active" : "disabled"}.svg")))
+        ; (label :text "${bt-active == 0 ? "󰂯" : "󰂲"}")))
+    (for device in bt-devices
+      (box :class "barspacer"
+        (eventbox 
+          :class "btns-bar${device.Connected =="true" ? " active" : ""} ${bt-active == 0 ? " disabled" : " enabled"}"
+          :onclick "bluetoothctl ${device.Connected == "true" ? "disconnect" : "connect"} ${device.id}"
+          :onrightclick `eww update bluetoothhov="${device.id}"`
+          :onhoverlost `eww update bluetoothhov=""`
+          ; (stack
+            ; :selected {bluetoothhov == "${device.id}" ? 1 : 0}
+            ; :transition "slideleft"
+            ; :same-size true
+          (box
+              :space-evenly false
+              :spacing 10
+              :class "btns-bar-box"
+              (image
+                :class "baricon"
+                :image-height 32
+                :path "/home/hermit/.local/share/icons/catppuccin-icons/scalable/devices/${device.Icon}.svg")
+              (label 
+                :xalign 0 
+                :hexpand true 
+                :text "${device.Name}")
+              (box :orientation "v" :space-evenly false
+                (image 
+                  :halign "center"
+                  :image-height 32
+                  :path "/home/hermit/.local/share/icons/catppuccin-icons/scalable/status/battery-${
+                   device.Battery == "" ? "missing" :
+                   device.Battery > 79 ? "full" : 
+                   device.Battery > 59 ? "good" :
+                   device.Battery > 39 ? "low" :
+                   device.Battery > 19 ? "caution" : "empty"}.svg")
+;            (label 
+;               :xalign 1 
+;               :text {device.Battery == "" ? "" :
+;                       device.Battery > 79 ? " " :
+;                       device.Battery > 59 ? " " :
+;                       device.Battery > 39 ? " " :
+;                       device.Battery > 19 ? " " : " "}
+;               :class {device.Battery == "" ? "disabled" :
+;                         device.Battery > 79 ? "blue" :
+;                         device.Battery > 59 ? "green" :
+;                         device.Battery > 39 ? "yellow" :
+;                         device.Battery > 19 ? "orange" : "red"})))))))
+                (label 
+                  :yalign 1
+                  :xalign 0.5
+                  :text "${device.Battery == "null" ? "" : "${device.Battery}%"}"))
+              (box :orientation "v"
+                (label
+                  :text "${device.Paired == true ? "󰯄": "󰯅"}"
+                  :class "${device.Paired == true ? "green": "red"}")
+                (label
+                  :text "${device.Trusted == true ? "": ""}"
+                  :class "${device.Trusted == true ? "green": "red"}"))))))))
+
+
+(defvar bluetoothhov "")

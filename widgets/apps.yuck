@@ -1,0 +1,71 @@
+(defpoll listOfApplications 
+  :interval "10s" 
+  '/bin/bash ~/.config/eww/scripts/test.sh')
+
+;(defwidget _applications []
+;  (eventbox 
+;    :hexpand true 
+;    :class "btns-bar"
+;    :onclick 'eww update searchString=""'
+;      (input
+;        :class "search-box"
+;        :value searchString)) 
+;
+;(defvar searchString "Search...")
+
+;(defwidget _applications []
+;  (scroll 
+;    :vscroll true
+;    :hscroll false
+;    :vexpand true
+;    :max-width 300
+;    ; :height 500
+;    :show-truncated false
+;    :wrap true
+;    (box :orientation "h" :halign "start" :space-evenly false
+;      (label
+;        :text "${listOfApplications}"
+;        :visible false
+;        :show-truncated false
+;        :wrap true)
+;      (for app in listOfApplications
+;        (box
+;          :class "btns-box" 
+;          (button 
+;            :tooltip "${app.Exec},${app.Name} - ${app.Tooltip}" 
+;            :onclick "${app.Exec} &"
+;            (image :halign "start" :icon "${app.Icon}" :icon-size "dialog")))))))
+
+(defwidget _applications []
+  (scroll 
+    :vscroll true
+    :hscroll false
+    :vexpand true
+    (box 
+      :orientation "v"
+      :space-evenly false
+      (box :space-evenly false
+         (image
+           :path "/usr/share/icons/hicolor/128x128/apps/CMakeSetup.png"
+           :image-width 50 
+           :image-height 50)
+         (image
+           :path "/usr/share/icons/hicolor/256x256/apps/discord.png"
+           :image-width 50 
+           :image-height 50))
+      (for row in listOfApplications
+        (box 
+          :orientation "h"
+          :halign "start"
+          :space-evenly false
+          (for app in row
+            (box
+              :class "btns-box"
+              (button 
+                :tooltip "${app.Name}"
+                :onclick "${app.Exec} &"
+                (image 
+                  :halign "center"
+                  :valign "center"
+                  :icon "${app.Icon}" 
+                  :icon-size "dialog")))))))))

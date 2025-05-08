@@ -1,0 +1,68 @@
+;; Comiled C
+(deflisten audioMonitors
+  `~/.config/eww/bin/audio_in`)
+
+;; Bash Scripts (Archived)
+; (deflisten audioMonitors
+  ; `/usr/bin/bash ~/.config/eww/scripts/Archives/get-audio-sources`)
+
+(defwidget _micButton []
+  (box 
+    (label
+      :text "${audioMonitors}"
+      :visible false
+      :show-truncated false
+      :wrap true)
+    (button 
+      ; :tooltip "${jq(audioMonitors, ".[] | select(.default == true) | .volume")}"
+      :onclick "eww open --toggle micPanel"
+      :onrightclick "pactl set-source-mute ${jq(audioMonitors, ".[] | select(.default == true) | .source")} toggle"
+      (label 
+        :text "${jq(audioMonitors, '.[] | select(.default == true) | (.state != "suspended" and .mute == "no")') == true ? "󰍬" : "󰍭"}"
+        :class "${jq(audioMonitors, '.[] | select(.default == true) | (.state != "suspended" and .mute == "no")') == true ? "red" : "inactive"}"))))
+
+(defwindow micPanel
+  :monitor 1
+  :stacking "fg"
+  :geometry (geometry
+              :width 500
+              :anchor "top right")
+  (eventbox
+    :onhover 'eww update hover_state="micPanel"'
+    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh micPanel &'
+    (box
+      :class "window"
+      :space-evenly false 
+      :orientation "v"
+      (_microphone))))
+
+(defwidget _microphone []
+  (box 
+    :space-evenly false
+    :orientation "v"
+    (label 
+      :text "${audioMonitors}"
+      :visible false
+      :show-truncated false
+      :wrap true)
+    (for source in audioMonitors
+      (box 
+        :class "barspacer"
+        :visible "${matches(source.name, "^Monitor of ") == true ? false : true}"
+         (eventbox
+           :class 'btns-bar${source.state == "suspended" ? " disabled" : " enabled"} ${source.default == true ? " active": ""}'
+           (box :hexpand true :space-evenly false 
+             (image
+               :class "pushright"
+               :halign "start" 
+               :icon {source.icon} 
+               :icon-size "dialog")
+             (label 
+               :class "pushright pushleft"
+               :hexpand true 
+               :xalign 0 
+               :text {source.name})
+             (label 
+               :class 'pushleft${source.mute == "no" ? "" : " red"}'
+               :xalign 1 
+               :text {source.volume})))))))

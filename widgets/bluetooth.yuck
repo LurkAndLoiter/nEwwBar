@@ -61,7 +61,7 @@
       (box :class "barspacer"
         (eventbox 
           :class "btns-bar${device.Connected =="true" ? " active" : ""} ${bt-active == 0 ? " disabled" : " enabled"}"
-          :onclick "bluetoothctl ${device.Connected == "true" ? "disconnect" : "connect"} ${device.id}"
+          :onclick "bluetoothctl ${device.Connected == "true" ? "dis" : ""}connect ${device.id}"
           :onrightclick `eww update bluetoothhov="${device.id}"`
           :onhoverlost `eww update bluetoothhov=""`
           ; (stack
@@ -107,12 +107,16 @@
                   :xalign 0.5
                   :text "${device.Battery == "null" ? "" : "${device.Battery}%"}"))
               (box :orientation "v"
-                (label
-                  :text "${device.Paired == true ? "󰯄": "󰯅"}"
-                  :class "${device.Paired == true ? "green": "red"}")
-                (label
-                  :text "${device.Trusted == true ? "": ""}"
-                  :class "${device.Trusted == true ? "green": "red"}"))))))))
+                (eventbox
+                  :onclick "bluetoothctl remove ${device.id}"
+                  (label
+                    :text "${device.Paired == true ? "󰯄": "󰯅"}"
+                    :class "pushleft ${device.Paired == true ? "green": "red"}"))
+                (eventbox
+                  :onclick "bluetoothctl ${device.Trusted == true ? 'un' : '' }trust ${device.id}"
+                  (label
+                    :text "${device.Trusted == true ? "󰯄": "󰯅"}"
+                    :class "pushleft ${device.Trusted == true ? "green": "red"}")))))))))
 
 
 (defvar bluetoothhov "")

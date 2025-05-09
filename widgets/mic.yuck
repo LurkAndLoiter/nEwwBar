@@ -6,7 +6,7 @@
 ; (deflisten audioMonitors
   ; `/usr/bin/bash ~/.config/eww/scripts/Archives/get-audio-sources`)
 
-(defwidget _micButton []
+(defwidget micButton []
   (box 
     (label
       :text "${audioMonitors}"
@@ -34,9 +34,9 @@
       :class "window"
       :space-evenly false 
       :orientation "v"
-      (_microphone))))
+      (microphone))))
 
-(defwidget _microphone []
+(defwidget microphone []
   (box 
     :space-evenly false
     :orientation "v"
@@ -55,8 +55,8 @@
              (image
                :class "pushright"
                :halign "start" 
-               :icon {source.icon} 
-               :icon-size "dialog")
+               :path "./assets/icons/audio-${source.icon == "audio-headset-bluetooth" ? "earbuds" : "input-microphone"}.svg"
+               :image-height 42)
              (label 
                :class "pushright pushleft"
                :hexpand true 

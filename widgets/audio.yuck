@@ -12,7 +12,7 @@
 ; (deflisten audio-sinks :initial ""
   ; `/usr/bin/bash ~/.config/eww/scripts/Archives/get-audio-sinks`) 
 
-(defwidget _audioButton []
+(defwidget audioButton []
   (box 
     (button :onclick "eww open --toggle audioPanel" " ")))
 
@@ -29,10 +29,10 @@
       :class "window"
       :space-evenly false 
       :orientation "v"
-      (_audioDevices)
-      (_audioSources))))
+      (audioDevices)
+      (audioSources))))
 
-(defwidget _audioDevices []
+(defwidget audioDevices []
   (box 
     :space-evenly false
     (label
@@ -50,7 +50,7 @@
             :width 75
             :height 75
             (image 
-              :path "/home/hermit/.local/share/icons/catppuccin-icons/scalable/devices/${s.icon == "audio-headset-bluetooth" ? "audio-earbuds" : s.icon == "audio-speakers" ? "audio-speakers" : "media-tape"}.svg"
+              :path "./assets/icons/${s.icon == "audio-headset-bluetooth" ? "audio-earbuds" : s.icon == "audio-speakers" ? "audio-speakers" : "media-tape"}.svg"
               :image-height 42)))
                 ; (label :text "${s.icon == "audio-earbuds" ? "󱡏" :
                                 ; s.icon == "audio-card-analog-pci" ? "󰓃" : "?"}"))))
@@ -68,15 +68,15 @@
               :min 0 
               :max 101
               :value "${s.volume}"
-              :onchange "~/.config/eww/scripts/set-volume ${s.id} {}"))
+              :onchange "./scripts/set-volume ${s.id} {}"))
           (box :class "media-buttons"
             :space-evenly false
             :spacing 1
             (button :halign "start" :onclick "wpctl set-mute ${s.id} toggle" 
-              (image :image-height 24 :path "/home/hermit/.local/share/icons/catppuccin-icons/scalable/status/notification-audio-volume-${s.mute == "yes" ? "muted" : "high"}.svg"))))))))
+              (image :image-height 24 :path "./assets/icons/notification-audio-volume-${s.mute == "yes" ? "muted" : "high"}.svg"))))))))
 
 
-(defwidget _audioSources []
+(defwidget audioSources []
   (box 
     (label
       :text "${audio-sources} ${audio-sinks}"
@@ -101,7 +101,7 @@
               :spacing 10
               (box
                 :halign "start"
-                (image :image-height 100 :path "${matches(p.title, " - Twitch$") == true ? "/home/hermit/.config/eww/assets/TwitchLogo.png" : p.artUrl}"))
+                (image :image-height 100 :path "${matches(p.title, " - Twitch$") == true ? "./assets/TwitchLogo.png" : p.artUrl}"))
               (box 
                 :class "footer"
                 :hexpand true
@@ -180,6 +180,7 @@
               :class "footer"
               (playerVolume
                 :pvol "${p.volume}"
+                :pmute "${p.mute}"
                 :targetID "${p.id}"
                 :sinkID "${p.sinkID}"
                 :serial "${p.serial}"
@@ -190,14 +191,16 @@
                 :halign "end" 
                 :text "${p.DesktopEntry}"))))))))
 
-(defwidget playerVolume [pvol targetID sinkID serial switch]
+(defwidget playerVolume [pvol pmute targetID sinkID serial switch]
   (box
     :hexpand true
-    :halign _scale_exp
+    :halign scale_exp
     :space-evenly false
     :visible "${targetID == "null" ? false : true}"
     (box 
-      :halign "start"
+      :halign "start" 
+      :valign 0.5 
+      :visible "${arraylength(audio-sinks) > 1 ? true : false}"
       (for s in audio-sinks
         (button
           :onclick "pactl move-sink-input ${serial} ${s.sink}"
@@ -206,25 +209,29 @@
           (label :text "${s.icon == "audio-speakers" ? "󰓃" :
                           s.icon == "audio-headset-bluetooth" ? "󱡏 " : "?"}"))))
     (eventbox
-      :onhover 'eww update _playerVolume=true && eww update _scale_exp="fill"'
-      :onhoverlost 'eww update _playerVolume=false && eww update _scale_exp="start"'
+      :onhover 'eww update playerVol=true && eww update scale_exp="fill"'
+      :onhoverlost 'eww update playerVol=false && eww update scale_exp="start"'
         (box
           :space-evenly false
-          :class "pushdown pushright"
-          (label :text pvol)
+          (eventbox
+            :onclick 'wpctl set-mute ${targetID} toggle'
+            (box :space-evenly false :valign 0.5
+              (image :class "pushright" :image-height 16 :path "./assets/icons/notification-audio-volume-${pmute == "true" ? "muted" : "high"}.svg")
+              (label 
+                :class "${pmute == true ? "red" : ""}"
+                :text pvol)))
           (revealer
             :transition "slideleft"
-            :reveal "${_playerVolume == true ? "${playerhov == switch ? true : false}": false}"
+            :reveal "${playerVol == true ? "${playerhov == switch ? true : false}": false}"
             :duration "1000ms"
             (scale
-              :class "low-vis pushdown pushleft pushright"
-              :vexpand true
+              :class "low-vis pushleft pushright pushdown"
               :width 150
               :value pvol
               :onchange "./scripts/set-volume ${targetID} {}"
               :max 101
               :min 0))))))
 
-(defvar _playerVolume false)
-(defvar _scale_exp "start")
+(defvar playerVol false)
+(defvar scale_exp "start")
 (defvar playerhov "")

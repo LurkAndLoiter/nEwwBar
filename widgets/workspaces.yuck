@@ -12,7 +12,7 @@
 ; (deflisten current_workspace :initial "1"
   ; "/usr/bin/sh ~/.config/eww/scripts/Archives/get-workspace-active")
 
-(defwidget _workspaces []
+(defwidget workspaces []
   (box
     :class "workspaces-widget"
     :space-evenly true

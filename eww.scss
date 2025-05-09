@@ -217,14 +217,11 @@ label {
 }
 
 trough highlight {
-  // NOLINT(selector-type-unknown)
   background-image: linear-gradient(to right, $Mauve 30%, $Red 100% * 50);
   border-radius: 4px;
 }
 
 scale trough {
-  // NOLINT(selector-type-unknown)
-  all: unset;
   background-color: rgba($Surface2, 1);
   box-shadow: 0 1px 2px 1px #06060b;
   border-radius: 9px;
@@ -233,20 +230,7 @@ scale trough {
   margin: 0 0 7px;
 }
 
-.pushright {
-  margin-left: 7px;
-}
-
-.pushleft {
-  margin-right: 7px;
-}
-
-.pushdown {
-  margin-top: 3.5px;
-}
-
 slider {
-  // NOLINT(selector-type-unknown)
   border-radius: 10px;
   background-color: #d8dee9;
   margin: -7px;
@@ -254,19 +238,14 @@ slider {
 
 .inactive {
   slider {
-    // NOLINT(selector-type-unknown)
     all: unset;
-
-    /* background-color: $inactive; */
   }
 
   trough highlight {
-    // NOLINT(selector-type-unknown)
     all: unset;
   }
 
   scale trough {
-    // NOLINT(selector-type-unknown)
     background-color: rgb(255 0 0 / 100%);
   }
 }
@@ -275,12 +254,10 @@ slider {
   color: $inactive;
 
   slider {
-    // NOLINT(selector-type-unknown)
     background-color: $inactive;
   }
 
   trough highlight {
-    // NOLINT(selector-type-unknown)
     background-image: linear-gradient(
       to right,
       rgba($Mauve, 0.5) 30%,
@@ -317,6 +294,18 @@ menu {
   button {
     font-size: 2em;
   }
+}
+
+.pushright {
+  margin-left: 7px;
+}
+
+.pushleft {
+  margin-right: 7px;
+}
+
+.pushdown {
+  margin-top: 3.5px;
 }
 
 .media {

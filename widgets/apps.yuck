@@ -36,7 +36,7 @@
 ;            :onclick "${app.Exec} &"
 ;            (image :halign "start" :icon "${app.Icon}" :icon-size "dialog")))))))
 
-(defwidget _applications []
+(defwidget applications []
   (scroll 
     :vscroll true
     :hscroll false

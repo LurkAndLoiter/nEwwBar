@@ -44,19 +44,19 @@
       (box
         :halign "center"
         :spacing 5
-        (_workspaces))
+        (workspaces))
       (box
         :halign "end"
         :spacing 5
         :space-evenly false
-        (_audioButton)
-        (_micButton)
-        (_btButton)
-        (_wifiButton)
+        (audioButton)
+        (micButton)
+        (bluetoothButton)
+        (wifiButton)
         (label :text "  ")
         (button :onclick "eww open --toggle rightPanel"
           (label :class "bar-date" :xalign 1 :markup "${formattime(EWW_TIME, '<span size="12pt"><i>%a %d %b %Y</i></span> <b>%H:%M</b>')}"))
-        (_powerButton)))))
+        (powerButton)))))
 
 
 (defwindow leftPanel
@@ -93,7 +93,7 @@
               :class "orange"
               :text "󰈹"))
           (button :onclick "steam-runtime &" "󰓓"))
-        (_applications)))))
+        (applications)))))
 
 
 (defwindow rightPanel
@@ -116,12 +116,12 @@
           ; :vexpand true
           :orientation "v"
           :space-evenly false
-          (_audioDevices)
-          (_audioSources)
+          (audioDevices)
+          (audioSources)
           (Spacer))
-          ; (_bluetooth)
+          ; (bluetooth)
           ; (Spacer)
-          ; (_wifi))
+          ; (wifi))
         (box 
           :valign "start"
           :orientation "v"
@@ -140,13 +140,13 @@
             :selected networkIndex
             :transition "${networkIndex == 0 ? "slideleft": "slideright"}"
             :samesize true
-            (_bluetooth)
-            (_wifi)))
+            (bluetooth)
+            (wifi)))
         (box 
           :valign "end"
           :orientation "v"
           :space-evenly false
-          (_power))))))
+          (power))))))
 
 (defvar networkIndex 0)
 

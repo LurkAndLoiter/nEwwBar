@@ -43,6 +43,7 @@ typedef struct {
   char *id;
   char *serial;
   int volume;
+  int mute;
 } Player;
 
 // Sink cache structure
@@ -135,6 +136,7 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
 
       uint32_t volume = pa_cvolume_avg(&i->volume);
       players[j].volume = (volume * 100 + PA_VOLUME_NORM / 2) / PA_VOLUME_NORM;
+      players[j].mute = i->mute;
       break;
     }
   }
@@ -549,8 +551,8 @@ char *build_json(DBusConnection *conn) {
     char *serial_escaped = json_escape(players[i].serial ? players[i].serial : "null");
     pos += snprintf(
         buffer + pos, 8192 - pos,
-        "\"sinkID\": \"%s\", \"id\": \"%s\", \"serial\": \"%s\", \"volume\": %d}",
-        sink_id_escaped, id_escaped, serial_escaped, players[i].volume);
+        "\"sinkID\": \"%s\", \"id\": \"%s\", \"serial\": \"%s\", \"volume\": %d, \"mute\": %s}",
+        sink_id_escaped, id_escaped, serial_escaped, players[i].volume, players[i].mute ? "true" : "false");
     free(sink_id_escaped);
     free(id_escaped);
     free(serial_escaped);
@@ -691,6 +693,7 @@ static void reset_pulseaudio_data() {
     free(players[i].serial);
     players[i].serial = NULL;
     players[i].volume = 0;
+    players[i].mute = 0;
   }
 }
 

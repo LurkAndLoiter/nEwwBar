@@ -12,7 +12,7 @@
 ; (deflisten net-strength :initial ""
   ; `/usr/bin/sh ~/.config/eww/scripts/Archives/get-wlan-strength`)
 
-(defwidget _wifiButton []
+(defwidget wifiButton []
   (box 
     (button 
       :onclick "eww open --toggle wifiPanel"
@@ -48,15 +48,15 @@
       :class "window"
       :space-evenly false 
       :orientation "v"
-      (_wifi))))
+      (wifi))))
 
 
-(defwidget _wifi []
+(defwidget wifi []
   (box 
     :orientation "v"
     :space-evenly false
     (button :onclick "nmcli device wifi rescan ifname wlan0" 
-      (label :halign "end" :hexpand true :class "baricon" :text ""))
+      (label :halign "end" :hexpand true :class "baricon pushleft" :text ""))
     (box :orientation "v"
       (for w in wifiScan
         (box :class "barspacer" :space-evenly false
@@ -77,7 +77,7 @@
            strength > 50 ? '󰤥':
            strength > 35 ? '󰤟': 
            strength > 20 ? '󰤯': "󰤮"}
-    :class "baricon pushleft ${strength > 70 ? 'blue' :
+    :class "baricon pushright pushleft ${strength > 70 ? 'blue' :
                           strength > 50 ? 'green' :
                           strength > 35 ? 'yellow' :
                           strength > 20 ? 'orange' : 'red'}"))

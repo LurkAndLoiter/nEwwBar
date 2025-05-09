@@ -1,4 +1,4 @@
-(defwidget _powerButton []
+(defwidget powerButton []
  (box 
    (button :onclick "eww open --toggle powerPanel" "󰐥")))
 
@@ -13,9 +13,9 @@
     :class "window"
     :space-evenly false
     :orientation "v"
-    (_power)))
+    (power)))
 
-(defwidget _power []
+(defwidget power []
   (eventbox
     :onhover 'eww update hover_state="powerPanel"'
     :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh powerPanel &'

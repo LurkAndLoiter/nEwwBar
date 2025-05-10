@@ -1,17 +1,51 @@
 (defpoll paclog 
-  :interval "10s" 
-  '/bin/bash ~/.config/eww/scripts/PacLog.sh')
+  :interval "30s"
+  '~/.config/eww/scripts/PacLog.sh')
 
-;(defwidget _applications []
-;  (eventbox 
-;    :hexpand true 
-;    :class "btns-bar"
-;    :onclick 'eww update searchString=""'
-;      (input
-;        :class "search-box"
-;        :value searchString)) 
-;
-;(defvar searchString "Search...")
+(defwidget pacmanButton []
+  (eventbox
+    :onclick `eww open --toggle pacmanPanel`
+    :onhover "eww update hoverPacDots=true & eww update hoverPacman=true"
+    :onhoverlost "./scripts/hoverPac.sh &"
+    (box :space-evenly false
+      :tooltip "Package panel"
+      ; (image :path "./assets/pacman.gif")
+      (image :image-height 18 :path "./assets/pacman${hoverPacman == false ? ".svg" : ".gif"}")
+      ; (image :image-height 18 :path "./assets/pacmanWide.svg")
+      (revealer
+        :transition "slideright"
+        :reveal "${hoverPacDots}"
+        :duration "1000ms"
+        (label :text "")
+      )
+    )
+  )
+)
+
+(defvar hoverPacDots false)
+(defvar hoverPacman false)
+
+(defwindow pacmanPanel
+  :monitor 1
+  :stacking "fg"
+  :geometry (geometry
+              :anchor "top right"
+              :height "100%"
+              :width 500
+              :vexpand true)
+  (eventbox 
+    :onhover 'eww update hover_state="pacmanPanel"'
+    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh pacmanPanel &'
+    (box :class "window right"
+      (box 
+        :orientation "v"
+        :space-evenly false
+        (image :image-height 90 :path "./assets/pacmanWide.svg")
+        (pacmanLog)
+      )
+    )
+  )
+)
 
 (defwidget pacmanLog []
   (scroll 
@@ -21,13 +55,45 @@
     (box 
       :orientation "v"
       :space-evenly false
-      (label :wrap false :text "${paclog}")
+      :spacing 5
       (for event in paclog
         (box 
-          :orientation "h"
-          :halign "start"
+          :hexpand true
+          :orientation "v"
           :space-evenly false
-          (label :text "${event.command}")
-          (for package in event
-            (bow 
-              (label :text "${package.name}"))))))))
+          (label :class "purple" :halign "start" :text "${event.command}")
+          (box
+            :class "panel"
+            :orientation "v"
+            (label 
+              :class "yellow" 
+              :halign "end" 
+              :text "${substring(event.transaction, 1,10)} @ ${substring(event.transaction, 12,8)}"
+            )
+            (label :text "") ;blank line spacer
+            (box
+              (label :halign "start" :text "Package")
+              (label :halign "end" :text "Version")
+            )
+            (for pack in "${event.packages}"
+              (box :hexpand true :space-evenly false
+                (label 
+                  :text "${pack.name}" 
+                  :halign "start"
+                  :class "${pack.change == "upgraded" ? "yellow" :
+                            pack.change == "installed" ? "green" :
+                            "red"}";<- pack.change == "removed"
+                )
+                (label 
+                  :text "${pack.version}"
+                  :hexpand true
+                  :halign "end"
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)

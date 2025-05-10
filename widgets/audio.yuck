@@ -13,8 +13,19 @@
   ; `/usr/bin/bash ~/.config/eww/scripts/Archives/get-audio-sinks`) 
 
 (defwidget audioButton []
-  (box 
-    (button :onclick "eww open --toggle audioPanel" " ")))
+  (button 
+    :tooltip 
+`Audio panel:
+Right click Mute
+Left click open/close panel`
+    :onclick "eww open --toggle audioPanel"
+    :onrightclick "wpctl set-mute @DEFAULT_SINK@ toggle"
+    (label 
+      :text "${jq(audio-sinks, '.[] | select(.default == true) | (.mute == "no")') == true ? " " : " "}"
+      :class "${jq(audio-sinks, '.[] | select(.default == true) | (.mute == "no")') == true ? "" : "red"}")
+    ; (label :text " ")
+  )
+)
 
 (defwindow audioPanel
   :monitor 1

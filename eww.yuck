@@ -50,6 +50,7 @@
         :halign "end"
         :spacing 5
         :space-evenly false
+        (pacmanButton)
         (audioButton)
         (micButton)
         (bluetoothButton)
@@ -75,33 +76,13 @@
     (box 
       :class "window left"
       (box 
-        ; :class "panel"
         :orientation "v"
         :space-evenly false
-        (box 
-          :valign "start"
-          :class "btns-box"
-          (button :onclick "spotify-launcher --skip-update &" "")
-          (button :onclick "betterbird &" "󰇮")
-          (button 
-            :onclick "firefox -P Personal &" 
-            (label 
-              :class "green"
-              :text "󰈹"))
-          (button 
-            :onclick "firefox -P Stock &" 
-            (label 
-              :class "orange"
-              :text "󰈹"))
-          (button :onclick "steam-runtime &" "󰓓"))
         (applications)
-        (pacmanLog)
-        (label :text "installed" :class "green")
-        (label :text "installed" :class "green")
-        (label :text "neutral" :class "purple")
-        (label :text "noticeme" :class "orange")
-        (label :text "removed" :class "red")
-        (label :text "removed" :class "red")))))
+      )
+    )
+  )
+)
 
 
 (defwindow rightPanel

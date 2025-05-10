@@ -34,6 +34,12 @@ $highlight: $Red;
 
 /* * {background-color: unset;} */
 
+tooltip {
+  background: $Mauve;
+  color:$Base;
+  border-radius: 0.3em;
+}
+
 .blue {
   color: $Blue;
 }
@@ -89,7 +95,7 @@ label {
   min-height: 1px;
   border-radius: 10px;
   background-color: transparent;
-  box-shadow: 0 1px 2px 1px $Text;
+  box-shadow: 0 1px 2px 1px $Mauve;
 }
 
 .bar-expansion {

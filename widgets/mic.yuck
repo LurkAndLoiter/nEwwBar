@@ -8,11 +8,6 @@
 
 (defwidget micButton []
   (box 
-    (label
-      :text "${audioMonitors}"
-      :visible false
-      :show-truncated false
-      :wrap true)
     (button 
       ; :tooltip "${jq(audioMonitors, ".[] | select(.default == true) | .volume")}"
       :onclick "eww open --toggle micPanel"

@@ -14,30 +14,26 @@
 ;(defvar searchString "Search...")
 
 (defwidget applications []
-  (scroll 
-    :vscroll true
-    :hscroll false
-    :vexpand true
-    (box 
-      :orientation "v"
-      :space-evenly false
-      (for row in listOfApplications
-        (box 
-          :orientation "h"
-          :halign "start"
-          :space-evenly false
-          (for app in row
-            (box
-              :space-evenly false
-              :orientation "v"
-              :class "btns-box"
-              (button 
-                :tooltip "${app.Tooltip}"
-                :onclick "${app.Exec} &"
-                (image 
-                  :halign "center"
-                  :valign "center"
-                  :path "${app.Icon}" 
-                  :image-width 50 
-                  :image-height 50))
-              (label :text "${app.Name}"))))))))
+  (box 
+    :orientation "v"
+    :space-evenly false
+    (for row in listOfApplications
+      (box 
+        :orientation "h"
+        :halign "start"
+        :space-evenly false
+        (for app in row
+          (box
+            :space-evenly false
+            :orientation "v"
+            :class "btns-box"
+            (button 
+              :tooltip "${app.Tooltip}"
+              :onclick "${app.Exec} &"
+              (image 
+                :halign "center"
+                :valign "center"
+                :path "${app.Icon}" 
+                :image-width 50 
+                :image-height 50))
+            (label :text "${app.Name}")))))))

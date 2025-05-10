@@ -1,0 +1,33 @@
+(defpoll paclog 
+  :interval "10s" 
+  '/bin/bash ~/.config/eww/scripts/PacLog.sh')
+
+;(defwidget _applications []
+;  (eventbox 
+;    :hexpand true 
+;    :class "btns-bar"
+;    :onclick 'eww update searchString=""'
+;      (input
+;        :class "search-box"
+;        :value searchString)) 
+;
+;(defvar searchString "Search...")
+
+(defwidget pacmanLog []
+  (scroll 
+    :vscroll true
+    :hscroll false
+    :vexpand true
+    (box 
+      :orientation "v"
+      :space-evenly false
+      (label :wrap false :text "${paclog}")
+      (for event in paclog
+        (box 
+          :orientation "h"
+          :halign "start"
+          :space-evenly false
+          (label :text "${event.command}")
+          (for package in event
+            (bow 
+              (label :text "${package.name}"))))))))

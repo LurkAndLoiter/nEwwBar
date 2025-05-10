@@ -5,6 +5,7 @@
 (include "./widgets/mic.yuck")
 (include "./widgets/wifi.yuck")
 (include "./widgets/apps.yuck")
+(include "./widgets/PacLog.yuck")
 
 (defwindow BarMin
   :monitor 1 
@@ -93,7 +94,14 @@
               :class "orange"
               :text "󰈹"))
           (button :onclick "steam-runtime &" "󰓓"))
-        (applications)))))
+        (applications)
+        (pacmanLog)
+        (label :text "installed" :class "green")
+        (label :text "installed" :class "green")
+        (label :text "neutral" :class "purple")
+        (label :text "noticeme" :class "orange")
+        (label :text "removed" :class "red")
+        (label :text "removed" :class "red")))))
 
 
 (defwindow rightPanel

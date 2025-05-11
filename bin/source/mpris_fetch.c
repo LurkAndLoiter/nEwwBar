@@ -203,9 +203,12 @@ void to_hms(dbus_int64_t us, char *hms, size_t hms_size) {
 
   if (hours > 9999) {
     snprintf(hms, hms_size, "\"%lld+ hours\"", hours);
+  } else if (hours > 0) {
+    snprintf(hms, hms_size, "\"%lld:%02lld:%02lld\"", hours, minutes, seconds);
+  } else if (minutes > 0) {
+    snprintf(hms, hms_size, "\"%lld:%02lld\"", minutes, seconds);
   } else {
-    snprintf(hms, hms_size, "\"%02lld:%02lld:%02lld\"", hours, minutes,
-             seconds);
+    snprintf(hms, hms_size, "\"%lld\"", seconds);
   }
 }
 

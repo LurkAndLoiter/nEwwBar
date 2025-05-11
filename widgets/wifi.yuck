@@ -16,23 +16,24 @@
   (box 
     (button 
       :onclick "eww open --toggle wifiPanel"
-      :onrightclick "rfkill toggle wlan" 
-      (label
-        :text {wlan-monitor.state == 20 ? '󰤮':
-                 wlan-monitor.state == 10 ? "":
-                 wlan-monitor.state == 60 ? "󰤬" :
-                 wlan-monitor.state != 100 ? "" :
-                 wlan-monitor.strength > 70 ? '󰤨':
-                 wlan-monitor.strength > 50 ? '󰤥':
-                 wlan-monitor.strength > 35 ? '󰤟': 
-                 wlan-monitor.strength > 20 ? '󰤯': "󰤮"}
-        :class {wlan-monitor.state == 20 ? 'disabled' :
-                 wlan-monitor.state == 60 ? 'red' :
-                 wlan-monitor.state != 100 ? 'purple':
-                 wlan-monitor.strength > 70 ? 'blue' :
-                 wlan-monitor.strength > 50 ? 'green' :
-                 wlan-monitor.strength > 35 ? 'yellow' :
-                 wlan-monitor.strength > 20 ? 'orange' : 'red'}))))
+      :onrightclick "rfkill toggle wlan"
+      (literal
+        :content {
+          wlan-monitor.state == 20 ? wDisabled:
+          wlan-monitor.state == 10 ? wNotManaged:
+          wlan-monitor.state == 60 ? wAuthNeeded:
+          wlan-monitor.state != 100 ? wConnecting:
+          wlan-monitor.strength > 70 ? wSigGreat:
+          wlan-monitor.strength > 50 ? wSigGood:
+          wlan-monitor.strength > 35 ? wSigLow: 
+          wlan-monitor.strength > 20 ? wSigBad:
+          wSigNo
+        }
+      )
+    )
+  )
+)
+
 
 
 (defwindow wifiPanel
@@ -48,7 +49,10 @@
       :class "window"
       :space-evenly false 
       :orientation "v"
-      (wifi))))
+      (wifi)
+    )
+  )
+)
 
 
 (defwidget wifi []
@@ -56,46 +60,98 @@
     :orientation "v"
     :space-evenly false
     (button :onclick "nmcli device wifi rescan ifname wlan0" 
-      (label :halign "end" :hexpand true :class "baricon pushleft" :text ""))
+      (image :path "/home/hermit/Pictures/icons/sat2.gif")
+;      (label 
+;        :halign "end" 
+;        :hexpand true 
+;        :class "baricon pushleft" 
+;        :text ""
+;      )
+    )
     (box :orientation "v"
       (for w in wifiScan
         (box :class "barspacer" :space-evenly false
-          (eventbox :hexpand true :class "btns-bar ${w.connected == true ? "active enabled": "enabled"}"
-            (box :space-evenly false :hexpand true
+          (eventbox 
+            :hexpand true 
+            :class "btns-bar 
+              ${
+                w.connected == true ? "active enabled" :
+                "enabled"
+              }"
+            (box :space-evenly false :class "pushright pushleft" :hexpand true
               (box :space-evenly false
-                 (_StrengthLabel :strength "${w.Strength}")
-                 (label :yalign 1 :text "${w.Frequency > 5000 ? "󰩯" :
-                                            w.Frequency > 4000 ? "󰜔" :
-                                            w.Frequency > 3000 ? "󰜓" : "󰜒"}"))
+                (StrengthLabel :strength "${w.Strength}")
+                (label 
+                  :yalign 1 
+                  :class "pushright"
+                  :text "${
+                    w.Frequency > 5000 ? "󰩯" :
+                    w.Frequency > 4000 ? "󰜔" :
+                    w.Frequency > 3000 ? "󰜓" : 
+                    "󰜒"}"
+                )
+              )
               (box :space-evenly false :halign "end" :hexpand true
-                  (_wifiCode :connected "${w.connected}")
-                  (label :text "${w.SSID} ")))))))))
+                (wifiCode :connected "${w.connected}")
+                (label :text "${w.SSID} ")
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)
 
-(defwidget _StrengthLabel [strength]
-  (label
-    :text {strength > 70 ? '󰤨':
-           strength > 50 ? '󰤥':
-           strength > 35 ? '󰤟': 
-           strength > 20 ? '󰤯': "󰤮"}
-    :class "baricon pushright pushleft ${strength > 70 ? 'blue' :
-                          strength > 50 ? 'green' :
-                          strength > 35 ? 'yellow' :
-                          strength > 20 ? 'orange' : 'red'}"))
+(defwidget StrengthLabel [strength]
+  (literal :content 
+    {
+      strength > 70 ? wSigGreat :
+      strength > 50 ? wSigGood :
+      strength > 35 ? wSigLow :
+      strength > 20 ? wSigBad :
+      wSigNo
+    }
+  )  
+)
 
-(defwidget _wifiCode [connected]
+(defwidget wifiCode [connected]
   (label 
     :visible connected
-    :text "${wlan-monitor.state == 10 ? "Not Managed By NetworkManager: Unsupported":
-                wlan-monitor.state == 20 ? "Wireless Dsiabled" :
-                wlan-monitor.state == 30 ? "Not Connected to Network" :
-                wlan-monitor.state == 40 ? "Preparing to connect to Network" :
-                wlan-monitor.state == 50 ? "Configuring connection to Network" :
-                wlan-monitor.state == 60 ? "Authentication to Network Required" :
-                wlan-monitor.state == 70 ? "Getting IP configuration" :
-                wlan-monitor.state == 80 ? "Checking IP Connectivity" :
-                wlan-monitor.state == 90 ? "Waiting for secondary connections" :
-                wlan-monitor.state == 100 ? "Fully Connected and active" :
-                wlan-monitor.state == 110 ? "Disconnecting from Network" :
-                wlan-monitor.state == 120 ? "Connection to Network Failed!" :
-                wlan-monitor.state == 0 ? "Returned in error. D-Bus Failure!" : "Unknown State!"} - "))
-  
+    :text "${
+      wlan-monitor.state == 10 ? "Not Managed By NetworkManager: Unsupported":
+      wlan-monitor.state == 20 ? "Wireless Dsiabled" :
+      wlan-monitor.state == 30 ? "Not Connected to Network" :
+      wlan-monitor.state == 40 ? "Preparing to connect to Network" :
+      wlan-monitor.state == 50 ? "Configuring connection to Network" :
+      wlan-monitor.state == 60 ? "Authentication to Network Required" :
+      wlan-monitor.state == 70 ? "Getting IP configuration" :
+      wlan-monitor.state == 80 ? "Checking IP Connectivity" :
+      wlan-monitor.state == 90 ? "Waiting for secondary connections" :
+      wlan-monitor.state == 100 ? "Fully Connected and active" :
+      wlan-monitor.state == 110 ? "Disconnecting from Network" :
+      wlan-monitor.state == 120 ? "Connection to Network Failed!" :
+      wlan-monitor.state == 0 ? "Returned in error. D-Bus Failure!" : 
+      "Unknown State!"} - "
+  )
+)
+
+(defvar wDisabled
+  "(label :text '󰤮' :class 'disabled')")
+(defvar wNotManaged
+  "(label :text '' :class 'red')")
+(defvar wAuthNeeded
+  "(label :text '󰤬' :class 'red')")
+(defvar wConnecting
+  "(image :path './assets/sat.gif')")
+  ; "(label :text '' :class 'purple')")
+(defvar wSigGreat
+  "(label :text '󰤨' :class 'baricon blue')")
+(defvar wSigGood
+  "(label :text '󰤥' :class 'baricon green')")
+(defvar wSigLow
+  "(label :text '󰤟' :class 'baricon yellow')")
+(defvar wSigBad
+  "(label :text '󰤯' :class 'baricon orange')")
+(defvar wSigNo
+  "(label :text '󰤮' :class 'baricon red')")

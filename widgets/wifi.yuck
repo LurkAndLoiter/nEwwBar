@@ -59,25 +59,28 @@
   (box 
     :orientation "v"
     :space-evenly false
-    (button :onclick "nmcli device wifi rescan ifname wlan0" 
-      (image :path "/home/hermit/Pictures/icons/sat2.gif")
-;      (label 
-;        :halign "end" 
-;        :hexpand true 
-;        :class "baricon pushleft" 
-;        :text ""
-;      )
+    (box :space-evenly false
+      (wifiCode)
+      (button :onclick "nmcli device wifi rescan ifname wlan0" 
+        (image 
+          :halign "end" 
+          :hexpand true 
+          :path "/home/hermit/Pictures/icons/sat2.gif"
+        )
+;        (label 
+;          :halign "end" 
+;          :hexpand true 
+;          :class "baricon pushleft" 
+;          :text ""
+;        )
+      )
     )
     (box :orientation "v"
       (for w in wifiScan
         (box :class "barspacer" :space-evenly false
           (eventbox 
             :hexpand true 
-            :class "btns-bar 
-              ${
-                w.connected == true ? "active enabled" :
-                "enabled"
-              }"
+            :class "btns-bar ${w.connected == true ? "active enabled" : "enabled"}"
             (box :space-evenly false :class "pushright pushleft" :hexpand true
               (box :space-evenly false
                 (StrengthLabel :strength "${w.Strength}")
@@ -92,7 +95,6 @@
                 )
               )
               (box :space-evenly false :halign "end" :hexpand true
-                (wifiCode :connected "${w.connected}")
                 (label :text "${w.SSID} ")
               )
             )
@@ -115,9 +117,10 @@
   )  
 )
 
-(defwidget wifiCode [connected]
+(defwidget wifiCode []
   (label 
-    :visible connected
+    :halign "start"
+    :hexpand true
     :text "${
       wlan-monitor.state == 10 ? "Not Managed By NetworkManager: Unsupported":
       wlan-monitor.state == 20 ? "Wireless Dsiabled" :
@@ -132,7 +135,7 @@
       wlan-monitor.state == 110 ? "Disconnecting from Network" :
       wlan-monitor.state == 120 ? "Connection to Network Failed!" :
       wlan-monitor.state == 0 ? "Returned in error. D-Bus Failure!" : 
-      "Unknown State!"} - "
+      "Unknown State!"}"
   )
 )
 

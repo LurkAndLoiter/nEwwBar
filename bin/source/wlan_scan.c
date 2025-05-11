@@ -262,13 +262,47 @@ void print_access_points(DBusConnection *conn, const char *device_path) {
   free(active_ap_path);
 }
 
+// Signal handler for DBus signals
 static DBusHandlerResult signal_handler(DBusConnection *conn, DBusMessage *msg,
-                                        void *user_data) {
+                                       void *user_data) {
   const char *device_path = (const char *)user_data;
 
   if (dbus_message_is_signal(msg, WIRELESS_INTERFACE, "AccessPointAdded") ||
       dbus_message_is_signal(msg, WIRELESS_INTERFACE, "AccessPointRemoved")) {
     print_access_points(conn, device_path);
+  } else if (dbus_message_is_signal(msg, "org.freedesktop.DBus.Properties", "PropertiesChanged")) {
+    DBusMessageIter args;
+    const char *interface_name;
+
+    // Check if the signal is for the NetworkManager interface
+    if (dbus_message_iter_init(msg, &args) &&
+        dbus_message_iter_get_arg_type(&args) == DBUS_TYPE_STRING) {
+      dbus_message_iter_get_basic(&args, &interface_name);
+      if (strcmp(interface_name, NM_DBUS_INTERFACE) == 0) {
+        DBusMessageIter changed_props;
+        // Move to the dictionary of changed properties
+        dbus_message_iter_next(&args);
+        if (dbus_message_iter_get_arg_type(&args) == DBUS_TYPE_ARRAY) {
+          dbus_message_iter_recurse(&args, &changed_props);
+          // Iterate through the dictionary
+          while (dbus_message_iter_get_arg_type(&changed_props) != DBUS_TYPE_INVALID) {
+            DBusMessageIter dict_entry;
+            const char *prop_name;
+
+            dbus_message_iter_recurse(&changed_props, &dict_entry);
+            if (dbus_message_iter_get_arg_type(&dict_entry) == DBUS_TYPE_STRING) {
+              dbus_message_iter_get_basic(&dict_entry, &prop_name);
+              // Check if the property is ActiveConnections
+              if (strcmp(prop_name, "Connectivity") == 0) {
+                print_access_points(conn, device_path);
+                break;
+              }
+            }
+            dbus_message_iter_next(&changed_props);
+          }
+        }
+      }
+    }
   }
 
   return DBUS_HANDLER_RESULT_HANDLED;
@@ -321,10 +355,21 @@ int main() {
   }
 
   char match_rule[256];
+  // Match rule for AccessPointAdded and AccessPointRemoved
   snprintf(match_rule, sizeof(match_rule),
            "type='signal',interface='%s',path='%s'", WIRELESS_INTERFACE,
            device_path);
+  dbus_bus_add_match(conn, match_rule, &err);
+  if (dbus_error_is_set(&err)) {
+    fprintf(stderr, "Match Error: %s\n", err.message);
+    dbus_error_free(&err);
+    return 1;
+  }
 
+  // Match rule for PropertiesChanged
+  snprintf(match_rule, sizeof(match_rule),
+           "type='signal',interface='org.freedesktop.DBus.Properties',path='%s',member='PropertiesChanged'",
+           NM_DBUS_PATH);
   dbus_bus_add_match(conn, match_rule, &err);
   if (dbus_error_is_set(&err)) {
     fprintf(stderr, "Match Error: %s\n", err.message);

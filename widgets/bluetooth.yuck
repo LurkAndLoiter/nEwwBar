@@ -1,9 +1,9 @@
 ;; Compiled C
 (deflisten bt-active :initial ""
-  `~/.config/eww/bin/bt_active`)
+  `~/.config/eww/bin/bt_active 2> /dev/null`)
 
 (deflisten bt-devices :initial ""
-  `~/.config/eww/bin/bt_devices`)
+  `~/.config/eww/bin/bt_devices 2> /dev/null`)
 
 ; (deflisten bt-active :initial ""
   ; `/usr/bin/sh ~/.config/eww/scripts/Archives/get-bluetooth-active`)

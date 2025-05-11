@@ -7,7 +7,7 @@
 (include "./widgets/apps.yuck")
 (include "./widgets/PacLog.yuck")
 
-(defwindow BarMin
+(defwindow barMin
   :monitor 1 
   :stacking "fg"
   :windowtype "dock"
@@ -18,7 +18,7 @@
               :anchor "top center")
   (eventbox
     :class "bar-swiper"
-    :onscroll "eww close BarMin && eww open bar"))
+    :onscroll "eww close barMin && eww open bar"))
    
 
 (defwindow bar
@@ -32,7 +32,7 @@
               :height 20
               :anchor "top center")
   (eventbox
-    :onscroll "eww close-all && eww open BarMin"
+    :onscroll "eww close-all && eww open barMin"
     (box
       :class "bar-box"
       (box 
@@ -128,7 +128,7 @@
           (stack 
             :selected networkIndex
             :transition "${networkIndex == 0 ? "slideleft": "slideright"}"
-            :samesize true
+            :same-size true
             (bluetooth)
             (wifi)))
         (box 

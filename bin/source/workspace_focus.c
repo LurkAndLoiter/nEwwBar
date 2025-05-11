@@ -130,7 +130,7 @@ int main() {
     for (ssize_t i = 0; i < bytes; i++) {
       if (buffer[i] == '\n') {
         line[line_pos] = '\0';
-        fprintf(stderr, "Raw event: %s\n", line);  // Debug: Log every line
+        // fprintf(stderr, "Raw event: %s\n", line);  // Debug: Log every line
 
         if (strncmp(line, "workspace>>", 11) == 0) {
           char *id_str = line + 11;

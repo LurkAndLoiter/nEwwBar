@@ -32,14 +32,6 @@ $highlight: $Red;
   all: unset;
 }
 
-/* * {background-color: unset;} */
-
-tooltip {
-  background: $Mauve;
-  color:$Base;
-  border-radius: 0.3em;
-}
-
 .blue {
   color: $Blue;
 }
@@ -90,6 +82,12 @@ label {
   }
 }
 
+tooltip {
+  background: $Mauve;
+  color:$Base;
+  border-radius: 5px;
+}
+
 .spacerbar {
   margin: 5px 30px 20px;
   min-height: 1px;
@@ -109,7 +107,7 @@ label {
   padding: 0 5px;
 
   label {
-    font-size: 1.5em;
+    font-size: 24px;
   }
 }
 
@@ -144,7 +142,7 @@ label {
 .btns-bar {
   background-color: $Surface2;
   text-shadow: 1px 1px $Crust;
-  border-radius: 0.1em;
+  border-radius: 2px;
   transition: all 0.5s;
 
   &.disabled {
@@ -167,22 +165,22 @@ label {
 }
 
 .btns-bar-box {
-  font-size: 1.2em;
+  font-size: 20px;
   padding: 5px 10px;
 }
 
 .baricon {
-  font-size: 2em;
+  font-size: 24px;
 }
 
 .btns-box {
   button {
     background-color: $Surface2;
-    font-size: 2em;
+    font-size: 32px;
     text-shadow: 1px 1px $Crust;
-    padding: 0.4em;
+    padding: 7px;
     margin: 5px;
-    border-radius: 0.1em;
+    border-radius: 2px;
     transition: all 0.5s;
 
     &.active {
@@ -292,13 +290,13 @@ menu {
 }
 
 .footer {
-  font-size: 1em;
+  font-size: 16px;
   color: $Green;
 }
 
 .media-buttons {
   button {
-    font-size: 2em;
+    font-size: 32px;
   }
 }
 
@@ -311,7 +309,7 @@ menu {
 }
 
 .pushdown {
-  margin-top: 3.5px;
+  margin-top: 7px;
 }
 
 .media {

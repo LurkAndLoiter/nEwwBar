@@ -1,8 +1,8 @@
 ;; Comiled C
-(deflisten wifiScan
+(deflisten wifiScan :initial "{}"
   `~/.config/eww/bin/wlan_scan`)
 
-(deflisten wlan-monitor :initial ""
+(deflisten wlan-monitor :initial "{}"
   `~/.config/eww/bin/wlan_monitor`)
 
 ;; Bash scripts (Archived)

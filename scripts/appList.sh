@@ -14,6 +14,7 @@ resolve_icon_path() {
         "$HOME/.local/share/icons"
         "/usr/share/icons"
         "/usr/local/share/icons"
+        "/var/lib/flatpak/exports/share/icons"
         "/usr/share/pixmaps"
     )
     
@@ -75,6 +76,25 @@ resolve_icon_path() {
                 for ext in "png" "svg"; do
                     if [[ -f "$dir/Papirus/$size/apps/$icon_name.$ext" ]]; then
                         echo "$dir/Papirus/$size/apps/$icon_name.$ext"
+                        return
+                    fi
+                done
+            done
+        fi 
+        # Check hicolor theme as fallback
+        if [[ "$icon_theme" != "hicolor" && -d "$dir/hicolor" ]]; then
+            # Prioritize scalable (SVG) first
+            if [[ -f "$dir/hicolor/scalable/apps/$icon_name.svg" ]]; then
+                echo "$dir/hicolor/scalable/apps/$icon_name.svg"
+                return
+            fi
+            
+            # Check raster sizes in descending order
+            for size in "${sizes[@]}" ; do
+                [[ "$size" == "scalable" ]] && continue
+                for ext in "png" "svg"; do
+                    if [[ -f "$dir/hicolor/$size/apps/$icon_name.$ext" ]]; then
+                        echo "$dir/hicolor/$size/apps/$icon_name.$ext"
                         return
                     fi
                 done
@@ -145,9 +165,10 @@ process_desktop_file() {
 # Collect files
 system_dir="/usr/share/applications"
 user_dir="$HOME/.local/share/applications"
+flatpak_dir="/var/lib/flatpak/exports/share/applications"
 
 shopt -s nullglob
-for file in "$system_dir"/*.desktop "$user_dir"/*.desktop; do
+for file in "$system_dir"/*.desktop "$flatpak_dir"/*.desktop "$user_dir"/*.desktop; do
     if [[ -f "$file" ]]; then
         base_name="${file##*/}"
         base_name="${base_name%.desktop}"

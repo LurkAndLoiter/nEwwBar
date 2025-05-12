@@ -28,12 +28,20 @@
             :orientation "v"
             :class "btns-box"
             (button 
-              :tooltip "${app.Tooltip}"
+              :class "inactive"
+              :tooltip "${app.Name}: ${app.Tooltip}"
               :onclick "${app.Exec} &"
               (image 
                 :halign "center"
                 :valign "center"
                 :path "${app.Icon}" 
                 :image-width 50 
-                :image-height 50))
-            (label :text "${app.Name}")))))))
+                :image-height 50
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)

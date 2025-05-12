@@ -69,6 +69,34 @@ $highlight: $Red;
   color: $inactive;
 }
 
+.small {
+  font-size: 12px;
+}
+
+.medium {
+  font-size: 18px;
+}
+    
+.large {
+  font-size: 24px;
+}
+
+.xlarge {
+  font-size: 32px;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.colorMe {
+  color: $Mauve; 
+}
+
 label {
   &.active {
     color: $Red;
@@ -102,25 +130,6 @@ tooltip {
   border-radius: 10px;
   margin: 0 10px;
   padding: 0 5px;
-
-  label {
-    font-size: 24px;
-    &.small {
-      font-size: 12px;
-    }
-    &.medium {
-      font-size: 18px;
-    }
-    &.bold {
-      font-weight: bold;
-    }
-    &.italic {
-      font-style: italic;
-    }
-    &.colorMe {
-      color: $Mauve; 
-    }
-  }
 }
 
 .window {
@@ -176,44 +185,31 @@ tooltip {
   }
 }
 
-.btns-bar-box {
-  font-size: 20px;
-  padding: 5px 10px;
-}
+button {
+  background-color: $Surface2;
+  font-size: 32px;
+  text-shadow: 1px 1px $Crust;
+  padding: 7px;
+  margin: 5px;
+  border-radius: 2px;
+  transition: all 0.5s;
 
-.baricon {
-  font-size: 24px;
-}
+  &.active {
+    color: rgba($Red, 1);
+    background-image: linear-gradient(0deg, $Mauve 5%, transparent 15%);
 
-.btns-box {
-  button {
-    background-color: $Surface2;
-    font-size: 32px;
-    text-shadow: 1px 1px $Crust;
-    padding: 7px;
-    margin: 5px;
-    border-radius: 2px;
-    transition: all 0.5s;
-
-    &.active {
-      color: rgba($Red, 1);
-      background-image: linear-gradient(0deg, $Mauve 5%, transparent 15%);
-
-      &:hover {
-        color: $Text;
-        background-image: linear-gradient(135deg, $Red 10%, transparent 30%);
-      }
-    }
-
-    &.inactive {
+    &:hover {
       color: $Text;
+      background-image: linear-gradient(135deg, $Red 10%, transparent 30%);
+    }
+  }
 
-      /* background-color: $inactive; */
+  &.inactive {
+    color: $Text;
 
-      &:hover {
-        color: $Red;
-        background-image: linear-gradient(135deg, $Mauve 10%, transparent 30%);
-      }
+    &:hover {
+      color: $Red;
+      background-image: linear-gradient(135deg, $Mauve 10%, transparent 30%);
     }
   }
 }
@@ -306,11 +302,6 @@ menu {
   color: $Green;
 }
 
-.media-buttons {
-  button {
-    font-size: 32px;
-  }
-}
 
 .pushright {
   margin-left: 7px;

@@ -1,17 +1,7 @@
 (defpoll listOfApplications 
   :interval "10s" 
+  :initial "{}"
   '/bin/bash ~/.config/eww/scripts/appList.sh')
-
-;(defwidget _applications []
-;  (eventbox 
-;    :hexpand true 
-;    :class "btns-bar"
-;    :onclick 'eww update searchString=""'
-;      (input
-;        :class "search-box"
-;        :value searchString)) 
-;
-;(defvar searchString "Search...")
 
 (defwidget applications []
   (box 
@@ -23,21 +13,16 @@
         :halign "start"
         :space-evenly false
         (for app in row
-          (box
-            :space-evenly false
-            :orientation "v"
-            :class "btns-box"
-            (button 
-              :class "inactive"
-              :tooltip "${app.Name}: ${app.Tooltip}"
-              :onclick "${app.Exec} &"
-              (image 
-                :halign "center"
-                :valign "center"
-                :path "${app.Icon}" 
-                :image-width 50 
-                :image-height 50
-              )
+          (button 
+            :class "inactive"
+            :tooltip "${app.Name}: ${app.Tooltip}"
+            :onclick "${app.Exec} &"
+            (image 
+              :halign "center"
+              :valign "center"
+              :path "${app.Icon}" 
+              :image-width 50 
+              :image-height 50
             )
           )
         )

@@ -1,6 +1,12 @@
 (defwidget powerButton []
- (box 
-   (button :onclick "eww open --toggle powerPanel" "󰐥")))
+ (eventbox 
+   :onclick "eww open --toggle powerPanel" 
+   (label 
+     :text "󰐥" 
+     :class "large pushleft"
+    )
+  )
+)
 
 (defwindow powerPanel
   :monitor 1

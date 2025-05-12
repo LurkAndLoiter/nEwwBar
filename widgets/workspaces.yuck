@@ -16,14 +16,17 @@
   (box
     :class "workspaces-widget"
     :space-evenly true
-    (label
-      :text "${workspaces}${current_workspace}"
-      :visible false)
     (for workspace in workspaces
       (eventbox
         :tooltip "${workspace.id}"
         :onclick "hyprctl dispatch workspace ${workspace.id}"
         (box
-          :class "workspace ${workspace.id == current_workspace ? "current" : ""} ${workspace.windows > 0 ? "occupied" : "empty"}"
+          :class "large workspace ${workspace.id == current_workspace ? "current" : ""} ${workspace.windows > 0 ? "occupied" : "empty"}"
           (label
-           :text "${workspace.id == current_workspace ? " " : " "}"))))))
+           :text "${workspace.id == current_workspace ? " " : " "}"
+          )
+        )
+      )
+    )
+  )
+)

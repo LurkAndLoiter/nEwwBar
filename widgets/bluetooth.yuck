@@ -2,7 +2,7 @@
 (deflisten bt-active :initial ""
   `~/.config/eww/bin/bt_active 2> /dev/null`)
 
-(deflisten bt-devices :initial ""
+(deflisten bt-devices :initial "[{}]"
   `~/.config/eww/bin/bt_devices 2> /dev/null`)
 
 ; (deflisten bt-active :initial ""
@@ -12,14 +12,15 @@
   ; `/usr/bin/sh ~/.config/eww/scripts/Archives/get-bluetooth-devices`)
 
 (defwidget bluetoothButton []
-  (box 
-    (button 
-      ; :onclick `eww update MiscVars='${jq(MiscVars, '.menu = ""')}' && eww open --toggle btPanel`
-      :onclick `eww open --toggle bluetoothPanel`
-      :onrightclick "bluetoothctl power ${bt-active == 1 ? "off" : "on"}"
-      (label 
-                :text "${bt-active == 1 ? "󰂯" : "󰂲"}"
-                :class "${bt-active == 1 ? "blue" : "disabled"}"))))
+  (eventbox 
+    :onclick `eww open --toggle bluetoothPanel`
+    :onrightclick "bluetoothctl power ${bt-active == 1 ? "off" : "on"}"
+    (label 
+      :text "${bt-active == 1 ? "󰂯" : "󰂲"}"
+      :class "large ${bt-active == 1 ? "blue" : "disabled"}"
+    )
+  )
+)
 
 (defwindow bluetoothPanel
   :monitor 1
@@ -40,11 +41,7 @@
   (box 
     :orientation "v"
     :space-evenly false
-    (label 
-      :text "${bt-devices}${bt-active}${bluetoothhov}"
-      :visible false
-      :show-truncated false
-      :wrap true)
+    :spacing 10
     (box 
       :class "btns-box"
       :halign "center"
@@ -55,68 +52,70 @@
         :class "${bt-active == 1 ? "active" : "inactive"}"
         (image 
           :image-height 42
-          :path "./assets/icons/bluetooth-${bt-active == 1 ? "active" : "disabled"}.svg")))
-        ; (label :text "${bt-active == 0 ? "󰂯" : "󰂲"}")))
+          :path "./assets/icons/bluetooth-${bt-active == 1 ? "active" : "disabled"}.svg"
+        )
+      )
+    )
     (for device in bt-devices
-      (box :class "barspacer"
-        (eventbox 
-          :class "btns-bar${device.Connected =="true" ? " active" : ""} ${bt-active == 0 ? " disabled" : " enabled"}"
-          :onclick "bluetoothctl ${device.Connected == "true" ? "dis" : ""}connect ${device.id}"
-          :onrightclick `eww update bluetoothhov="${device.id}"`
-          :onhoverlost `eww update bluetoothhov=""`
-          ; (stack
-            ; :selected {bluetoothhov == "${device.id}" ? 1 : 0}
-            ; :transition "slideleft"
-            ; :same-size true
-          (box
-              :space-evenly false
-              :spacing 10
-              :class "btns-bar-box"
-              (image
-                :class "baricon"
-                :image-height 32
-                :path "./assets/icons/${device.Icon}.svg")
-              (label 
-                :xalign 0 
-                :hexpand true 
-                :text "${device.Name}")
-              (box :orientation "v" :space-evenly false
-                (image 
-                  :halign "center"
-                  :image-height 32
-                  :path "./assets/icons/battery-${
-                   device.Battery == "" ? "missing" :
-                   device.Battery > 79 ? "full" : 
-                   device.Battery > 59 ? "good" :
-                   device.Battery > 39 ? "low" :
-                   device.Battery > 19 ? "caution" : "empty"}.svg")
-;            (label 
-;               :xalign 1 
-;               :text {device.Battery == "" ? "" :
-;                       device.Battery > 79 ? " " :
-;                       device.Battery > 59 ? " " :
-;                       device.Battery > 39 ? " " :
-;                       device.Battery > 19 ? " " : " "}
-;               :class {device.Battery == "" ? "disabled" :
-;                         device.Battery > 79 ? "blue" :
-;                         device.Battery > 59 ? "green" :
-;                         device.Battery > 39 ? "yellow" :
-;                         device.Battery > 19 ? "orange" : "red"})))))))
-                (label 
-                  :yalign 1
-                  :xalign 0.5
-                  :text "${device.Battery == "null" ? "" : "${device.Battery}%"}"))
-              (box :orientation "v"
-                (eventbox
-                  :onclick "bluetoothctl remove ${device.id}"
-                  (label
-                    :text "${device.Paired == true ? "󰯄": "󰯅"}"
-                    :class "pushleft ${device.Paired == true ? "green": "red"}"))
-                (eventbox
-                  :onclick "bluetoothctl ${device.Trusted == true ? 'un' : '' }trust ${device.id}"
-                  (label
-                    :text "${device.Trusted == true ? "󰯄": "󰯅"}"
-                    :class "pushleft ${device.Trusted == true ? "green": "red"}")))))))))
+      (eventbox 
+        :class "btns-bar${device.Connected =="true" ? " active" : ""} ${bt-active == 0 ? " disabled" : " enabled"}"
+        :onclick "bluetoothctl ${device.Connected == "true" ? "dis" : ""}connect ${device.id}"
+        :onrightclick `eww update bluetoothhov="${device.id}"`
+        :onhoverlost `eww update bluetoothhov=""`
+        (box
+          :space-evenly false
+          :spacing 10
+          ; :class "btns-bar-box"
+          (image
+            :class "large"
+            :image-height 42
+            :path "./assets/icons/${device.Icon}.svg"
+          )
+          (label 
+            :halign "start" 
+            :hexpand true 
+            :text "${device.Name}")
+          (box ; Battery Box
+            :orientation "h" 
+            :space-evenly false
+            :visible "${device.Battery == "999" ? false : true}"
+            (label 
+              :valign "end"
+              :text "${device.Battery}%"
+              :class "medium colorMe"
+            )
+            (image 
+              :valign "end"
+              :image-height 42
+              :path "./assets/icons/battery-${
+               device.Battery == "" ? "missing" :
+               device.Battery > 79 ? "full" : 
+               device.Battery > 59 ? "good" :
+               device.Battery > 39 ? "low" :
+               device.Battery > 19 ? "caution" : "empty"}.svg"
+            )
+          )
+          (box :orientation "v"
+            (eventbox
+              :onclick "bluetoothctl remove ${device.id}"
+              (label
+                :text "${device.Paired == true ? "󰯄": "󰯅"}"
+                :class "pushleft ${device.Paired == true ? "green": "red"}"
+              )
+            )
+            (eventbox
+              :onclick "bluetoothctl ${device.Trusted == true ? 'un' : '' }trust ${device.id}"
+              (label
+                :text "${device.Trusted == true ? "󰯄": "󰯅"}"
+                :class "pushleft ${device.Trusted == true ? "green": "red"}"
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)
 
 
 (defvar bluetoothhov "")

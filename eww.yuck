@@ -11,7 +11,7 @@
   `~/.config/eww/bin/simpleDate`)
 
 (defwidget dateStyled []
-  (box :class "pushright pushleft" :space-evenly false 
+  (box :class "pushright pushleft large" :space-evenly false 
     (label :class "bold" :text "${Date.H}:${Date.M}")
     (label 
       :valign "start" 
@@ -63,7 +63,7 @@
         :halign "start"
         :space-evenly false
         :spacing 5
-        (button :onclick "eww open --toggle leftPanel" "󰍜")
+        (eventbox :class "large" :onclick "eww open --toggle leftPanel" "󰍜")
         ; (label :text playerhov)
         (systray :spacing 2))
       (box
@@ -80,7 +80,8 @@
         (bluetoothButton)
         (wifiButton)
         (label :text "  ")
-        (button :onclick "eww open --toggle rightPanel"
+        (eventbox 
+          :onclick "eww open --toggle rightPanel"
           (dateStyled)
         )
           ; (label :class "bar-date" :xalign 1 :markup "${formattime(EWW_TIME, '<span size="12pt"><i>%a %d %b %Y</i></span> <b>%H:%M</b>')}"))
@@ -133,10 +134,11 @@
           :space-evenly false
           (audioDevices)
           (audioSources)
-          (Spacer))
+          (Spacer)
           ; (bluetooth)
           ; (Spacer)
-          ; (wifi))
+          ; (wifi)
+        )
         (box 
           :valign "start"
           :orientation "v"
@@ -146,25 +148,34 @@
             (button 
               :onclick "eww update networkIndex=0" 
               :class "inactive"
-              (label :text "bluetooth"))
+              (label :text "bluetooth")
+            )
             (button 
               :onclick "eww update networkIndex=1" 
               :class "inactive"
-              (label :text "wifi")))
+              (label :text "wifi")
+            )
+          )
           (stack 
             :selected networkIndex
             :transition "${networkIndex == 0 ? "slideleft": "slideright"}"
             :same-size true
             (bluetooth)
-            (wifi)))
+            (wifi)
+          )
+        )
         (box 
           :valign "end"
           :orientation "v"
           :space-evenly false
-          (power))))))
+          (power)
+        )
+      )
+    )
+  )
+)
 
 (defvar networkIndex 0)
-
 
 (defwidget Spacer []
   (box 

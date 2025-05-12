@@ -1,5 +1,5 @@
 ;; Comiled C
-(deflisten audioMonitors
+(deflisten audioMonitors :initial "{}"
   `~/.config/eww/bin/audio_in`)
 
 ;; Bash Scripts (Archived)
@@ -8,13 +8,18 @@
 
 (defwidget micButton []
   (box 
-    (button 
-      ; :tooltip "${jq(audioMonitors, ".[] | select(.default == true) | .volume")}"
+    (eventbox 
       :onclick "eww open --toggle micPanel"
-      :onrightclick "pactl set-source-mute ${jq(audioMonitors, ".[] | select(.default == true) | .source")} toggle"
-      (label 
-        :text "${jq(audioMonitors, '.[] | select(.default == true) | (.state != "suspended" and .mute == "no")') == true ? "󰍬" : "󰍭"}"
-        :class "${jq(audioMonitors, '.[] | select(.default == true) | (.state != "suspended" and .mute == "no")') == true ? "red" : "inactive"}"))))
+      :onrightclick 'pactl set-source-mute "$(pactl get-default-source)" toggle'
+      (literal 
+        :content {
+; NOTE jq find default pulseaudio mic and determine muted/suspended status.
+        "${jq(audioMonitors, '.[] | select(.default == true) | (.state != "suspended" and .mute == "no")') == true ? micHot : micCold }"
+        }
+      )
+    )
+  )
+)
 
 (defwindow micPanel
   :monitor 1
@@ -35,29 +40,37 @@
   (box 
     :space-evenly false
     :orientation "v"
-    (label 
-      :text "${audioMonitors}"
-      :visible false
-      :show-truncated false
-      :wrap true)
+    :spacing 10
     (for source in audioMonitors
       (box 
-        :class "barspacer"
+        ; :class "barspacer"
         :visible "${matches(source.name, "^Monitor of ") == true ? false : true}"
-         (eventbox
-           :class 'btns-bar${source.state == "suspended" ? " disabled" : " enabled"} ${source.default == true ? " active": ""}'
-           (box :hexpand true :space-evenly false 
-             (image
-               :class "pushright"
-               :halign "start" 
-               :path "./assets/icons/audio-${source.icon == "audio-headset-bluetooth" ? "earbuds" : "input-microphone"}.svg"
-               :image-height 42)
-             (label 
-               :class "pushright pushleft"
-               :hexpand true 
-               :xalign 0 
-               :text {source.name})
-             (label 
-               :class 'pushleft${source.mute == "no" ? "" : " red"}'
-               :xalign 1 
-               :text {source.volume})))))))
+        (eventbox
+          :class 'btns-bar${source.state == "suspended" ? " disabled" : " enabled"} ${source.default == true ? " active": ""}'
+          (box :hexpand true :space-evenly false 
+            (image
+              :class "pushright"
+              :halign "start" 
+              :path "./assets/icons/audio-${source.icon == "audio-headset-bluetooth" ? "earbuds" : "input-microphone"}.svg"
+              :image-height 42
+            )
+            (label 
+              :class "pushright pushleft"
+              :hexpand true 
+              :xalign 0 
+              :text {source.name}
+            )
+            (label 
+              :class 'pushleft${source.mute == "no" ? "" : " red"}'
+              :xalign 1 
+              :text {source.volume}
+            )
+          )
+        )
+      )
+    )
+  )
+)
+
+(defvar micHot "(label :text '󰍬' :class 'large red')")
+(defvar micCold "(label :text '󰍭' :class 'large inactive')")

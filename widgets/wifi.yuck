@@ -13,27 +13,24 @@
   ; `/usr/bin/sh ~/.config/eww/scripts/Archives/get-wlan-strength`)
 
 (defwidget wifiButton []
-  (box 
-    (button 
-      :onclick "eww open --toggle wifiPanel"
-      :onrightclick "rfkill toggle wlan"
-      (literal
-        :content {
-          wlan-monitor.state == 20 ? wDisabled:
-          wlan-monitor.state == 10 ? wNotManaged:
-          wlan-monitor.state == 60 ? wAuthNeeded:
-          wlan-monitor.state != 100 ? wConnecting:
-          wlan-monitor.strength > 70 ? wSigGreat:
-          wlan-monitor.strength > 50 ? wSigGood:
-          wlan-monitor.strength > 35 ? wSigLow: 
-          wlan-monitor.strength > 20 ? wSigBad:
-          wSigNo
-        }
-      )
+  (eventbox 
+    :onclick "eww open --toggle wifiPanel"
+    :onrightclick "rfkill toggle wlan"
+    (literal
+      :content {
+        wlan-monitor.state == 20 ? "(label :text '󰤮' :class 'disabled')" :
+        wlan-monitor.state == 10 ? "(label :text '' :class 'red')" :
+        wlan-monitor.state == 60 ? "(label :text '󰤬' :class 'red')" :
+        wlan-monitor.state != 100 ? "(image :path './assets/sat.gif')" :
+        wlan-monitor.strength > 70 ? wSigGreat :
+        wlan-monitor.strength > 50 ? wSigGood :
+        wlan-monitor.strength > 35 ? wSigLow : 
+        wlan-monitor.strength > 20 ? wSigBad :
+        wSigNo
+      }
     )
   )
 )
-
 
 
 (defwindow wifiPanel
@@ -59,6 +56,7 @@
   (box 
     :orientation "v"
     :space-evenly false
+    :spacing 10
     (box :space-evenly false
       (wifiCode)
       (button :onclick "nmcli device wifi rescan ifname wlan0" 
@@ -67,41 +65,33 @@
           :hexpand true 
           :path "/home/hermit/Pictures/icons/sat2.gif"
         )
-;        (label 
-;          :halign "end" 
-;          :hexpand true 
-;          :class "baricon pushleft" 
-;          :text ""
-;        )
       )
     )
-    (box :orientation "v"
-      (for w in wifiScan
-        (box :class "barspacer" :space-evenly false
-          (eventbox 
-            :hexpand true 
-            :class "btns-bar ${w.connected == true ? "active enabled" : "enabled"}"
-            (box :space-evenly false :class "pushright pushleft" :hexpand true
-              (box :space-evenly false
-                (StrengthLabel :strength "${w.Strength}")
-                (label 
-                  :yalign 1 
-                  :class "pushright"
-                  :text "${
-                    w.Frequency > 5000 ? "󰩯" :
-                    w.Frequency > 4000 ? "󰜔" :
-                    w.Frequency > 3000 ? "󰜓" : 
-                    "󰜒"}"
-                )
-              )
-              (box :space-evenly false :halign "end" :hexpand true
-                (label :text "${w.SSID} ")
-              )
-            )
-          )
+    (for w in wifiScan
+      (eventbox 
+        :hexpand true 
+        :class "btns-bar ${w.connected == true ? "active enabled" : "enabled"}"
+        (box :space-evenly false :class "pushright pushleft" :hexpand true
+          (StrengthLabel :strength "${w.Strength}")
+          (frequencyLabel :freq "${w.Frequency}")
+          (label :halign "end" :hexpand true :text "${w.SSID} ")
         )
       )
     )
+  )
+)
+
+(defwidget frequencyLabel [freq]
+  (label 
+    :yalign 1 
+    :class "pushleft small bold"
+    :text "
+      ${
+        freq > 5000 ? "5G" :
+        freq > 4000 ? "4G" :
+        freq > 3000 ? "3G" : 
+        "2G"
+      }"
   )
 )
 
@@ -117,9 +107,21 @@
   )  
 )
 
+(defvar wSigGreat
+  "(label :text '󰤨' :class 'large pushleft blue')")
+(defvar wSigGood
+  "(label :text '󰤥' :class 'large pushleft green')")
+(defvar wSigLow
+  "(label :text '󰤟' :class 'large pushleft yellow')")
+(defvar wSigBad
+  "(label :text '󰤯' :class 'large pushleft orange')")
+(defvar wSigNo
+  "(label :text '󰤮' :class 'large pushleft red')")
+
 (defwidget wifiCode []
   (label 
     :halign "start"
+    :valign "end"
     :hexpand true
     :text "${
       wlan-monitor.state == 10 ? "Not Managed By NetworkManager: Unsupported":
@@ -138,23 +140,3 @@
       "Unknown State!"}"
   )
 )
-
-(defvar wDisabled
-  "(label :text '󰤮' :class 'disabled')")
-(defvar wNotManaged
-  "(label :text '' :class 'red')")
-(defvar wAuthNeeded
-  "(label :text '󰤬' :class 'red')")
-(defvar wConnecting
-  "(image :path './assets/sat.gif')")
-  ; "(label :text '' :class 'purple')")
-(defvar wSigGreat
-  "(label :text '󰤨' :class 'baricon blue')")
-(defvar wSigGood
-  "(label :text '󰤥' :class 'baricon green')")
-(defvar wSigLow
-  "(label :text '󰤟' :class 'baricon yellow')")
-(defvar wSigBad
-  "(label :text '󰤯' :class 'baricon orange')")
-(defvar wSigNo
-  "(label :text '󰤮' :class 'baricon red')")

@@ -1,8 +1,8 @@
 ;; Compiled C
-(deflisten audio-sources :initial ""
+(deflisten audio-sources :initial "{}"
   `~/.config/eww/bin/mpris_fetch 2> /dev/null`)
 
-(deflisten audio-sinks :initial ""
+(deflisten audio-sinks :initial "{}"
   `~/.config/eww/bin/audio_out`) 
 
 ;; Shell Scripts (Archived)
@@ -13,7 +13,7 @@
   ; `/usr/bin/bash ~/.config/eww/scripts/Archives/get-audio-sinks`) 
 
 (defwidget audioButton []
-  (button 
+  (eventbox 
     :tooltip 
 `Audio panel:
 Right click Mute
@@ -22,7 +22,7 @@ Left click open/close panel`
     :onrightclick "wpctl set-mute @DEFAULT_SINK@ toggle"
     (label 
       :text "${jq(audio-sinks, '.[] | select(.default == true) | (.mute == "no")') == true ? " " : " "}"
-      :class "${jq(audio-sinks, '.[] | select(.default == true) | (.mute == "no")') == true ? "" : "red"}")
+      :class "large ${jq(audio-sinks, '.[] | select(.default == true) | (.mute == "no")') == true ? "" : "red"}")
     ; (label :text " ")
   )
 )
@@ -58,19 +58,16 @@ Left click open/close panel`
       (box
         :hexpand true
         :space-evenly false
-        (box :class "btns-box" :tooltip "${s.name}"
-          (button :class "${s.default == true ? "active" : "inactive"}"
-            :onclick "wpctl set-default ${s.id}"
-            :width 75
-            :height 75
-            (image 
-              :path "./assets/icons/${s.icon == "audio-headset-bluetooth" ? "audio-earbuds" : s.icon == "audio-speakers" ? "audio-speakers" : "media-tape"}.svg"
-              :image-height 42
-            )
+        (button :class "${s.default == true ? "active" : "inactive"}"
+          :onclick "wpctl set-default ${s.id}"
+          :tooltip "${s.name}"
+          :width 75
+          :height 75
+          (image 
+            :path "./assets/icons/${s.icon == "audio-headset-bluetooth" ? "audio-earbuds" : s.icon == "audio-speakers" ? "audio-speakers" : "media-tape"}.svg"
+            :image-height 42
           )
         )
-                ; (label :text "${s.icon == "audio-earbuds" ? "󱡏" :
-                                ; s.icon == "audio-card-analog-pci" ? "󰓃" : "?"}"))))
         (box 
           :hexpand true
           :orientation "v"
@@ -88,16 +85,12 @@ Left click open/close panel`
               :onchange "./scripts/set-volume ${s.id} {}"
             )
           )
-          (box :class "media-buttons"
-            :space-evenly false
-            :spacing 1
-            (button 
-              :halign "start" 
-              :onclick "wpctl set-mute ${s.id} toggle" 
-              (image 
-                :image-height 24 
-                :path "./assets/icons/audio-${s.mute == "yes" ? "muted" : "high"}.svg"
-              )
+          (eventbox 
+            :halign "start" 
+            :onclick "wpctl set-mute ${s.id} toggle" 
+            (image 
+              :image-height 24 
+              :path "./assets/icons/audio-${s.mute == "yes" ? "muted" : "high"}.svg"
             )
           )
         )
@@ -109,137 +102,130 @@ Left click open/close panel`
 
 (defwidget audioSources []
   (box 
-    (label
-      :text "${audio-sources} ${audio-sinks}"
-      :visible false
-      :show-truncated false
-      :wrap true)
-    (box 
-      :orientation "v"
-      :space-evenly false
-      (for p in audio-sources
-        (eventbox
-          :onhover `eww update playerhov="${p.DesktopEntry}"`
-          :onhoverlost `eww update playerhov=""`
-          (box
-            :class "panel"
-            :visible "${p.PlaybackStatus == "Stopped" ? false : true}"
+    :orientation "v"
+    :space-evenly false
+    (for p in audio-sources
+      (eventbox
+        :onhover `eww update playerhov="${p.DesktopEntry}"`
+        :onhoverlost `eww update playerhov=""`
+        (box
+          :class "panel"
+          :visible "${p.PlaybackStatus == "Stopped" ? false : true}"
+          :space-evenly false
+          :orientation "v"
+          (label 
+            :class "green"
+            :xalign 0
+            :wrap true
+            :show-truncated false
+            :text "${p.title}"
+          )
+          (box 
             :space-evenly false
-            :orientation "v"
-            (label 
-              :class "green"
-              :xalign 0
-              :wrap true
-              :show-truncated false
-              :text "${p.title}"
+            :spacing 10
+            (box
+              :halign "start"
+              (image 
+                :image-height 100 
+                :path "${matches(p.title, " - Twitch$") == true ? "./assets/TwitchLogo.png" : p.artUrl}"
+              )
             )
             (box 
-              :space-evenly false
-              :spacing 10
-              (box
-                :halign "start"
-                (image 
-                  :image-height 100 
-                  :path "${matches(p.title, " - Twitch$") == true ? "./assets/TwitchLogo.png" : p.artUrl}"
-                )
-              )
-              (box 
-                :class "footer"
-                :hexpand true
-                :orientation "v"
-                :space-evenly false
-                (label :class "subtext" :xalign 0 :text "${p.artist}")
-                (label :class "subtext" :xalign 0 :text "${p.album}")
-                (box 
-                  :class "media-buttons"
-                  :orientation "h"
-                  (box 
-                    :halign "start"
-                    :spacing 10
-                    (button 
-                      :class "media ${p.CanGoPrevious == false ? "inactive" : "active"}"
-                      :onclick "playerctl --player=${p.DesktopEntry} previous" "󰒮")
-                    (button 
-                      :class "media ${p.CanPlay == false ? "inactive" : "active"}"
-                      :onclick "playerctl --player=${p.DesktopEntry} play-pause"
-                      (label 
-                        :text "${
-                        p.PlaybackStatus == "Playing" ? "󰏤" : "󰐊"
-                             }"))
-                    (button 
-                      :class "media ${p.CanGoNext == false ? "inactive" : "active"}"
-                      :onclick "playerctl --player=${p.DesktopEntry} next" "󰒭"
-                    )
-                  )
-                  (box
-                    :halign "end"
-                    :spacing 10
-                    (button
-                      :class "media ${p.LoopStatus == "Track" ? "active" :
-                                      p.LoopStatus == "Playlist" ? "active" :
-                                      p.LoopStatus == "None" ? "inactive" : 
-                                      "disabled"
-                                    }"
-                      :onclick "playerctl --player=${p.DesktopEntry} loop 
-                                    ${
-                                      p.LoopStatus == "None" ? "track" : 
-                                      p.LoopStatus == "Track" ? "playlist" : 
-                                      "none"
-                                    }"
-                      (label :text "${p.LoopStatus == "Track" ? "󰑘" : 
-                                      p.LoopStatus == "Playlist" ? "󰑖" : 
-                                      p.LoopStatus == "None" ? "󰑖" : 
-                                      "󰑗"
-                                    }"
-                      )
-                    )
-                    (button 
-                      :class "media ${p.Shuffle == true ? "active" :
-                                      p.Shuffle == false ? "inactive" : 
-                                      "disabled"}" 
-                      :onclick "playerctl --player=${p.DesktopEntry} shuffle 
-                               ${p.Shuffle == true ? "off" : "on"}"
-                      (label :text "${p.Shuffle == true ? "󰒟" : 
-                                      p.Shuffle == false ? "󰒞" : 
-                                      "󰒝"
-                                     }"
-                      )
-                    )
-                  )
-                )
-                (scale
-                  :class "${p.CanSeek == false ? "inactive" :
-                         "${matches(p.title, "Twitch$")}" == true ? "inactive" :
-                         ""}"
-                  :max 99 
-                  :onchange "playerctl --player=${p.DesktopEntry} position $((({} * ${round(p.length / 1000000,0)}) / 99))"
-                  :value "${round((99 / (p.length)) * (p.Position),0)}") 
-                (label
-                  :xalign 1 
-                  :class "${p.lengthHMS == "live" ? "red" : ""}"
-                  :text "${p.lengthHMS == "live" ? " live" : 
-                           p.length == "" ? "--/--" :
-                          "${p.PositionHMS}/${p.lengthHMS}"
-                          }"
-                )
-              )
-            ) 
-            (box 
-              :space-evenly false
               :class "footer"
-              (playerVolume
-                :pvol "${p.volume}"
-                :pmute "${p.mute}"
-                :targetID "${p.id}"
-                :sinkID "${p.sinkID}"
-                :serial "${p.serial}"
-                :switch "${p.DesktopEntry}")
-              (label 
-                :class "subtext"
-                :hexpand "${p.id == "null" ? true : false}"
-                :halign "end" 
-                :text "${p.DesktopEntry}"
+              :hexpand true
+              :orientation "v"
+              :space-evenly false
+              (label :class "subtext" :xalign 0 :text "${p.artist}")
+              (label :class "subtext" :xalign 0 :text "${p.album}")
+              (box 
+                ; :class "media-buttons"
+                :orientation "h"
+                (box 
+                  :halign "start"
+                  :spacing 10
+                  (eventbox 
+                    :class "media xlarge ${p.CanGoPrevious == false ? "inactive" : "active"}"
+                    :onclick "playerctl --player=${p.DesktopEntry} previous" "󰒮")
+                  (eventbox 
+                    :class "media xlarge ${p.CanPlay == false ? "inactive" : "active"}"
+                    :onclick "playerctl --player=${p.DesktopEntry} play-pause"
+                    (label 
+                      :text "${
+                      p.PlaybackStatus == "Playing" ? "󰏤" : "󰐊"
+                           }"))
+                  (eventbox 
+                    :class "media xlarge ${p.CanGoNext == false ? "inactive" : "active"}"
+                    :onclick "playerctl --player=${p.DesktopEntry} next" "󰒭"
+                  )
+                )
+                (box
+                  :halign "end"
+                  :spacing 10
+                  (eventbox
+                    :class "media xlarge ${p.LoopStatus == "Track" ? "active" :
+                                    p.LoopStatus == "Playlist" ? "active" :
+                                    p.LoopStatus == "None" ? "inactive" : 
+                                    "disabled"
+                                  }"
+                    :onclick "playerctl --player=${p.DesktopEntry} loop 
+                                  ${
+                                    p.LoopStatus == "None" ? "track" : 
+                                    p.LoopStatus == "Track" ? "playlist" : 
+                                    "none"
+                                  }"
+                    (label :text "${p.LoopStatus == "Track" ? "󰑘" : 
+                                    p.LoopStatus == "Playlist" ? "󰑖" : 
+                                    p.LoopStatus == "None" ? "󰑖" : 
+                                    "󰑗"
+                                  }"
+                    )
+                  )
+                  (eventbox 
+                    :class "media xlarge ${p.Shuffle == true ? "active" :
+                                    p.Shuffle == false ? "inactive" : 
+                                    "disabled"}" 
+                    :onclick "playerctl --player=${p.DesktopEntry} shuffle 
+                             ${p.Shuffle == true ? "off" : "on"}"
+                    (label :text "${p.Shuffle == true ? "󰒟" : 
+                                    p.Shuffle == false ? "󰒞" : 
+                                    "󰒝"
+                                   }"
+                    )
+                  )
+                )
               )
+              (scale
+                :class "${p.CanSeek == false ? "inactive" :
+                       "${matches(p.title, "Twitch$")}" == true ? "inactive" :
+                       ""}"
+                :max 99 
+                :onchange "playerctl --player=${p.DesktopEntry} position $((({} * ${round(p.length / 1000000,0)}) / 99))"
+                :value "${round((99 / (p.length)) * (p.Position),0)}") 
+              (label
+                :xalign 1 
+                :class "${p.lengthHMS == "live" ? "red" : ""}"
+                :text "${p.lengthHMS == "live" ? " live" : 
+                         p.length == "" ? "--/--" :
+                        "${p.PositionHMS}/${p.lengthHMS}"
+                        }"
+              )
+            )
+          ) 
+          (box 
+            :space-evenly false
+            :class "footer"
+            (playerVolume
+              :pvol "${p.volume}"
+              :pmute "${p.mute}"
+              :targetID "${p.id}"
+              :sinkID "${p.sinkID}"
+              :serial "${p.serial}"
+              :switch "${p.DesktopEntry}")
+            (label 
+              :class "subtext"
+              :hexpand "${p.id == "null" ? true : false}"
+              :halign "end" 
+              :text "${p.DesktopEntry}"
             )
           )
         )
@@ -259,7 +245,7 @@ Left click open/close panel`
       :valign "center" 
       :visible "${arraylength(audio-sinks) > 1 ? true : false}"
       (for s in audio-sinks
-        (button
+        (eventbox
           :onclick "pactl move-sink-input ${serial} ${s.sink}"
           :tooltip "${s.name}"
           :class "media ${s.sink == sinkID ? "active" : "inactive"}"

@@ -1,4 +1,5 @@
 (defpoll paclog 
+  :initial "[]"
   :interval "30s"
   '~/.config/eww/scripts/PacLog.sh')
 
@@ -10,7 +11,10 @@
     (box :space-evenly false
       :tooltip "Package panel"
       ; (image :path "./assets/pacman.gif")
-      (image :image-height 18 :path "./assets/pacman${hoverPacman == false ? ".svg" : ".gif"}")
+      (image 
+        :image-height 18 
+        :path "./assets/pacman${hoverPacman == false ? ".svg" : ".gif"}"
+      )
       ; (image :image-height 18 :path "./assets/pacmanWide.svg")
       (revealer
         :transition "slideright"
@@ -55,7 +59,7 @@
     (box 
       :orientation "v"
       :space-evenly false
-      :spacing 5
+      :spacing 10
       (for event in paclog
         (box 
           :hexpand true
@@ -68,7 +72,8 @@
             (label 
               :class "yellow" 
               :halign "end" 
-              :text "${substring(event.transaction, 1,10)} @ ${substring(event.transaction, 12,8)}"
+              :text "${substring(event.transaction, 1,10)} @ ${
+                      substring(event.transaction, 12,8)}"
             )
             (label :text "") ;blank line spacer
             (box

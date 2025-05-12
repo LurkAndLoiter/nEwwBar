@@ -30,6 +30,7 @@ $highlight: $Red;
 
 * {
   all: unset;
+  font-family: "MonaspiceNe NF", monospace;
 }
 
 .blue {
@@ -96,10 +97,6 @@ tooltip {
   box-shadow: 0 1px 2px 1px $Mauve;
 }
 
-.bar-expansion {
-  font-family: "MonaspiceNe NF", monospace;
-}
-
 .bar-box {
   background-color: rgba($Crust, 1);
   border-radius: 10px;
@@ -108,6 +105,21 @@ tooltip {
 
   label {
     font-size: 24px;
+    &.small {
+      font-size: 12px;
+    }
+    &.medium {
+      font-size: 18px;
+    }
+    &.bold {
+      font-weight: bold;
+    }
+    &.italic {
+      font-style: italic;
+    }
+    &.colorMe {
+      color: $Mauve; 
+    }
   }
 }
 

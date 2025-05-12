@@ -7,6 +7,31 @@
 (include "./widgets/apps.yuck")
 (include "./widgets/PacLog.yuck")
 
+(deflisten Date :initial "{}"
+  `~/.config/eww/bin/simpleDate`)
+
+(defwidget dateStyled []
+  (box :class "pushright pushleft" :space-evenly false 
+    (label :class "bold" :text "${Date.H}:${Date.M}")
+    (label 
+      :valign "start" 
+      :class "medium italic colorMe pushright" 
+      :text "${Date.Day}"
+    ) 
+    (box :orientation "v" :space-evenly false 
+      (label 
+        :class "small italic" 
+        :text "${Date.Month} ${Date.Year}"
+      )
+      (label 
+        :halign "end" 
+        :class "small italic colorMe" 
+        :text "${Date.DayOfWeek}"
+      )
+    )
+  )
+)
+
 (defwindow barMin
   :monitor 1 
   :stacking "fg"
@@ -25,7 +50,6 @@
   :monitor 1 
   :stacking "fg"
   :windowtype "dock"
-  :class "bar-expansion"
   :exclusive true
   :geometry (geometry
               :width "100%"
@@ -57,7 +81,9 @@
         (wifiButton)
         (label :text "  ")
         (button :onclick "eww open --toggle rightPanel"
-          (label :class "bar-date" :xalign 1 :markup "${formattime(EWW_TIME, '<span size="12pt"><i>%a %d %b %Y</i></span> <b>%H:%M</b>')}"))
+          (dateStyled)
+        )
+          ; (label :class "bar-date" :xalign 1 :markup "${formattime(EWW_TIME, '<span size="12pt"><i>%a %d %b %Y</i></span> <b>%H:%M</b>')}"))
         (powerButton)))))
 
 

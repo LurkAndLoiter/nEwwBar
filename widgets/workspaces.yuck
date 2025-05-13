@@ -1,4 +1,4 @@
-;; Comiled C
+;; Compiled C
 (deflisten workspaces :initial "[]"
   "~/.config/eww/bin/workspace_list")
 
@@ -16,14 +16,17 @@
   (box
     :class "workspaces-widget"
     :space-evenly true
+    ; Force Load  
+    (label :visible false :text "${workspaces}${current_workspace}")
     (for workspace in workspaces
       (eventbox
         :tooltip "${workspace.id}"
         :onclick "hyprctl dispatch workspace ${workspace.id}"
         (box
-          :class "large workspace ${workspace.id == current_workspace ? "current" : ""} ${workspace.windows > 0 ? "occupied" : "empty"}"
+          :class "workspace ${workspace.id == current_workspace ? "current" : ""} ${workspace.windows > 0 ? "occupied" : "empty"}"
           (label
-           :text "${workspace.id == current_workspace ? " " : " "}"
+            :class "large"
+            :text "${workspace.id == current_workspace ? " " : " "}"
           )
         )
       )

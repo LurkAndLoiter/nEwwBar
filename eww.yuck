@@ -8,7 +8,7 @@
 (include "./widgets/PacLog.yuck")
 
 (deflisten Date :initial "{}"
-  `~/.config/eww/bin/simpleDate`)
+  `~/.config/eww/bin/date_simple`)
 
 (defwidget dateStyled []
   (box :class "pushright pushleft large" :space-evenly false 

@@ -16,8 +16,7 @@
  * along with playerctl If not, see <http://www.gnu.org/licenses/>.
 */
 
-// gcc -o bluetooth_power bluetooth_power.c `pkg-config --cflags --libs dbus-1`
-// ./bluetooth_power#include <stdio.h>
+#include <stdio.h>
 #include <dbus/dbus.h>
 #include <stdlib.h>
 #include <string.h>

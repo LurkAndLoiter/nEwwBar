@@ -16,7 +16,6 @@
  * along with playerctl If not, see <http://www.gnu.org/licenses/>.
 */
 
-// gcc -o wlan_scan wlan_scan.c `pkg-config --cflags --libs dbus-1`
 #include <dbus/dbus.h>
 #include <stdio.h>
 #include <stdlib.h>

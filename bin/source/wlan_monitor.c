@@ -16,9 +16,6 @@
  * along with playerctl If not, see <http://www.gnu.org/licenses/>.
 */
 
-// dependencies for compiling 'gio' packaged in 'glib2'
-// gcc -o wlan_monitor wlan_monitor.c $(pkg-config --cflags --libs gio-2.0)
-// ./wlan_monitor > output.log 2> debug.log
 #include <gio/gio.h>
 #include <stdio.h>
 #include <stdlib.h>

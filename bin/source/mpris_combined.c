@@ -16,8 +16,6 @@
  * along with playerctl If not, see <http://www.gnu.org/licenses/>.
 */
 
-// gcc -o mpris_fetch mpris_fetch.c -I/usr/include/dbus-1.0
-// -I/usr/lib64/dbus-1.0/include -ldbus-1 -lpulse
 #include <ctype.h>
 #include <dbus/dbus.h>
 #include <pulse/pulseaudio.h>

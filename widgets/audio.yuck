@@ -1,12 +1,12 @@
 ;; Compiled C
 (deflisten audio-sources :initial "{}"
-  `~/.config/eww/bin/mprisFetch`)
+  `~/.config/eww/bin/mpris_fetch`)
 
 (deflisten audio-sinks :initial "{}"
   `~/.config/eww/bin/audio_out`) 
 
 (deflisten audioPosition :initial '{}'
-  `~/.config/eww/bin/mprisPosition`)
+  `~/.config/eww/bin/mpris_position`)
 
 (defwidget forceLoadAudio []
   (label

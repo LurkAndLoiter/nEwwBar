@@ -16,7 +16,6 @@
  * along with playerctl If not, see <http://www.gnu.org/licenses/>.
 */
 
-// gcc -o audio_out audio_out.c -lpulse
 #include <pulse/pulseaudio.h>
 #include <stdbool.h>
 #include <stdio.h>

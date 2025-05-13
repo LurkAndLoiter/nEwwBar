@@ -16,7 +16,6 @@
  * along with playerctl If not, see <http://www.gnu.org/licenses/>.
 */
 
-// gcc -o bt_devices bt_devices.c `pkg-config --cflags --libs dbus-1`
 #include <dbus/dbus.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -265,7 +264,7 @@ static void print_devices(Device *devices, int device_count) {
       first = 0;
       const char *value = devices[i].properties[j].value
                               ? devices[i].properties[j].value
-                              : "null";
+                              : "999";
       if (strcmp(devices[i].properties[j].key, "Connected") == 0 ||
           strcmp(devices[i].properties[j].key, "Paired") == 0 ||
           strcmp(devices[i].properties[j].key, "Trusted") == 0) {

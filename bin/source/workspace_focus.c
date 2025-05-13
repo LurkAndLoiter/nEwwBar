@@ -16,9 +16,6 @@
  * along with playerctl If not, see <http://www.gnu.org/licenses/>.
 */
 
-// dependencies for compilation 'json-c'
-// gcc -o workspace_focus workspace_focus.c -ljson-c
-// ./workspace_focus > output.log 2> debug.log
 #include <json-c/json.h>
 #include <stdio.h>
 #include <stdlib.h>

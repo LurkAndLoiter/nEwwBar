@@ -511,7 +511,7 @@ char *build_json(DBusConnection *conn) {
     char *name_escaped = json_escape(players[i].name);
     char *desktop_escaped = json_escape(players[i].desktop_entry);
     pos += snprintf(buffer + pos, 8192 - pos,
-                    "  {\"Player\": \"%s\", \"DesktopEntry\": \"%s\", ",
+                    "  {\"longName\": \"%s\", \"Name\": \"%s\", ",
                     name_escaped, desktop_escaped);
     free(name_escaped);
     free(desktop_escaped);

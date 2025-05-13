@@ -18,9 +18,9 @@
     :onrightclick "rfkill toggle wlan"
     (literal
       :content {
-        wlan-monitor.state == 20 ? "(label :text '󰤮' :class 'disabled')" :
-        wlan-monitor.state == 10 ? "(label :text '' :class 'red')" :
-        wlan-monitor.state == 60 ? "(label :text '󰤬' :class 'red')" :
+        wlan-monitor.state == 20 ? "(label :text '󰤮' :class 'pushleft large disabled')" :
+        wlan-monitor.state == 10 ? "(label :text '' :class 'pushleft large red')" :
+        wlan-monitor.state == 60 ? "(label :text '󰤬' :class 'pushleft large red')" :
         wlan-monitor.state != 100 ? "(image :path './assets/sat.gif')" :
         wlan-monitor.strength > 70 ? wSigGreat :
         wlan-monitor.strength > 50 ? wSigGood :

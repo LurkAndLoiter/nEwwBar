@@ -11,7 +11,6 @@
     (eventbox 
       :onclick "eww open --toggle micPanel"
       :onrightclick 'pactl set-source-mute "$(pactl get-default-source)" toggle'
-      :tooltip "${audioMonitors}"
       (label 
         :text "${jq(audioMonitors, '.[] | select(.default) | (.state == "suspended")') ? "󰍭" : "󰍬"}" 
         :class "large ${jq(audioMonitors, '.[] | select(.default) | (.mute)') ? "inactive" : "red"}" 

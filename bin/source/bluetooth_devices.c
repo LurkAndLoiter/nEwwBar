@@ -16,6 +16,10 @@
  * along with playerctl If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+
 #include <dbus/dbus.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -40,17 +44,21 @@ typedef struct {
 } Device;
 
 static void log_debug(const char *message) {
+#if DEBUG
   fprintf(stderr, "DEBUG: %s\n", message);
   fflush(stderr);
+#endif
 }
 
 static void log_error(const char *message, DBusError *err) {
+#if DEBUG
   if (err && dbus_error_is_set(err)) {
     fprintf(stderr, "ERROR: %s: %s\n", message, err->message);
   } else {
     fprintf(stderr, "ERROR: %s\n", message);
   }
   fflush(stderr);
+#endif
 }
 
 static void free_device(Device *device) {
@@ -249,18 +257,31 @@ static Device *get_devices(DBusConnection *conn, int *device_count) {
   return devices;
 }
 
+static char *last_output = NULL;  // Store the last printed JSON output
+
 static void print_devices(Device *devices, int device_count) {
-  printf("[");
+  // Build the JSON output into a dynamic buffer
+  size_t buffer_size = 1024;  // Initial buffer size
+  char *buffer = malloc(buffer_size);
+  if (!buffer) {
+    log_error("Failed to allocate buffer for JSON output", NULL);
+    return;
+  }
+  size_t offset = 0;
+
+  offset += snprintf(buffer + offset, buffer_size - offset, "[");
   for (int i = 0; i < device_count; i++) {
-    if (i > 0)
-      printf(",");
-    printf("{");
+    if (i > 0) {
+      offset += snprintf(buffer + offset, buffer_size - offset, ",");
+    }
+    offset += snprintf(buffer + offset, buffer_size - offset, "{");
     int first = 1;
     const char *output_keys[] = {"id",     "Name",    "Icon",   "Connected",
                                  "Paired", "Trusted", "Battery"};
     for (int j = 0; j < devices[i].prop_count; j++) {
-      if (!first)
-        printf(",");
+      if (!first) {
+        offset += snprintf(buffer + offset, buffer_size - offset, ",");
+      }
       first = 0;
       const char *value = devices[i].properties[j].value
                               ? devices[i].properties[j].value
@@ -268,15 +289,42 @@ static void print_devices(Device *devices, int device_count) {
       if (strcmp(devices[i].properties[j].key, "Connected") == 0 ||
           strcmp(devices[i].properties[j].key, "Paired") == 0 ||
           strcmp(devices[i].properties[j].key, "Trusted") == 0) {
-        printf("\"%s\": %s", output_keys[j], value[0] ? value : "false");
+        offset += snprintf(buffer + offset, buffer_size - offset,
+                           "\"%s\": %s", output_keys[j], value[0] ? value : "false");
+      } else if (strcmp(devices[i].properties[j].key, "Percentage") == 0) {
+        offset += snprintf(buffer + offset, buffer_size - offset,
+                           "\"%s\": %s", output_keys[j], value[0] ? value : "999");
       } else {
-        printf("\"%s\": \"%s\"", output_keys[j], value[0] ? value : "null");
+        offset += snprintf(buffer + offset, buffer_size - offset,
+                           "\"%s\": \"%s\"", output_keys[j], value[0] ? value : "null");
+      }
+
+      // Resize buffer if needed
+      if (offset >= buffer_size - 1) {
+        buffer_size *= 2;
+        char *new_buffer = realloc(buffer, buffer_size);
+        if (!new_buffer) {
+          log_error("Failed to reallocate buffer for JSON output", NULL);
+          free(buffer);
+          return;
+        }
+        buffer = new_buffer;
       }
     }
-    printf("}");
+    offset += snprintf(buffer + offset, buffer_size - offset, "}");
   }
-  printf("]\n");
-  fflush(stdout);
+  offset += snprintf(buffer + offset, buffer_size - offset, "]");
+
+  // Compare with last output
+  if (!last_output || strcmp(buffer, last_output) != 0) {
+    // Print and update last_output
+    printf("%s\n", buffer);
+    fflush(stdout);
+    free(last_output);  // Free previous output
+    last_output = strdup(buffer);  // Store new output
+  }
+
+  free(buffer);
 }
 
 int main() {
@@ -298,6 +346,14 @@ int main() {
   Device *devices = get_devices(conn, &device_count);
   if (device_count > 0) {
     print_devices(devices, device_count);
+  } else {
+    // Handle empty device list
+    if (!last_output || strcmp("[]", last_output) != 0) {
+      printf("[]\n");
+      fflush(stdout);
+      free(last_output);
+      last_output = strdup("[]");
+    }
   }
 
   // Add match rules for PropertiesChanged and InterfacesAdded/Removed
@@ -319,6 +375,7 @@ int main() {
       free_device(&devices[i]);
     if (devices)
       free(devices);
+    free(last_output);  // Clean up last_output
     dbus_connection_unref(conn);
     dbus_error_free(&err);
     return 1;
@@ -348,8 +405,13 @@ int main() {
         if (device_count > 0) {
           print_devices(devices, device_count);
         } else {
-          printf("[]\n");
-          fflush(stdout);
+          // Handle empty device list
+          if (!last_output || strcmp("[]", last_output) != 0) {
+            printf("[]\n");
+            fflush(stdout);
+            free(last_output);
+            last_output = strdup("[]");
+          }
         }
       }
       dbus_message_unref(msg);
@@ -362,6 +424,7 @@ int main() {
   }
   if (devices)
     free(devices);
+  free(last_output);  // Clean up last_output
   dbus_connection_unref(conn);
   dbus_error_free(&err);
 

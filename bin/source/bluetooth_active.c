@@ -16,41 +16,50 @@
  * along with playerctl If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+
 #include <stdio.h>
 #include <dbus/dbus.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define BLUEZ_SERVICE "org.bluez"
 #define BLUEZ_PATH "/org/bluez/hci0"
 #define BLUEZ_ADAPTER_INTERFACE "org.bluez.Adapter1"
 
 static void log_debug(const char *message) {
+#if DEBUG
   fprintf(stderr, "DEBUG: %s\n", message);
   fflush(stderr);
+#endif
 }
 
 static void log_error(const char *message, DBusError *err) {
+#if DEBUG
   if (err && dbus_error_is_set(err)) {
     fprintf(stderr, "ERROR: %s: %s\n", message, err->message);
   } else {
     fprintf(stderr, "ERROR: %s\n", message);
   }
   fflush(stderr);
+#endif
 }
 
-static int check_powered_state(DBusConnection *conn) {
+static bool check_powered_state(DBusConnection *conn) {
   log_debug("Checking Powered state");
   if (!conn) {
     log_error("No D-Bus connection", NULL);
-    return -1;  // Error state
+    return false;  // Error state
   }
 
   DBusMessage *msg = dbus_message_new_method_call(
       BLUEZ_SERVICE, BLUEZ_PATH, "org.freedesktop.DBus.Properties", "Get");
   if (!msg) {
     log_error("Failed to create Get message", NULL);
-    return -1;
+    return false;
   }
 
   const char *interface = BLUEZ_ADAPTER_INTERFACE;
@@ -59,14 +68,14 @@ static int check_powered_state(DBusConnection *conn) {
                                 DBUS_TYPE_STRING, &prop, DBUS_TYPE_INVALID)) {
     log_error("Failed to append args to Get message", NULL);
     dbus_message_unref(msg);
-    return -1;
+    return false;
   }
 
   DBusPendingCall *pending = NULL;
   if (!dbus_connection_send_with_reply(conn, msg, &pending, -1)) {
     log_error("Failed to send Get message", NULL);
     dbus_message_unref(msg);
-    return -1;
+    return false;
   }
 
   dbus_connection_flush(conn);
@@ -76,10 +85,10 @@ static int check_powered_state(DBusConnection *conn) {
     log_error("No reply from Properties.Get", NULL);
     dbus_pending_call_unref(pending);
     dbus_message_unref(msg);
-    return -1;
+    return false;
   }
 
-  int powered = -1;  // -1 for error, 0 for off, 1 for on
+  bool powered = false;  // Default to false for error or off
   DBusMessageIter args;
   if (dbus_message_iter_init(reply, &args)) {
     DBusMessageIter variant;
@@ -88,8 +97,8 @@ static int check_powered_state(DBusConnection *conn) {
       if (dbus_message_iter_get_arg_type(&variant) == DBUS_TYPE_BOOLEAN) {
         dbus_bool_t value;
         dbus_message_iter_get_basic(&variant, &value);
-        powered = value ? 1 : 0;
-        log_debug(value ? "Adapter is powered" : "Adapter is not powered");
+        powered = value;
+        log_debug(powered ? "Adapter is powered" : "Adapter is not powered");
       } else {
         log_error("Powered is not a boolean", NULL);
       }
@@ -120,13 +129,9 @@ int main() {
   }
   log_debug("Connected to system bus");
 
-  int last_state = check_powered_state(conn);
-  if (last_state >= 0) {
-    printf("%d\n", last_state);  // 0 for off, 1 for on
-    fflush(stdout);
-  } else {
-    log_error("Initial state check failed", NULL);
-  }
+  bool last_state = check_powered_state(conn);
+  printf("%s\n", last_state ? "true" : "false");
+  fflush(stdout);
 
   char match_rule[256];
   snprintf(match_rule, sizeof(match_rule),
@@ -149,10 +154,10 @@ int main() {
       if (dbus_message_is_signal(msg, "org.freedesktop.DBus.Properties",
                                  "PropertiesChanged")) {
         log_debug("Received PropertiesChanged signal");
-        int new_state = check_powered_state(conn);
-        if (new_state >= 0 && new_state != last_state) {
+        bool new_state = check_powered_state(conn);
+        if (new_state != last_state) {
           last_state = new_state;
-          printf("%d\n", new_state);
+          printf("%s\n", new_state ? "true" : "false");
           fflush(stdout);
         }
       }

@@ -11,7 +11,7 @@
   `~/.config/eww/bin/date_simple`)
 
 (defwidget dateStyled []
-  (box :class "pushright pushleft large" :space-evenly false 
+  (box :class "large" :space-evenly false 
     (label :class "bold" :text "${Date.H}:${Date.M}")
     (label 
       :valign "start" 
@@ -65,11 +65,12 @@
         :spacing 5
         (eventbox :class "large" :onclick "eww open --toggle leftPanel" "󰍜")
         ; (label :text playerhov)
-        (systray :spacing 2))
+        (systray :spacing 2)
+      )
       (box
         :halign "center"
-        :spacing 5
-        (workspaces))
+        (workspaces)
+      )
       (box
         :halign "end"
         :spacing 5
@@ -85,7 +86,11 @@
           (dateStyled)
         )
           ; (label :class "bar-date" :xalign 1 :markup "${formattime(EWW_TIME, '<span size="12pt"><i>%a %d %b %Y</i></span> <b>%H:%M</b>')}"))
-        (powerButton)))))
+        (powerButton)
+      )
+    )
+  )
+)
 
 
 (defwindow leftPanel
@@ -177,9 +182,6 @@
 
 (defvar networkIndex 0)
 
-(defwidget Spacer []
-  (box 
-    :halign "fill"
-    :class "spacerbar"))
-  
+(defwidget Spacer [] (box :halign "fill" :class "spacerbar"))
+
 (defvar hover_state "")

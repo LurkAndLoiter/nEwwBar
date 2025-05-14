@@ -1,7 +1,8 @@
 (defpoll paclog 
   :initial '[{"transaction": "","command": "", "packages": [{"name": "","change": "", "version":""}]}]'
   :interval "30s"
-  '~/.config/eww/scripts/PacLog.sh')
+; You can query today, month, week, year, all (no value defaults to week) 
+  '~/.config/eww/scripts/PacLog.sh week')
 
 (defwidget pacmanButton []
   (eventbox
@@ -85,7 +86,7 @@
                 (label 
                   :text "${pack.name}" 
                   :halign "start"
-                  :class "${pack.change == "upgraded" ? "yellow" :
+                  :class "${pack.change == "upgraded" ? "lavender" :
                             pack.change == "installed" ? "green" :
                             "red"}";<- pack.change == "removed"
                 )

@@ -1,0 +1,66 @@
+<svg width="2560mm" height="512mm" version="1.1" viewBox="0 0 2560 512" xmlns="http://www.w3.org/2000/svg">
+	<g transform="matrix(3.7795 0 0 3.7795 882.73 -305)">
+		<rect x="-234.09" y="80.698" width="677.33" height="135.47" style="display:none;fill:#fff;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:46.943"/>
+		<g transform="matrix(-.26458 0 0 .26458 696.13 -492.51)" style="display:none">
+			<path transform="matrix(-1 0 0 1 -952.11 4347.8)" d="m-2510.6-1754.5s-6.968.5086-7.9603.7745c-21.78 5.8359-25.268 44.165-40.514 44.165-32.058 0-46.899-45.345-78.179-45.345-21.268 0-33.661 45.344-52.268 45.344l-16.244 2e-4v-17.826l-1e-4-197.95c0-73.343 21.828-122.27 67.105-167.55 51.101-51.101 128.06-48.223 128.06-48.223zm0 0s6.968.5086 7.9603.7745c21.78 5.8359 25.268 44.165 40.514 44.165 32.058 0 46.899-45.345 78.179-45.345 21.268 0 33.661 45.344 52.268 45.344l16.244 2e-4v-17.826l1e-4-197.95c0-73.343-21.828-122.27-67.105-167.55-51.101-51.101-128.06-48.223-128.06-48.223z" style="display:inline;fill:#00f;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+			<path transform="matrix(-1 0 0 1 -952.11 4347.8)" d="m-2510.6-1709.6c-48.141 0-60.469-48.012-95.524-44.939-25.634 2.2473-28.489 44.939-63.069 44.516s-33.111-3.8061-36.574-14.956v-200.39c0-73.343 21.828-122.27 67.105-167.55 51.101-51.101 128.06-48.223 128.06-48.223zm-2e-4 0c48.141 0 60.469-48.012 95.524-44.939 25.634 2.2473 28.489 44.939 63.069 44.516s33.111-3.8061 36.574-14.956v-200.39c0-73.343-21.828-122.27-67.105-167.55-51.101-51.101-128.06-48.223-128.06-48.223z" style="display:none;fill:#00f;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+			<g transform="translate(1.0316 39.852)">
+				<path transform="scale(-1,1)" x="-1653.5823" y="2358.345" width="65.501289" height="65.501289" d="m-1653.6 2358.3h65.501v65.501h-65.501zm192.16 0h-65.501v65.501h65.501z" style="fill:#f9f9f9;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+				<path d="m1684.7 2511.2c19.416 0 37.748 35.954 37.748 27.794 0-8.3696-1.1331-61.109-44.072-61.109s-29.566 33.486-58.582 33.486c-29.017 0-15.048-33.486-60.126-33.486h-2.1729v33.486h1.3066c19.694 0 17.78 29.24 60.993 29.24 43.212 0 39.139-29.411 64.906-29.411zm-254.41 0c-19.416 0-37.748 35.954-37.748 27.794 0-8.3696 1.1331-61.109 44.072-61.109s29.566 33.486 58.582 33.486c29.017 0 15.048-33.486 60.126-33.486h2.1729v33.486h-1.3066c-19.694 0-17.78 29.24-60.993 29.24-43.212 0-39.139-29.411-64.906-29.411z" style="fill:#fff;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:215.1"/>
+			</g>
+		</g>
+		<g transform="matrix(.26458 0 0 .26458 -388.7 83.933)">
+			<circle cx="256" cy="256" r="256" style="display:none;fill:#fd0;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+			<path d="m805.13 253.09c-.004.11719-219.39 118.7-218.76 119.85 44.553 80.147 147.87 126.83 248.27 126.83 145.65 0 263.73-114.62 263.73-256s-118.07-256-263.73-256c-101.78 0-185.04 58.681-246.88 128.15-1.3912 1.5627 217.37 137.06 217.36 137.17z" style="fill:#fd0;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:180.08"/>
+			<path d="m293.24 265.32s105.9 203.16 103.59 204.49c-41.922 24.203-88.804 42.186-140.83 42.186-141.38 0-256-114.62-256-256s114.62-256 256-256c50.669 0 97.9 14.721 137.65 40.118 2.7294 1.744-100.41 225.2-100.41 225.2z" style="display:none;fill:#fd0;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+		</g>
+		<g transform="matrix(-.26458 0 0 .26458 398.1 -492.51)">
+			<path transform="matrix(-1 0 0 1 -952.11 4347.8)" d="m-2510.6-1754.5s-6.968.5086-7.9603.7745c-21.78 5.8359-25.268 44.165-40.514 44.165-32.058 0-46.899-45.345-78.179-45.345-21.268 0-33.661 45.344-52.268 45.344l-16.244 2e-4v-17.826l-1e-4-197.95c0-73.343 21.828-122.27 67.105-167.55 51.101-51.101 128.06-48.223 128.06-48.223zm0 0s6.968.5086 7.9603.7745c21.78 5.8359 25.268 44.165 40.514 44.165 32.058 0 46.899-45.345 78.179-45.345 21.268 0 33.661 45.344 52.268 45.344l16.244 2e-4v-17.826l1e-4-197.95c0-73.343-21.828-122.27-67.105-167.55-51.101-51.101-128.06-48.223-128.06-48.223z" style="fill:#e40e18;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+			<path transform="matrix(-1 0 0 1 -952.11 4347.8)" d="m-2510.6-1709.6c-48.141 0-60.469-48.012-95.524-44.939-25.634 2.2473-28.489 44.939-63.069 44.516s-33.111-3.8061-36.574-14.956v-200.39c0-73.343 21.828-122.27 67.105-167.55 51.101-51.101 128.06-48.223 128.06-48.223zm-2e-4 0c48.141 0 60.469-48.012 95.524-44.939 25.634 2.2473 28.489 44.939 63.069 44.516s33.111-3.8061 36.574-14.956v-200.39c0-73.343-21.828-122.27-67.105-167.55-51.101-51.101-128.06-48.223-128.06-48.223z" style="display:none;fill:#e40e18;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+			<g transform="translate(37.832 2162.7)">
+				<ellipse cx="1477.5" cy="217.25" rx="53" ry="54.75" style="fill:#fff;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:180.62"/>
+				<circle cx="1496.9" cy="217.25" r="23.85" style="fill:#00f;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:96.5"/>
+			</g>
+			<g transform="translate(37.832 2162.7)">
+				<ellipse cx="1636" cy="217.25" rx="53" ry="54.75" style="fill:#fff;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:180.62"/>
+				<circle cx="1656.9" cy="217.25" r="23.85" style="fill:#00f;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:96.5"/>
+			</g>
+		</g>
+		<g transform="matrix(-.26458 0 0 .26458 533.57 -492.51)">
+			<path transform="matrix(-1 0 0 1 -952.11 4347.8)" d="m-2510.6-1754.5s-6.968.5086-7.9603.7745c-21.78 5.8359-25.268 44.165-40.514 44.165-32.058 0-46.899-45.345-78.179-45.345-21.268 0-33.661 45.344-52.268 45.344l-16.244 2e-4v-17.826l-1e-4-197.95c0-73.343 21.828-122.27 67.105-167.55 51.101-51.101 128.06-48.223 128.06-48.223zm0 0s6.968.5086 7.9603.7745c21.78 5.8359 25.268 44.165 40.514 44.165 32.058 0 46.899-45.345 78.179-45.345 21.268 0 33.661 45.344 52.268 45.344l16.244 2e-4v-17.826l1e-4-197.95c0-73.343-21.828-122.27-67.105-167.55-51.101-51.101-128.06-48.223-128.06-48.223z" style="fill:#f9b234;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+			<path transform="matrix(-1 0 0 1 -952.11 4347.8)" d="m-2510.6-1709.6c-48.141 0-60.469-48.012-95.524-44.939-25.634 2.2473-28.489 44.939-63.069 44.516s-33.111-3.8061-36.574-14.956v-200.39c0-73.343 21.828-122.27 67.105-167.55 51.101-51.101 128.06-48.223 128.06-48.223zm-2e-4 0c48.141 0 60.469-48.012 95.524-44.939 25.634 2.2473 28.489 44.939 63.069 44.516s33.111-3.8061 36.574-14.956v-200.39c0-73.343-21.828-122.27-67.105-167.55-51.101-51.101-128.06-48.223-128.06-48.223z" style="display:none;fill:#f9b234;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+			<g transform="translate(37.832 2162.7)">
+				<ellipse cx="1477.5" cy="217.25" rx="53" ry="54.75" style="fill:#fff;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:180.62"/>
+				<circle cx="1496.9" cy="217.25" r="23.85" style="fill:#00f;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:96.5"/>
+			</g>
+			<g transform="translate(37.832 2162.7)">
+				<ellipse cx="1636" cy="217.25" rx="53" ry="54.75" style="fill:#fff;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:180.62"/>
+				<circle cx="1656.9" cy="217.25" r="23.85" style="fill:#00f;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:96.5"/>
+			</g>
+		</g>
+		<g transform="matrix(-.26458 0 0 .26458 669.04 -492.51)">
+			<path transform="matrix(-1 0 0 1 -952.11 4347.8)" d="m-2510.6-1754.5s-6.968.5086-7.9603.7745c-21.78 5.8359-25.268 44.165-40.514 44.165-32.058 0-46.899-45.345-78.179-45.345-21.268 0-33.661 45.344-52.268 45.344l-16.244 2e-4v-17.826l-1e-4-197.95c0-73.343 21.828-122.27 67.105-167.55 51.101-51.101 128.06-48.223 128.06-48.223zm0 0s6.968.5086 7.9603.7745c21.78 5.8359 25.268 44.165 40.514 44.165 32.058 0 46.899-45.345 78.179-45.345 21.268 0 33.661 45.344 52.268 45.344l16.244 2e-4v-17.826l1e-4-197.95c0-73.343-21.828-122.27-67.105-167.55-51.101-51.101-128.06-48.223-128.06-48.223z" style="fill:#ea91bd;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+			<path transform="matrix(-1 0 0 1 -952.11 4347.8)" d="m-2510.6-1709.6c-48.141 0-60.469-48.012-95.524-44.939-25.634 2.2473-28.489 44.939-63.069 44.516s-33.111-3.8061-36.574-14.956v-200.39c0-73.343 21.828-122.27 67.105-167.55 51.101-51.101 128.06-48.223 128.06-48.223zm-2e-4 0c48.141 0 60.469-48.012 95.524-44.939 25.634 2.2473 28.489 44.939 63.069 44.516s33.111-3.8061 36.574-14.956v-200.39c0-73.343-21.828-122.27-67.105-167.55-51.101-51.101-128.06-48.223-128.06-48.223z" style="display:none;fill:#ea91bd;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+			<g transform="translate(37.832 2162.7)">
+				<ellipse cx="1477.5" cy="217.25" rx="53" ry="54.75" style="fill:#fff;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:180.62"/>
+				<circle cx="1496.9" cy="217.25" r="23.85" style="fill:#00f;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:96.5"/>
+			</g>
+			<g transform="translate(37.832 2162.7)">
+				<ellipse cx="1636" cy="217.25" rx="53" ry="54.75" style="fill:#fff;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:180.62"/>
+				<circle cx="1656.9" cy="217.25" r="23.85" style="fill:#00f;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:96.5"/>
+			</g>
+		</g>
+		<g transform="matrix(-.26458 0 0 .26458 804.5 -492.51)">
+			<path transform="matrix(-1 0 0 1 -952.11 4347.8)" d="m-2510.6-1754.5s-6.968.5086-7.9603.7745c-21.78 5.8359-25.268 44.165-40.514 44.165-32.058 0-46.899-45.345-78.179-45.345-21.268 0-33.661 45.344-52.268 45.344l-16.244 2e-4v-17.826l-1e-4-197.95c0-73.343 21.828-122.27 67.105-167.55 51.101-51.101 128.06-48.223 128.06-48.223zm0 0s6.968.5086 7.9603.7745c21.78 5.8359 25.268 44.165 40.514 44.165 32.058 0 46.899-45.345 78.179-45.345 21.268 0 33.661 45.344 52.268 45.344l16.244 2e-4v-17.826l1e-4-197.95c0-73.343-21.828-122.27-67.105-167.55-51.101-51.101-128.06-48.223-128.06-48.223z" style="fill:#58c0cd;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+			<path transform="matrix(-1 0 0 1 -952.11 4347.8)" d="m-2510.6-1709.6c-48.141 0-60.469-48.012-95.524-44.939-25.634 2.2473-28.489 44.939-63.069 44.516s-33.111-3.8061-36.574-14.956v-200.39c0-73.343 21.828-122.27 67.105-167.55 51.101-51.101 128.06-48.223 128.06-48.223zm-2e-4 0c48.141 0 60.469-48.012 95.524-44.939 25.634 2.2473 28.489 44.939 63.069 44.516s33.111-3.8061 36.574-14.956v-200.39c0-73.343-21.828-122.27-67.105-167.55-51.101-51.101-128.06-48.223-128.06-48.223z" style="display:none;fill:#58c0cd;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:177.42"/>
+			<g transform="translate(37.832 2162.7)">
+				<ellipse cx="1477.5" cy="217.25" rx="53" ry="54.75" style="fill:#fff;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:180.62"/>
+				<circle cx="1496.9" cy="217.25" r="23.85" style="fill:#00f;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:96.5"/>
+			</g>
+			<g transform="translate(37.832 2162.7)">
+				<ellipse cx="1636" cy="217.25" rx="53" ry="54.75" style="fill:#fff;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:180.62"/>
+				<circle cx="1656.9" cy="217.25" r="23.85" style="fill:#00f;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:96.5"/>
+			</g>
+		</g>
+	</g>
+</svg>

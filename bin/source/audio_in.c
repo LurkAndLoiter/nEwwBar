@@ -127,10 +127,10 @@ void print_sources(AppContext *app) {
     AudioSource *src = &app->sources[i];
     if (i > 0)
       printf(",");
-    printf("{\"id\": %u, \"mute\": \"%s\", \"volume\": %d, \"default\": %s, "
+    printf("{\"id\": %u, \"mute\": %s, \"volume\": %d, \"default\": %s, "
            "\"source\": \"%s\", \"name\": \"%s\", \"icon\": \"%s\", \"state\": "
            "\"%s\"}",
-           src->index, src->muted ? "yes" : "no", src->volume,
+           src->index, src->muted ? "true" : "false", src->volume,
            src->is_default ? "true" : "false", src->name, src->description,
            src->icon,
            state_to_string(src->state));  // Add state to JSON

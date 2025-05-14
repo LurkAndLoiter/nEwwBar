@@ -1,5 +1,5 @@
 ;; Comiled C
-(deflisten audioMonitors :initial "{}"
+(deflisten audioMonitors :initial '[{"id": 1, "mute": true, "volume": 0, "default": true, "source": "pointer", "name": "Name", "icon": "audio-card-analog", "state": "suspended"}]'
   `~/.config/eww/bin/audio_in`)
 
 ;; Bash Scripts (Archived)
@@ -11,11 +11,10 @@
     (eventbox 
       :onclick "eww open --toggle micPanel"
       :onrightclick 'pactl set-source-mute "$(pactl get-default-source)" toggle'
-      (literal 
-        :content {
-; NOTE jq find default pulseaudio mic and determine muted/suspended status.
-        "${jq(audioMonitors, '.[] | select(.default == true) | (.state != "suspended" and .mute == "no")') == true ? micHot : micCold }"
-        }
+      :tooltip "${audioMonitors}"
+      (label 
+        :text "${jq(audioMonitors, '.[] | select(.default) | (.state == "suspended")') ? "󰍭" : "󰍬"}" 
+        :class "large ${jq(audioMonitors, '.[] | select(.default) | (.mute)') ? "inactive" : "red"}" 
       )
     )
   )
@@ -44,7 +43,7 @@
     (for source in audioMonitors
       (box 
         ; :class "barspacer"
-        :visible "${matches(source.name, "^Monitor of ") == true ? false : true}"
+        :visible "${matches(source.name, "^Monitor") ? false : true}"
         (eventbox
           :class 'btns-bar${source.state == "suspended" ? " disabled" : " enabled"} ${source.default == true ? " active": ""}'
           (box :hexpand true :space-evenly false 
@@ -58,12 +57,12 @@
               :class "pushright pushleft"
               :hexpand true 
               :xalign 0 
-              :text {source.name}
+              :text "${source.name}"
             )
             (label 
-              :class 'pushleft${source.mute == "no" ? "" : " red"}'
+              :class 'pushleft${source.mute ? " red" : ""}'
               :xalign 1 
-              :text {source.volume}
+              :text "${source.volume}"
             )
           )
         )
@@ -71,6 +70,3 @@
     )
   )
 )
-
-(defvar micHot "(label :text '󰍬' :class 'large red')")
-(defvar micCold "(label :text '󰍭' :class 'large inactive')")

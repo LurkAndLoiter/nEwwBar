@@ -123,9 +123,9 @@ void print_sinks(AppContext *app) {
     AudioSink *sink = &app->sinks[i];
     if (i > 0)
       printf(",");
-    printf("{\"id\": \"%s\", \"mute\": \"%s\", \"volume\": %d, \"default\": "
+    printf("{\"id\": \"%s\", \"mute\": %s, \"volume\": %d, \"default\": "
            "%s, \"sink\": \"%s\", \"name\": \"%s\", \"icon\": \"%s\"}",
-           sink->object_id, sink->muted ? "yes" : "no", sink->volume,
+           sink->object_id, sink->muted ? "true" : "false", sink->volume,
            sink->is_default ? "true" : "false", sink->name, sink->description,
            sink->icon);
   }

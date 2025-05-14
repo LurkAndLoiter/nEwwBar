@@ -1,25 +1,31 @@
 ;; Compiled C
-(deflisten audio-sources :initial "{}"
-  `~/.config/eww/bin/mpris_fetch`)
+(deflisten audioSources 
+  :initial '[{"longName": "UUID","Name": "firefox","CanControl": false,"CanGoNext": false,"CanGoPrevious": false,"CanPause": false,"CanPlay": false,"CanSeek": false,"PlaybackStatus": "Playing","title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","sinkID": "UUIDpointer","id": "117","serial": "3736","volume": 100,"mute": false}]'
+  `~/.config/eww/bin/mpris_fetch`
+)
 
-(deflisten audio-sinks :initial "{}"
-  `~/.config/eww/bin/audio_out`) 
+(deflisten audioSinks 
+  :initial '[{"id": "1", "mute": true, "volume": 0, "default": true, "sink": "UUIDpointer", "name": "Name", "icon": "audio-speakers"}]'
+  `~/.config/eww/bin/audio_out`
+) 
 
-(deflisten audioPosition :initial '{}'
-  `~/.config/eww/bin/mpris_position`)
+(deflisten audioPosition 
+  :initial '{"UUID": 1000000, "UUIDHMS": "1:30"}'
+  `~/.config/eww/bin/mpris_position`
+)
 
 (defwidget forceLoadAudio []
   (label
     :visible false
-    :text "${audioPosition} ${audio-sinks} ${audio-sources}"
+    :text "${audioPosition}${audioSinks}${audioSources}"
   )
 )
 ;; Shell Scripts (Archived)
-; (deflisten audio-sources :initial ""
+; (deflisten audioSources :initial ""
   ; `~/.config/eww/scripts/Archives/mpris_fetch`)
 
-; (deflisten audio-sinks :initial ""
-  ; `/usr/bin/bash ~/.config/eww/scripts/Archives/get-audio-sinks`) 
+; (deflisten audioSinks :initial ""
+  ; `/usr/bin/bash ~/.config/eww/scripts/Archives/get-audioSinks`) 
 
 (defwidget audioButton []
   (eventbox 
@@ -30,7 +36,7 @@ Left click open/close panel`
     :onclick "eww open --toggle audioPanel"
     :onrightclick "wpctl set-mute @DEFAULT_SINK@ toggle"
     (literal :content 
-      {"${jq(audio-sinks, '.[] | select(.default == true) | (.mute == "no")') == true ? audioUnmuted : audioMuted}"
+      {"${jq(audioSinks, '.[] | select(.default) | (.mute)') ? audioMuted : audioUnmuted}"
       }
     )
   )
@@ -68,11 +74,11 @@ Left click open/close panel`
   (box 
     :space-evenly false
     (label
-      :text "${audio-sinks}"
+      :text "${audioSinks}"
       :visible false
       :show-truncated false
       :wrap true)
-    (for s in audio-sinks
+    (for s in audioSinks
       (box
         :hexpand true
         :space-evenly false
@@ -108,7 +114,7 @@ Left click open/close panel`
             :onclick "wpctl set-mute ${s.id} toggle" 
             (image 
               :image-height 24 
-              :path "./assets/icons/audio-${s.mute == "yes" ? "muted" : "high"}.svg"
+              :path "./assets/icons/audio-${s.mute ? "muted" : "high"}.svg"
             )
           )
         )
@@ -122,7 +128,7 @@ Left click open/close panel`
   (box 
     :orientation "v"
     :space-evenly false
-    (for p in audio-sources
+    (for p in audioSources
       (eventbox
         :onhover `eww update playerhov="${p.Name}"`
         :onhoverlost `eww update playerhov=""`
@@ -135,6 +141,7 @@ Left click open/close panel`
             :class "green"
             :xalign 0
             :wrap true
+            :hexpand true
             :show-truncated false
             :text "${p.title}"
           )
@@ -144,8 +151,8 @@ Left click open/close panel`
             (box
               :halign "start"
               (image 
-                :image-height 100 
-                :path "${matches(p.title, " - Twitch$") == true ? "./assets/TwitchLogo.png" : p.artUrl}"
+                :image-height 80 
+                :path "${matches(p.title, " - Twitch$") ? "./assets/twitch_logo.svg" : p.artUrl}"
               )
             )
             (box 
@@ -155,17 +162,6 @@ Left click open/close panel`
               :space-evenly false
               (label :class "subtext" :xalign 0 :text "${p.artist}")
               (label :class "subtext" :xalign 0 :text "${p.album}")
-; LOOKHERE
-;              (label :text "${p.shuffle}, ${p.loop}")
-;              (label 
-;                :show-truncated false 
-;                :wrap true 
-;                :text "${jq(audioPosition, '."${p.Player}HMS"', "r")}")
-;              (label 
-;                :show-truncated false 
-;                :wrap true 
-;                :text "${jq(audioPosition, '."${p.Player}"')}")
-;LOOKHERE
               (mediaButtons 
                 :CanGoPrevious "${p.CanGoPrevious}"
                 :CanGoNext "${p.CanGoNext}" 
@@ -176,9 +172,8 @@ Left click open/close panel`
                 :shuffle "${p.shuffle}" 
               )
               (scale
-                :class "${p.CanSeek == false ? "inactive" :
-                       "${matches(p.title, "Twitch$")}" == true ? "inactive" :
-                       ""}"
+                :class "${p.CanSeek == false ? "inactive" : 
+                       "${matches(p.title, "Twitch$")}" ? "inactive" : ""}"
                 :max 100 
                 :onchange "playerctl --player=${p.longName} position $((({} * ${round(p.length / 1000000,0)}) / 100))"
                 :value "${round((100 / (p.length)) * (jq(audioPosition, '."${p.longName}"')),0)}"
@@ -189,8 +184,7 @@ Left click open/close panel`
                 :class "${p.lengthHMS == "live" ? "red" : ""}"
                 :text "${p.lengthHMS == "live" ? " live" : 
                          p.length == "" ? "--/--" :
-                        "${replace(jq(audioPosition, '."${p.longName}HMS"'),"\"","")}/${p.lengthHMS}"
-                        ; "${p.PositionHMS}/${p.lengthHMS}"
+                        "${jq(audioPosition, '."${p.longName}HMS"', "r")}/${p.lengthHMS}"
                         }"
               )
             )
@@ -228,17 +222,17 @@ Left click open/close panel`
       :halign "start"
       :spacing 10
       (eventbox 
-        :class "media xlarge ${CanGoPrevious == false ? "inactive" : "active"}"
+        :class "media xlarge ${CanGoPrevious ? "active" : "inactive"}"
         :onclick "playerctl --player=${Name} previous" "󰒮")
       (eventbox 
-        :class "media xlarge ${CanPlay == false ? "inactive" : "active"}"
+        :class "media xlarge ${CanPlay ? "active" : "inactive"}"
         :onclick "playerctl --player=${Name} play-pause"
         (label 
           :text "${
           Playing == "Playing" ? "󰏤" : "󰐊"
                }"))
       (eventbox 
-        :class "media xlarge ${CanGoNext == false ? "inactive" : "active"}"
+        :class "media xlarge ${CanGoNext ? "active" : "inactive"}"
         :onclick "playerctl --player=${Name} next" "󰒭"
       )
     )
@@ -287,8 +281,8 @@ Left click open/close panel`
     (box 
       :halign "start" 
       :valign "center" 
-      :visible "${arraylength(audio-sinks) > 1 ? true : false}"
-      (for s in audio-sinks
+      :visible "${arraylength(audioSinks) > 1 ? true : false}"
+      (for s in audioSinks
         (eventbox
           :onclick "pactl move-sink-input ${serial} ${s.sink}"
           :tooltip "${s.name}"
@@ -310,17 +304,17 @@ Left click open/close panel`
             (image 
               :class "pushright" 
               :image-height 16 
-              :path "./assets/icons/audio-${pmute == "true" ? "muted" : "high"}.svg"
+              :path "./assets/icons/audio-${pmute ? "muted" : "high"}.svg"
             )
             (label 
-              :class "${pmute == true ? "red" : ""}"
+              :class "${pmute ? "red" : ""}"
               :text pvol
             )
           )
         )
         (revealer
           :transition "slideleft"
-          :reveal "${playerVol == true ? "${playerhov == switch ? true : false}": false}"
+          :reveal "${playerVol ? "${playerhov == switch ? true : false}": false}"
           :duration "1000ms"
           (scale
             :class "low-vis pushleft pushright pushdown"

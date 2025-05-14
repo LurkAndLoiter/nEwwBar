@@ -1,5 +1,5 @@
 (defpoll paclog 
-  :initial "[]"
+  :initial '[{"transaction": "","command": "", "packages": [{"name": "","change": "", "version":""}]}]'
   :interval "30s"
   '~/.config/eww/scripts/PacLog.sh')
 
@@ -35,7 +35,7 @@
   :geometry (geometry
               :anchor "top right"
               :height "100%"
-              :width 500
+              :width 400
               :vexpand true)
   (eventbox 
     :onhover 'eww update hover_state="pacmanPanel"'
@@ -44,7 +44,7 @@
       (box 
         :orientation "v"
         :space-evenly false
-        (image :image-height 90 :path "./assets/pacmanWide.svg")
+        (image :image-height 90 :path "./assets/pacman_wide.svg")
         (pacmanLog)
       )
     )
@@ -93,6 +93,8 @@
                   :text "${pack.version}"
                   :hexpand true
                   :halign "end"
+                  :truncate true
+                  :truncate-left true
                 )
               )
             )

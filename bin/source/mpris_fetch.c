@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include <locale.h>
 
 // Define DEBUG mode
 #ifndef DEBUG
@@ -138,7 +139,7 @@ static const char *loop_status_to_string(PlayerctlLoopStatus status) {
         default: return "Unknown";
     }
 }
-/// ooooooooooooooooooooooooooooooooooooooooooooooooo
+
 // Structure to hold timeout data
 typedef struct {
     PlayerData *player_data;
@@ -206,7 +207,6 @@ static gboolean check_can_properties(gpointer user_data) {
 
     return G_SOURCE_CONTINUE;
 }
-//LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
 
 // Free a SinkCache entry
 static void sink_cache_free(gpointer data) {
@@ -370,6 +370,23 @@ static void context_state_cb(pa_context *c, void *userdata) {
     }
 }
 
+// Function to sanitize a string, ensuring it's valid UTF-8
+static gchar *sanitize_utf8_string(const gchar *input) {
+    if (!input) return NULL;
+
+    // Validate the input string
+    gsize len;
+    if (g_utf8_validate(input, -1, NULL)) {
+        return g_strdup(input); // String is already valid UTF-8
+    }
+
+    // If invalid, replace invalid sequences with U+FFFD (�)
+    DEBUG_ERROR("Invalid UTF-8 in string: %s\n", input);
+    gchar *sanitized = g_utf8_make_valid(input, -1);
+    DEBUG_PRINT("Sanitized to: %s\n", sanitized);
+    return sanitized;
+}
+
 // Helper function to update metadata and properties
 static void update_metadata(PlayerData *data, PulseData *pulse) {
     // Free existing metadata
@@ -393,7 +410,9 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
     GError *error = NULL;
 
     // Title
-    data->title = playerctl_player_get_title(data->player, &error);
+    gchar *raw_title = playerctl_player_get_title(data->player, &error);
+    data->title = sanitize_utf8_string(raw_title);
+    g_free(raw_title);
     if (error != NULL) {
         DEBUG_ERROR("Failed to get title for %s: %s\n", data->name, error->message);
         g_error_free(error);
@@ -401,7 +420,9 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
     }
 
     // Album
-    data->album = playerctl_player_get_album(data->player, &error);
+    gchar *raw_album = playerctl_player_get_album(data->player, &error);
+    data->album = sanitize_utf8_string(raw_album);
+    g_free(raw_album);
     if (error != NULL) {
         DEBUG_ERROR("Failed to get album for %s: %s\n", data->name, error->message);
         g_error_free(error);
@@ -409,7 +430,9 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
     }
 
     // Artist
-    data->artist = playerctl_player_get_artist(data->player, &error);
+    gchar *raw_artist = playerctl_player_get_artist(data->player, &error);
+    data->artist = sanitize_utf8_string(raw_artist);
+    g_free(raw_artist);
     if (error != NULL) {
         DEBUG_ERROR("Failed to get artist for %s: %s\n", data->name, error->message);
         g_error_free(error);
@@ -426,7 +449,7 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
         if (g_str_has_prefix(raw_art_url, "file:///")) {
             data->art_url = g_strdup(raw_art_url + 7); // Skip "file://"
         } else if (g_str_has_prefix(raw_art_url, "https://i.scdn.co/image/")) {
-            data->art_url = g_strconcat("/run/user/1000/album_art_cache", raw_art_url + 23, NULL); // Skip "https://i.scdn.co/image/"
+            data->art_url = g_strconcat("/run/user/1000/album_art_cache", raw_art_url + 23, NULL);
         } else {
             data->art_url = g_strdup(raw_art_url);
         }
@@ -434,7 +457,9 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
     }
 
     // URL
-    data->url = playerctl_player_print_metadata_prop(data->player, "xesam:url", &error);
+    gchar *raw_url = playerctl_player_print_metadata_prop(data->player, "xesam:url", &error);
+    data->url = sanitize_utf8_string(raw_url);
+    g_free(raw_url);
     if (error != NULL) {
         DEBUG_ERROR("Failed to get url for %s: %s\n", data->name, error->message);
         g_error_free(error);
@@ -482,9 +507,9 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
                 data->url ? data->url : "none",
                 data->length,
                 data->shuffle_supported ? "true" : "false",
-                data->shuffle_supported ? (data->shuffle ? "true" : "false") : "n/a",
+                data->shuffle ? "true" : "false",
                 data->loop_status_supported ? "true" : "false",
-                data->loop_status_supported ? loop_status_to_string(data->loop_status) : "n/a",
+                loop_status_to_string(data->loop_status),
                 data->sink_id ? data->sink_id : "none");
 }
 
@@ -872,10 +897,18 @@ static PulseData *pulse_data_new(GList **players) {
 }
 
 int main(int argc, char *argv[]) {
+    // Set UTF-8 locale
+    setlocale(LC_ALL, "");
+    if (!g_get_charset(NULL)) {
+        DEBUG_ERROR("Non-UTF-8 locale detected. This may cause issues with special characters.\n");
+    }
+
     GError *error = NULL;
 
     // Initialize GLib main loop
     GMainLoop *loop = g_main_loop_new(NULL, FALSE);
+
+    // ... (rest of your main function remains unchanged)
 
     // Initialize playerctl
     PlayerctlPlayerManager *manager = playerctl_player_manager_new(&error);

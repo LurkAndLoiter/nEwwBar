@@ -11,7 +11,7 @@ then
 elif [[ $1 == "all" ]]
 then 
   SearchString=""
-else 
+else # default value is last week
   SearchString="$(date -d 'last sunday' +%Y-%m-%d)|$(date -d 'last monday' +%Y-%m-%d)|$(date -d 'last tuesday' +%Y-%m-%d)|$(date -d 'last wednesday' +%Y-%m-%d)|$(date -d 'last thursday' +%Y-%m-%d)|$(date -d 'last friday' +%Y-%m-%d)|$(date -d 'last saturday' +%Y-%m-%d)"
 fi
 

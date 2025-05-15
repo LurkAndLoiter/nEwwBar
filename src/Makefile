@@ -19,9 +19,14 @@ audio_out: audio_out.c
 bluetooth_active: bluetooth_active.c
 	$(CC) -o ../bin/bluetooth_active bluetooth_active.c `pkg-config --cflags --libs dbus-1`
 
+bluetooth_adapter: bluetooth_adapter.c
+	$(CC) -o ../bin/bluetooth_adapter bluetooth_adapter.c `pkg-config --cflags --libs glib-2.0 gio-2.0 json-glib-1.0`
+
 bluetooth_devices: bluetooth_devices.c
 	$(CC) -o ../bin/bluetooth_devices bluetooth_devices.c `pkg-config --cflags --libs dbus-1`
 
+bluetooth_scanner: bluetooth_scanner.c
+	$(CC) -o ../bin/bluetooth_scanner bluetooth_scanner.c `pkg-config --cflags --libs dbus-1`
 date_simple: date_simple.c 
 	$(CC) -o ../bin/date_simple date_simple.c
 

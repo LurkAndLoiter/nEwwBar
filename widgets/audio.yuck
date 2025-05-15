@@ -1,6 +1,6 @@
 ;; Compiled C
 (deflisten audioSources 
-  :initial '[{"longName": "UUID","Name": "firefox","CanControl": false,"CanGoNext": false,"CanGoPrevious": false,"CanPause": false,"CanPlay": false,"CanSeek": false,"PlaybackStatus": "Playing","title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","sinkID": "UUIDpointer","id": "117","serial": "3736","volume": 100,"mute": false}]'
+  :initial '[{"longName": "UUID","Name": "firefox","CanControl": false,"CanGoNext": false,"CanGoPrevious": false,"CanPause": false,"CanPlay": false,"CanSeek": false,"PlaybackStatus": "Playing","shuffle": false, "loop": "disabled", "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","sinkID": "UUIDpointer","id": "117","serial": "3736","volume": 100,"mute": false}]'
   `~/.config/eww/bin/mpris_fetch`
 )
 
@@ -201,7 +201,7 @@ Left click open/close panel`
               :switch "${p.Name}")
             (label 
               :class "subtext"
-              :hexpand "${p.id == "null" ? true : false}"
+              :hexpand "${p.id == "" ? true : false}"
               :halign "end" 
               :text "${p.Name}"
             )
@@ -277,7 +277,7 @@ Left click open/close panel`
     :hexpand true
     :halign scale_exp
     :space-evenly false
-    :visible "${targetID == "null" ? false : true}"
+    :visible "${targetID == "" ? false : true}"
     (box 
       :halign "start" 
       :valign "center" 

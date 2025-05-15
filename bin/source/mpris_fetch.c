@@ -32,7 +32,7 @@
 
 // Define DEBUG mode
 #ifndef DEBUG
-#define DEBUG 1
+#define DEBUG 0
 #endif
 
 // Debug macros
@@ -129,14 +129,14 @@ void to_hms(int64_t us, char *hms, size_t hms_size) {
         return;
     }
 
-    long long hours = us / 3600000000LL;
-    long long minutes = (us / 60000000LL) % 60;
-    long long seconds = (us / 1000000LL) % 60;
+    long hours = us / 3600000000LL;
+    long minutes = (us / 60000000LL) % 60;
+    long seconds = (us / 1000000LL) % 60;
 
     if (hours > 0) {
-        snprintf(hms, hms_size, "%lld:%02lld:%02lld", hours, minutes, seconds);
+        snprintf(hms, hms_size, "%ld:%02ld:%02ld", hours, minutes, seconds);
     } else {
-        snprintf(hms, hms_size, "%lld:%02lld", minutes, seconds);
+        snprintf(hms, hms_size, "%ld:%02ld", minutes, seconds);
     }
 }
 
@@ -431,7 +431,6 @@ static gchar *sanitize_utf8_string(const gchar *input) {
     if (!input) return NULL;
 
     // Validate the input string
-    gsize len;
     if (g_utf8_validate(input, -1, NULL)) {
         return g_strdup(input); // String is already valid UTF-8
     }
@@ -576,7 +575,7 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
         if (op) pa_operation_unref(op);
     }
 
-    DEBUG_PRINT("Updated metadata for %s: title=%s, album=%s, artist=%s, artUrl=%s, url=%s, length=%lld, shuffle=%s, loop=%s, sink_id=%s\n",
+    DEBUG_PRINT("Updated metadata for %s: title=%s, album=%s, artist=%s, artUrl=%s, url=%s, length=%ld, shuffle_supported=%s, shuffle=%s, loop_supported=%s, loop=%s, sink_id=%s\n",
                 data->name,
                 data->title ? data->title : "none",
                 data->album ? data->album : "none",
@@ -741,7 +740,7 @@ static void on_metadata(PlayerctlPlayer *player, GVariant *metadata, gpointer us
     }
     if (data && data->name && data->instance) {
         update_metadata(data, pulse);
-        DEBUG_PRINT("Player %s (instance: %s): Metadata signal fired (title: %s, length: %lld)\n",
+        DEBUG_PRINT("Player %s (instance: %s): Metadata signal fired (title: %s, length: %ld)\n",
                     data->name, data->instance, data->title ? data->title : "none", data->length);
         print_player_list(*pulse->players, FALSE);
     } else {
@@ -800,7 +799,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name, PulseData *pulse) 
     PlayerData *data = g_new0(PlayerData, 1);
     data->name = g_strdup(name->name);
     data->instance = g_strdup(name->instance);
-    data->source = name->source; // TODO Purge? what is this. Can it be useful?
+    data->source = name->source;
     data->player = playerctl_player_new_from_name(name, &error);
     if (error != NULL) {
         DEBUG_ERROR("Failed to create player for %s: %s\n", name->name, error->message);
@@ -816,30 +815,38 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name, PulseData *pulse) 
                      "can-seek", &data->can_seek,
                      NULL);
 
-        // Test Shuffle property support by attempting to set it
+        // Get current shuffle value and test support
         error = NULL;
-        playerctl_player_set_shuffle(data->player, FALSE, &error);
+        gboolean shuffle_value = FALSE;
+        g_object_get(data->player, "shuffle", &shuffle_value, NULL);
+        data->shuffle = shuffle_value;
+        // Test shuffle support by attempting to set the current value
+        playerctl_player_set_shuffle(data->player, shuffle_value, &error);
         data->shuffle_supported = (error == NULL);
         if (!data->shuffle_supported) {
             data->shuffle = FALSE; // Default, won't be included in JSON
-            DEBUG_ERROR("Shuffle not supported for %s: %s\n", data->name, error ? error->message : "Unknown error");
-            if (error) g_error_free(error);
+            DEBUG_ERROR("Shuffle not supported for %s: %s\n", data->name, error->message);
+            g_error_free(error);
         } else {
-            // Get current shuffle value if supported
-            g_object_get(data->player, "shuffle", &data->shuffle, NULL);
+            DEBUG_PRINT("Shuffle supported for %s, current value: %s\n", 
+                        data->name, data->shuffle ? "true" : "false");
         }
 
-        // Test LoopStatus property support by attempting to set it
+        // Get current loop status and test support
         error = NULL;
-        playerctl_player_set_loop_status(data->player, PLAYERCTL_LOOP_STATUS_NONE, &error);
+        PlayerctlLoopStatus loop_status = PLAYERCTL_LOOP_STATUS_NONE;
+        g_object_get(data->player, "loop-status", &loop_status, NULL);
+        data->loop_status = loop_status;
+        // Test loop status support by attempting to set the current value
+        playerctl_player_set_loop_status(data->player, loop_status, &error);
         data->loop_status_supported = (error == NULL);
         if (!data->loop_status_supported) {
             data->loop_status = PLAYERCTL_LOOP_STATUS_NONE; // Default, won't be included in JSON
-            DEBUG_ERROR("LoopStatus not supported for %s: %s\n", data->name, error ? error->message : "Unknown error");
-            if (error) g_error_free(error);
+            DEBUG_ERROR("LoopStatus not supported for %s: %s\n", data->name, error->message);
+            g_error_free(error);
         } else {
-            // Get current loop status if supported
-            g_object_get(data->player, "loop-status", &data->loop_status, NULL);
+            DEBUG_PRINT("LoopStatus supported for %s, current value: %s\n", 
+                        data->name, loop_status_to_string(data->loop_status));
         }
 
         update_metadata(data, pulse);
@@ -853,8 +860,9 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name, PulseData *pulse) 
             g_signal_connect(data->player, "loop-status", G_CALLBACK(on_loop_status), pulse);
         }
     }
-    DEBUG_PRINT("Created PlayerData for %s (instance: %s, player: %p, title: %s, length: %lld, shuffle_supported: %s, loop_supported: %s, sink_id: %s)\n",
-                data->name, data->instance, data->player, data->title ? data->title : "none", data->length,
+    DEBUG_PRINT("Created PlayerData for %s (instance: %s, player: %p, title: %s, length: %ld, shuffle_supported: %s, loop_supported: %s, sink_id: %s)\n",
+                data->name, data->instance, data->player, 
+                data->title ? data->title : "none", data->length,
                 data->shuffle_supported ? "true" : "false",
                 data->loop_status_supported ? "true" : "false",
                 data->sink_id ? data->sink_id : "none");
@@ -991,8 +999,6 @@ int main(int argc, char *argv[]) {
 
     // Initialize GLib main loop
     GMainLoop *loop = g_main_loop_new(NULL, FALSE);
-
-    // ... (rest of your main function remains unchanged)
 
     // Initialize playerctl
     PlayerctlPlayerManager *manager = playerctl_player_manager_new(&error);

@@ -36,6 +36,15 @@
 #if DEBUG
 #define DEBUG_PRINT(...) g_print(__VA_ARGS__)
 #define DEBUG_ERROR(...) g_printerr(__VA_ARGS__)
+// Helper function to convert playback status to string
+static const char *playback_status_to_string(PlayerctlPlaybackStatus status) {
+    switch (status) {
+        case PLAYERCTL_PLAYBACK_STATUS_PLAYING: return "Playing";
+        case PLAYERCTL_PLAYBACK_STATUS_PAUSED: return "Paused";
+        case PLAYERCTL_PLAYBACK_STATUS_STOPPED: return "Stopped";
+        default: return "Unknown";
+    }
+}
 #else
 #define DEBUG_PRINT(...)
 #define DEBUG_ERROR(...)
@@ -60,24 +69,14 @@ void to_hms(int64_t us, char *hms, size_t hms_size) {
         return;
     }
 
-    long long hours = us / 3600000000LL;
-    long long minutes = (us / 60000000LL) % 60;
-    long long seconds = (us / 1000000LL) % 60;
+    long hours = us / 3600000000LL;
+    long minutes = (us / 60000000LL) % 60;
+    long seconds = (us / 1000000LL) % 60;
 
     if (hours > 0) {
-        snprintf(hms, hms_size, "%lld:%02lld:%02lld", hours, minutes, seconds);
+        snprintf(hms, hms_size, "%ld:%02ld:%02ld", hours, minutes, seconds);
     } else {
-        snprintf(hms, hms_size, "%lld:%02lld", minutes, seconds);
-    }
-}
-
-// Helper function to convert playback status to string
-static const char *playback_status_to_string(PlayerctlPlaybackStatus status) {
-    switch (status) {
-        case PLAYERCTL_PLAYBACK_STATUS_PLAYING: return "Playing";
-        case PLAYERCTL_PLAYBACK_STATUS_PAUSED: return "Paused";
-        case PLAYERCTL_PLAYBACK_STATUS_STOPPED: return "Stopped";
-        default: return "Unknown";
+        snprintf(hms, hms_size, "%ld:%02ld", minutes, seconds);
     }
 }
 
@@ -151,7 +150,7 @@ static void on_playback_status(PlayerctlPlayer *player, PlayerctlPlaybackStatus 
                 data->last_position = -1;
             }
         }
-        DEBUG_PRINT("Player %s (instance: %s): Playback status changed to %s (position: %lld)\n",
+        DEBUG_PRINT("Player %s (instance: %s): Playback status changed to %s (position: %ld)\n",
                     data->name, data->instance, playback_status_to_string(status), data->last_position);
         DEBUG_PRINT("Playback status: List pointer %p, length %d\n", *players, g_list_length(*players));
         print_player_list(*players);
@@ -186,7 +185,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name, GList **players) {
         // Connect to playback-status signal
         g_signal_connect(data->player, "playback-status", G_CALLBACK(on_playback_status), players);
     }
-    DEBUG_PRINT("Created PlayerData for %s (instance: %s, player: %p, initial position: %lld)\n", 
+    DEBUG_PRINT("Created PlayerData for %s (instance: %s, player: %p, initial position: %ld)\n", 
                 data->name, data->instance, data->player, data->last_position);
     return data;
 }
@@ -234,7 +233,7 @@ static void on_seeked(PlayerctlPlayer *player, gint64 position, gpointer user_da
             g_error_free(error);
             data->last_position = -1;
         }
-        DEBUG_PRINT("Player %s (instance: %s): Seeked to %lld microseconds\n",
+        DEBUG_PRINT("Player %s (instance: %s): Seeked to %ld microseconds\n",
                     data->name, data->instance, data->last_position);
         DEBUG_PRINT("Seeked: List pointer %p, length %d\n", *players, g_list_length(*players));
         print_player_list(*players);
@@ -272,7 +271,7 @@ static gboolean check_positions(gpointer user_data) {
                     playing_count++;
                 }
             }
-            DEBUG_PRINT("  - %s (instance: %s, source: %d, position: %lld microseconds, status: %s)\n",
+            DEBUG_PRINT("  - %s (instance: %s, source: %d, position: %ld microseconds, status: %s)\n",
                         data->name, data->instance, data->source, position, playback_status_to_string(status));
         }
         if (playing_count == 0) {

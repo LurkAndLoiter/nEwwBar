@@ -1,4 +1,12 @@
-CC=gcc
+DEBUG ?= 0
+
+CFLAGS = -Wall -g
+
+ifeq ($(DEBUG), 1)
+    CFLAGS += -DDEBUG
+endif
+
+CC=gcc $(CFLAGS)
 
 all: audio_in audio_out bluetooth_active bluetooth_devices date_simple mpris_combined mpris_fetch mpris_position wlan_monitor wlan_scan workspace_focus workspace_list 
 

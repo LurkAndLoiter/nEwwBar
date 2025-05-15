@@ -1,15 +1,8 @@
-;; Compiled C
 (deflisten bt-active :initial false
   `~/.config/eww/bin/bluetooth_active`)
 
 (deflisten bt-devices :initial '[{"id": "UUID","Name": "Name","Icon": "audio-headset","Connected": false,"Paired": false,"Trusted": false,"Battery": "999"}]'
   `~/.config/eww/bin/bluetooth_devices 2> /dev/null`)
-
-; (deflisten bt-active :initial ""
-  ; `/usr/bin/sh ~/.config/eww/scripts/Archives/get-bluetooth-active`)
-
-; (deflisten bt-devices :initial ""
-  ; `/usr/bin/sh ~/.config/eww/scripts/Archives/get-bluetooth-devices`)
 
 (defwidget bluetoothButton []
   (eventbox 

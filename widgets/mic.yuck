@@ -1,10 +1,5 @@
-;; Comiled C
 (deflisten audioMonitors :initial '[{"id": 1, "mute": true, "volume": 0, "default": true, "source": "pointer", "name": "Name", "icon": "audio-card-analog", "state": "suspended"}]'
   `~/.config/eww/bin/audio_in`)
-
-;; Bash Scripts (Archived)
-; (deflisten audioMonitors
-  ; `/usr/bin/bash ~/.config/eww/scripts/Archives/get-audio-sources`)
 
 (defwidget micButton []
   (box 

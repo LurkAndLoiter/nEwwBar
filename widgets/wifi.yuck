@@ -1,16 +1,8 @@
-;; Comiled C
 (deflisten wifiScan :initial '[{"SSID": "Catalyst", "Frequency": 5180, "Strength": 63, "connected": true}]'
   `~/.config/eww/bin/wlan_scan`)
 
 (deflisten wlan-monitor :initial '{"state": 100, "strength": 62}'
   `~/.config/eww/bin/wlan_monitor`)
-
-;; Bash scripts (Archived)
-; (deflisten net-active :initial ""
-  ; `/usr/bin/sh ~/.config/eww/scripts/Archives/get-wlan-active`)
-
-; (deflisten net-strength :initial ""
-  ; `/usr/bin/sh ~/.config/eww/scripts/Archives/get-wlan-strength`)
 
 (defwidget wifiButton []
   (eventbox 

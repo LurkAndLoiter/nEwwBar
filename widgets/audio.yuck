@@ -1,4 +1,3 @@
-;; Compiled C
 (deflisten audioSources 
   :initial '[{"longName": "UUID","Name": "firefox","CanControl": false,"CanGoNext": false,"CanGoPrevious": false,"CanPause": false,"CanPlay": false,"CanSeek": false,"PlaybackStatus": "Playing","shuffle": false, "loop": "disabled", "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","sinkID": "UUIDpointer","id": "117","serial": "3736","volume": 100,"mute": false}]'
   `~/.config/eww/bin/mpris_fetch`
@@ -20,12 +19,6 @@
     :text "${audioPosition}${audioSinks}${audioSources}"
   )
 )
-;; Shell Scripts (Archived)
-; (deflisten audioSources :initial ""
-  ; `~/.config/eww/scripts/Archives/mpris_fetch`)
-
-; (deflisten audioSinks :initial ""
-  ; `/usr/bin/bash ~/.config/eww/scripts/Archives/get-audioSinks`) 
 
 (defwidget audioButton []
   (eventbox 

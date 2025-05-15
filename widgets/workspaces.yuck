@@ -1,16 +1,8 @@
-;; Compiled C
 (deflisten workspaces :initial "[]"
   "~/.config/eww/bin/workspace_list")
 
 (deflisten current_workspace :initial "1"
   "~/.config/eww/bin/workspace_focus")
-
-;; Bash Scripts (Archived)
-; (deflisten workspaces :initial "[]"
-  ; "/usr/bin/sh ~/.config/eww/scripts/Archives/get-workspaces")
-
-; (deflisten current_workspace :initial "1"
-  ; "/usr/bin/sh ~/.config/eww/scripts/Archives/get-workspace-active")
 
 (defwidget workspaces []
   (box

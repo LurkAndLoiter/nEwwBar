@@ -151,7 +151,7 @@ Left click open/close panel`
             (box
               :halign "start"
               (image 
-                :image-height 80 
+                :image-height 100 
                 :path "${matches(p.title, " - Twitch$") ? "./assets/twitch_logo.svg" : p.artUrl}"
               )
             )
@@ -160,8 +160,8 @@ Left click open/close panel`
               :hexpand true
               :orientation "v"
               :space-evenly false
-              (label :class "subtext" :xalign 0 :text "${p.artist}")
-              (label :class "subtext" :xalign 0 :text "${p.album}")
+              (label :truncate true :class "subtext" :xalign 0 :text "${p.artist}")
+              (label :truncate true :class "subtext" :xalign 0 :text "${p.album}")
               (mediaButtons 
                 :CanGoPrevious "${p.CanGoPrevious}"
                 :CanGoNext "${p.CanGoNext}" 

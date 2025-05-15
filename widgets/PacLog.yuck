@@ -66,7 +66,11 @@
           :hexpand true
           :orientation "v"
           :space-evenly false
-          (label :class "purple" :halign "start" :text "${event.command}")
+          (label 
+            :class "purple" 
+            :halign "start" 
+            :wrap true
+            :text "${event.command}")
           (box
             :class "panel"
             :orientation "v"

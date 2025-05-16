@@ -50,7 +50,7 @@
         :class "${adapter.Powered ? "active" : "inactive"}"
         (image 
           :image-height 42
-          :path "./assets/icons/bluetooth-${adapter.Powered ? "active" : "inactive"}.svg"
+          :path "./assets/icons/bluetooth-${adapter.Powered ? "active" : "disabled"}.svg"
         )
       )
       (button
@@ -82,7 +82,7 @@
           :space-evenly false
           (eventbox 
             :hexpand true
-            :class "btns-bar${device.Connected ? " active" : ""} ${adapter.Powered ? " enabled" : " inactive"}"
+            :class "btns-bar${device.Connected ? " active" : ""} ${adapter.Powered ? " enabled" : " disabled"}"
             :onclick "${device.Connected ? "bluetoothctl disconnect ${device.id}" : 
                       "${device.Paired ? "bluetoothctl connect ${device.id}" : 
                       "./scripts/bluetooth_add.sh ${adapter.Powered} ${adapter.Pairable} ${adapter.Discoverable} ${device.id} ${device.trusted} 50 &"}"}"

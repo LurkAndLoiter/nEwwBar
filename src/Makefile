@@ -8,7 +8,7 @@ endif
 
 CC=gcc $(CFLAGS)
 
-all: audio_in audio_out bluetooth_adapter bluetooth_devices bluetooth_scanner date_simple mpris_combined mpris_fetch mpris_position wlan_monitor wlan_scan workspace_focus workspace_list 
+all: audio_in audio_out bluetooth_adapter bluetooth_devices bluetooth_scanner date_simple mpris_fetch mpris_position wlan_monitor wlan_scan workspace_focus workspace_list 
 
 audio_in: audio_in.c 
 	$(CC) -o ../bin/audio_in audio_in.c `pkg-config --libs libpulse`
@@ -58,7 +58,7 @@ clean:
 	[ -f ../bin/bluetooth_devices ] && rm ../bin/bluetooth_devices || true
 	[ -f ../bin/bluetooth_scanner ] && rm ../bin/bluetooth_scanner || true
 	[ -f ../bin/date_simple ] && rm ../bin/date_simple || true  
-	[ -f ../bin/mpris_combined ] && rm ../bin/mpris_combined || true  
+	# [ -f ../bin/mpris_combined ] && rm ../bin/mpris_combined || true  
 	[ -f ../bin/mpris_fetch ] && rm ../bin/mpris_fetch || true 
 	[ -f ../bin/mpris_position ] && rm ../bin/mpris_position || true
 	[ -f ../bin/wlan_monitor ] && rm ../bin/wlan_monitor || true  

@@ -8,16 +8,13 @@ endif
 
 CC=gcc $(CFLAGS)
 
-all: audio_in audio_out bluetooth_active bluetooth_devices date_simple mpris_combined mpris_fetch mpris_position wlan_monitor wlan_scan workspace_focus workspace_list 
+all: audio_in audio_out bluetooth_adapter bluetooth_devices bluetooth_scanner date_simple mpris_combined mpris_fetch mpris_position wlan_monitor wlan_scan workspace_focus workspace_list 
 
 audio_in: audio_in.c 
 	$(CC) -o ../bin/audio_in audio_in.c `pkg-config --libs libpulse`
 
 audio_out: audio_out.c
 	$(CC) -o ../bin/audio_out audio_out.c `pkg-config --libs libpulse`
-
-bluetooth_active: bluetooth_active.c
-	$(CC) -o ../bin/bluetooth_active bluetooth_active.c `pkg-config --cflags --libs dbus-1`
 
 bluetooth_adapter: bluetooth_adapter.c
 	$(CC) -o ../bin/bluetooth_adapter bluetooth_adapter.c `pkg-config --cflags --libs glib-2.0 gio-2.0 json-glib-1.0`
@@ -27,6 +24,7 @@ bluetooth_devices: bluetooth_devices.c
 
 bluetooth_scanner: bluetooth_scanner.c
 	$(CC) -o ../bin/bluetooth_scanner bluetooth_scanner.c `pkg-config --cflags --libs dbus-1`
+
 date_simple: date_simple.c 
 	$(CC) -o ../bin/date_simple date_simple.c
 
@@ -56,8 +54,9 @@ workspace_list: workspace_list.c
 clean:
 	[ -f ../bin/audio_in ] && rm ../bin/audio_in || true
 	[ -f ../bin/audio_out ] && rm ../bin/audio_out || true
-	[ -f ../bin/bluetooth_active ] && rm ../bin/bluetooth_active || true
+	[ -f ../bin/bluetooth_adapter ] && rm ../bin/bluetooth_adapter || true
 	[ -f ../bin/bluetooth_devices ] && rm ../bin/bluetooth_devices || true
+	[ -f ../bin/bluetooth_scanner ] && rm ../bin/bluetooth_scanner || true
 	[ -f ../bin/date_simple ] && rm ../bin/date_simple || true  
 	[ -f ../bin/mpris_combined ] && rm ../bin/mpris_combined || true  
 	[ -f ../bin/mpris_fetch ] && rm ../bin/mpris_fetch || true 

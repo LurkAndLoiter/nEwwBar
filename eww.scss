@@ -28,17 +28,18 @@ $Crust: #11111b;
 $inactive: $Surface1;
 $highlight: $Red;
 
+/* General */
 * {
   all: unset;
   font-family: "MonaspiceNe NF", monospace;
 }
-
+/* Inline markup is tacky and I hate it. So class overload */
 .blue {
   color: $Blue;
 }
 
 .lavender {
-  color: $Lavender; 
+  color: $Lavender;
 }
 .purple {
   color: $Mauve;
@@ -72,7 +73,7 @@ $highlight: $Red;
   color: $Text;
 }
 
-.disabled {
+.inactive {
   color: $inactive;
 }
 
@@ -87,7 +88,7 @@ $highlight: $Red;
 .medium {
   font-size: 18px;
 }
-    
+
 .large {
   font-size: 24px;
 }
@@ -105,26 +106,12 @@ $highlight: $Red;
 }
 
 .colorMe {
-  color: $Mauve; 
-}
-
-label {
-  &.active {
-    color: $Red;
-  }
-
-  &.inactive {
-    color: $inactive;
-  }
-
-  &.bluetooth {
-    color: $Blue;
-  }
+  color: $Mauve;
 }
 
 tooltip {
   background: $Mauve;
-  color:$Base;
+  color: $Base;
   border-radius: 5px;
 }
 
@@ -136,6 +123,7 @@ tooltip {
   box-shadow: 0 1px 2px 1px $Mauve;
 }
 
+/* Box container of bar */
 .bar-box {
   background-color: rgba($Crust, 1);
   border-radius: 10px;
@@ -143,6 +131,7 @@ tooltip {
   padding: 0 5px;
 }
 
+/* Base of panels */
 .window {
   margin: 5px 0 32px;
   padding: 15px;
@@ -160,6 +149,7 @@ tooltip {
   }
 }
 
+/* Boxes inside of panel */
 .panel {
   background-color: $Base;
   border-radius: 10px;
@@ -167,10 +157,12 @@ tooltip {
   margin: 5px;
 }
 
+/* Divider used in Panels */
 .barspacer {
   margin: 5px;
 }
 
+/* Wide button */
 .btns-bar {
   background-color: $Surface2;
   text-shadow: 1px 1px $Crust;
@@ -196,6 +188,7 @@ tooltip {
   }
 }
 
+/* Standard button */
 button {
   background-color: $Surface2;
   font-size: 32px;
@@ -225,20 +218,7 @@ button {
   }
 }
 
-.workspace {
-  &.occupied {
-    color: rgba($Text, 1);
-  }
-
-  &.empty {
-    color: rgba($Text, 0.6);
-  }
-
-  &.current {
-    color: rgba($Red, 1);
-  }
-}
-
+/* Standard scale/slider */
 trough highlight {
   background-image: linear-gradient(to right, $Mauve 30%, $Red 100% * 50);
   border-radius: 4px;
@@ -259,20 +239,16 @@ slider {
   margin: -7px;
 }
 
+/* Hide unwanted sliders */
 .inactive {
-  slider {
-    all: unset;
-  }
-
-  trough highlight {
-    all: unset;
-  }
-
+  slider,
+  trough highlight,
   scale trough {
-    background-color: rgb(255 0 0 / 100%);
+    all: unset;
   }
 }
 
+/* Keep them in the shadows */
 .low-vis {
   color: $inactive;
 
@@ -289,6 +265,7 @@ slider {
   }
 }
 
+/* Systray dropdown menus */
 menu {
   padding: 5px;
   background-color: $Crust;
@@ -308,34 +285,14 @@ menu {
   }
 }
 
-.footer {
-  font-size: 16px;
-  color: $Green;
-}
-
-
-.pushright {
+.marginleft {
   margin-left: 7px;
 }
 
-.pushleft {
+.marginright {
   margin-right: 7px;
 }
 
-.pushdown {
+.margintop {
   margin-top: 7px;
-}
-
-.media {
-  &.disabled {
-    color: $inactive;
-  }
-
-  &.inactive {
-    color: $inactive;
-  }
-
-  &.active {
-    color: $Text;
-  }
 }

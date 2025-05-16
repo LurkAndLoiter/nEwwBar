@@ -15,7 +15,7 @@
         :tooltip "${workspace.id}"
         :onclick "hyprctl dispatch workspace ${workspace.id}"
         (box
-          :class "workspace ${workspace.id == current_workspace ? "current" : ""} ${workspace.windows > 0 ? "occupied" : "empty"}"
+          :class "${workspace.id == current_workspace ? "red" : "${workspace.windows > 0 ? "text" : "inactive"}"}"
           (label
             :class "large"
             :text "${workspace.id == current_workspace ? " " : " "}"

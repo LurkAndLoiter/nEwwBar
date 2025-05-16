@@ -75,7 +75,7 @@ Left click open/close panel`
       (box
         :hexpand true
         :space-evenly false
-        (button :class "${s.default == true ? "active" : "inactive"}"
+        (button :class "${s.default == true ? "text" : "inactive"}"
           :onclick "wpctl set-default ${s.id}"
           :tooltip "${s.name}"
           :width 75
@@ -94,7 +94,7 @@ Left click open/close panel`
             (label :class "inactive" :text "${s.volume}")
             (scale
               :hexpand true
-              :class "low-vis pushright pushdown"
+              :class "low-vis marginleft margintop"
               :round-digits 0
               :min 0 
               :max 101
@@ -149,7 +149,7 @@ Left click open/close panel`
               )
             )
             (box 
-              :class "footer"
+              :class "smallish green"
               :hexpand true
               :orientation "v"
               :space-evenly false
@@ -184,7 +184,7 @@ Left click open/close panel`
           ) 
           (box 
             :space-evenly false
-            :class "footer"
+            :class "smallish green"
             (playerVolume
               :pvol "${p.volume}"
               :pmute "${p.mute}"
@@ -215,17 +215,17 @@ Left click open/close panel`
       :halign "start"
       :spacing 10
       (eventbox 
-        :class "media xlarge ${CanGoPrevious ? "active" : "inactive"}"
+        :class "xlarge ${CanGoPrevious ? "text" : "inactive"}"
         :onclick "playerctl --player=${Name} previous" "󰒮")
       (eventbox 
-        :class "media xlarge ${CanPlay ? "active" : "inactive"}"
+        :class "xlarge ${CanPlay ? "text" : "inactive"}"
         :onclick "playerctl --player=${Name} play-pause"
         (label 
           :text "${
           Playing == "Playing" ? "󰏤" : "󰐊"
                }"))
       (eventbox 
-        :class "media xlarge ${CanGoNext ? "active" : "inactive"}"
+        :class "xlarge ${CanGoNext ? "text" : "inactive"}"
         :onclick "playerctl --player=${Name} next" "󰒭"
       )
     )
@@ -233,11 +233,8 @@ Left click open/close panel`
       :halign "end"
       :spacing 10
       (eventbox
-        :class "media xlarge ${loop == "Track" ? "active" :
-                        loop == "Playlist" ? "active" :
-                        loop == "None" ? "inactive" : 
-                        "disabled"
-                      }"
+        :class "xlarge ${loop == "Track" ? "text" :
+                        loop == "Playlist" ? "text" : "inactive"}"
         :onclick "playerctl --player=${Name} loop ${
                         loop == "None" ? "track" : 
                         loop == "Track" ? "playlist" : 
@@ -251,9 +248,7 @@ Left click open/close panel`
         )
       )
       (eventbox 
-        :class "media xlarge ${shuffle == true ? "active" :
-                        shuffle == false ? "inactive" : 
-                        "disabled"}" 
+        :class "xlarge ${shuffle == true ? "text" : "inactive"}" 
         :onclick "playerctl --player=${Name} shuffle ${shuffle == true ? "off" : "on"}"
         (label :text "${shuffle == true ? "󰒟" : 
                         shuffle == false ? "󰒞" : 
@@ -279,7 +274,7 @@ Left click open/close panel`
         (eventbox
           :onclick "pactl move-sink-input ${serial} ${s.sink}"
           :tooltip "${s.name}"
-          :class "media ${s.sink == sinkID ? "active" : "inactive"}"
+          :class "${s.sink == sinkID ? "text" : "inactive"}"
           (label :text "${s.icon == "audio-speakers" ? "󰓃" :
                           s.icon == "audio-headset-bluetooth" ? "󱡏 " : "?"}"
           )
@@ -295,7 +290,7 @@ Left click open/close panel`
           :onclick 'wpctl set-mute ${targetID} toggle'
           (box :space-evenly false :valign "center"
             (image 
-              :class "pushright" 
+              :class "marginleft" 
               :image-height 16 
               :path "./assets/icons/audio-${pmute ? "muted" : "high"}.svg"
             )
@@ -310,7 +305,7 @@ Left click open/close panel`
           :reveal "${playerVol ? "${playerhov == switch ? true : false}": false}"
           :duration "1000ms"
           (scale
-            :class "low-vis pushleft pushright pushdown"
+            :class "low-vis marginright marginleft margintop"
             :width 150
             :value pvol
             :onchange "./scripts/set-volume ${targetID} {}"

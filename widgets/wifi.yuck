@@ -10,9 +10,9 @@
     :onrightclick "rfkill toggle wlan"
     (literal
       :content {
-        wlan-monitor.state == 20 ? "(label :text '󰤮' :class 'pushleft large disabled')" :
-        wlan-monitor.state == 10 ? "(label :text '' :class 'pushleft large red')" :
-        wlan-monitor.state == 60 ? "(label :text '󰤬' :class 'pushleft large red')" :
+        wlan-monitor.state == 20 ? "(label :text '󰤮' :class 'marginright large inactive')" :
+        wlan-monitor.state == 10 ? "(label :text '' :class 'marginright large red')" :
+        wlan-monitor.state == 60 ? "(label :text '󰤬' :class 'marginright large red')" :
         wlan-monitor.state != 100 ? "(image :path './assets/sat.gif')" :
         wlan-monitor.strength > 70 ? wSigGreat :
         wlan-monitor.strength > 50 ? wSigGood :
@@ -51,10 +51,12 @@
     :spacing 10
     (box :space-evenly false
       (wifiCode)
-      (button :onclick "nmcli device wifi rescan ifname wlan0" 
+      (button 
+        :width 75
+        :height 75
+        :onclick "nmcli device wifi rescan ifname wlan0" 
         (image 
-          :halign "end" 
-          :hexpand true 
+          :image-height 42
           :path "/home/hermit/Pictures/icons/sat2.gif"
         )
       )
@@ -63,7 +65,7 @@
       (eventbox 
         :hexpand true 
         :class "btns-bar ${w.connected == true ? "active enabled" : "enabled"}"
-        (box :space-evenly false :class "pushright pushleft" :hexpand true
+        (box :space-evenly false :class "marginleft marginright" :hexpand true
           (StrengthLabel :strength "${w.Strength}")
           (frequencyLabel :freq "${w.Frequency}")
           (label :halign "end" :hexpand true :text "${w.SSID} ")
@@ -76,7 +78,7 @@
 (defwidget frequencyLabel [freq]
   (label 
     :yalign 1 
-    :class "pushleft small bold"
+    :class "marginright small bold"
     :text "
       ${
         freq > 5000 ? "5G" :
@@ -100,15 +102,15 @@
 )
 
 (defvar wSigGreat
-  "(label :text '󰤨' :class 'large pushleft blue')")
+  "(label :text '󰤨' :class 'large marginright blue')")
 (defvar wSigGood
-  "(label :text '󰤥' :class 'large pushleft green')")
+  "(label :text '󰤥' :class 'large marginright green')")
 (defvar wSigLow
-  "(label :text '󰤟' :class 'large pushleft yellow')")
+  "(label :text '󰤟' :class 'large marginright yellow')")
 (defvar wSigBad
-  "(label :text '󰤯' :class 'large pushleft orange')")
+  "(label :text '󰤯' :class 'large marginright orange')")
 (defvar wSigNo
-  "(label :text '󰤮' :class 'large pushleft red')")
+  "(label :text '󰤮' :class 'large marginright red')")
 
 (defwidget wifiCode []
   (label 

@@ -15,7 +15,7 @@
     (label :class "bold" :text "${Date.H}:${Date.M}")
     (label 
       :valign "start" 
-      :class "medium italic colorMe pushright" 
+      :class "medium italic colorMe marginleft" 
       :text "${Date.Day}"
     ) 
     (box :orientation "v" :space-evenly false 
@@ -64,7 +64,6 @@
         :space-evenly false
         :spacing 5
         (eventbox :class "large" :onclick "eww open --toggle leftPanel" "󰍜")
-        ; (label :text playerhov)
         (systray :spacing 2)
       )
       (box
@@ -85,7 +84,6 @@
           :onclick "eww open --toggle rightPanel"
           (dateStyled)
         )
-          ; (label :class "bar-date" :xalign 1 :markup "${formattime(EWW_TIME, '<span size="12pt"><i>%a %d %b %Y</i></span> <b>%H:%M</b>')}"))
         (powerButton)
       )
     )
@@ -140,9 +138,6 @@
           (audioDevices)
           (audioSources)
           (Spacer)
-          ; (bluetooth)
-          ; (Spacer)
-          ; (wifi)
         )
         (box 
           :valign "start"

@@ -42,21 +42,21 @@
           :class 'btns-bar${source.state == "suspended" ? " disabled" : " enabled"} ${source.default == true ? " active": ""}'
           (box :hexpand true :space-evenly false 
             (image
-              :class "pushright"
+              :class "marginleft"
               :halign "start" 
               :path "./assets/icons/audio-${source.icon == "audio-headset-bluetooth" ? "earbuds" : "input-microphone"}.svg"
               :image-height 42
             )
             (label 
-              :class "pushright pushleft"
+              :class "marginleft marginright"
               :hexpand true 
               :xalign 0 
               :text "${source.name}"
             )
             (label 
-              :class 'pushleft${source.mute ? " red" : ""}'
+              :class 'marginright${source.mute ? " red" : ""}'
               :xalign 1 
-              :text "${source.volume}"
+              :text "${source.mute ? "Muted" : source.volume}"
             )
           )
         )

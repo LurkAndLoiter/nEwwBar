@@ -1,7 +1,3 @@
-; (deflisten bt-active :initial false
-  ; `~/.config/eww/bin/bluetooth_active`
-; )
-
 (deflisten devices :initial '[{"id": "UUID","Name": "Name","Icon": "audio-headset","Connected": false,"Paired": false,"Trusted": false,"Battery": "999"}]'
   `~/.config/eww/bin/bluetooth_devices 2> /dev/null`
 )
@@ -17,7 +13,7 @@
     :onrightclick "bluetoothctl power ${adapter.Powered ? "off" : "on"}"
     (label 
       :text "${adapter.Powered ? "󰂯" : "󰂲"}"
-      :class "large ${adapter.Powered ? "blue" : "disabled"}"
+      :class "large ${adapter.Powered ? "blue" : "inactive"}"
     )
   )
 )
@@ -34,7 +30,10 @@
     (box
       :class "window"
       :orientation "v"
-      (bluetooth))))
+      (bluetooth)
+    )
+  )
+)
 
 (defwidget bluetooth []
   (box 
@@ -51,7 +50,7 @@
         :class "${adapter.Powered ? "active" : "inactive"}"
         (image 
           :image-height 42
-          :path "./assets/icons/bluetooth-${adapter.Powered ? "active" : "disabled"}.svg"
+          :path "./assets/icons/bluetooth-${adapter.Powered ? "active" : "inactive"}.svg"
         )
       )
       (button
@@ -83,14 +82,13 @@
           :space-evenly false
           (eventbox 
             :hexpand true
-            :class "btns-bar${device.Connected ? " active" : ""} ${adapter.Powered ? " enabled" : " disabled"}"
+            :class "btns-bar${device.Connected ? " active" : ""} ${adapter.Powered ? " enabled" : " inactive"}"
             :onclick "${device.Connected ? "bluetoothctl disconnect ${device.id}" : 
                       "${device.Paired ? "bluetoothctl connect ${device.id}" : 
                       "./scripts/bluetooth_add.sh ${adapter.Powered} ${adapter.Pairable} ${adapter.Discoverable} ${device.id} ${device.trusted} 50 &"}"}"
             (box
               :space-evenly false
               :spacing 10
-              ; :class "btns-bar-box"
               (image
                 :class "large"
                 :image-height 42
@@ -130,14 +128,14 @@
                   :onclick "${device.Paired ? "" : "bluetoothctl pairable on && bluetoothctl pair ${device.id} &"}"
                   (label
                     :text "${device.Paired ? "󰯄": "󰯅"}"
-                    :class "pushleft ${device.Paired ? "green": "red"}"
+                    :class "marginright ${device.Paired ? "green": "red"}"
                   )
                 )
                 (eventbox
                   :onclick "bluetoothctl ${device.Trusted ? 'un' : '' }trust ${device.id}"
                   (label
                     :text "${device.Trusted == true ? "󰯄": "󰯅"}"
-                    :class "pushleft ${device.Trusted ? "green": "red"}"
+                    :class "marginright ${device.Trusted ? "green": "red"}"
                   )
                 )
               )
@@ -152,7 +150,7 @@
               :class "redBox"
               :onclick `bluetoothctl remove ${device.id}`
               (label 
-                :class "large pushleft pushright inactive"
+                :class "large marginright marginleft inactive"
                 :text "" 
               )
             )

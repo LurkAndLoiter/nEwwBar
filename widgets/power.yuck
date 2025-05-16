@@ -3,7 +3,7 @@
    :onclick "eww open --toggle powerPanel" 
    (label 
      :text "󰐥" 
-     :class "large pushleft"
+     :class "large marginright"
     )
   )
 )

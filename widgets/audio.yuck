@@ -75,7 +75,7 @@ Left click open/close panel`
       (box
         :hexpand true
         :space-evenly false
-        (button :class "${s.default == true ? "text" : "inactive"}"
+        (button :class "${s.default == true ? "active" : "inactive"}"
           :onclick "wpctl set-default ${s.id}"
           :tooltip "${s.name}"
           :width 75

@@ -30,22 +30,26 @@
        :halign "center"
        :space-evenly false
        (button 
-         :class "inactive"
+         :class "power inactive"
+         :tooltip "Shutdown PC"
          :width 75
          :height 75
          :onclick "shutdown -P now" "󰐥")
        (button 
          :class "inactive"
+         :tooltip "Restart PC"
          :width 75 
          :height 75
          :onclick "shutdown -r now" "󰜉")
        (button 
          :class "inactive"
+         :tooltip "Exit Hyprland"
          :width 75 
          :height 75
          :onclick "eww close-all && hyprctl dispatch exit 1" "󰍃")
        (button 
          :class "inactive"
+         :tooltip "Reload hyprland"
          :width 75
          :height 75
          :onclick "hyprctl reload" "󰑓"))))

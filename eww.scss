@@ -215,6 +215,9 @@ button {
       color: $Red;
       background-image: linear-gradient(135deg, $Mauve 10%, transparent 30%);
     }
+  &.power {
+    color: $Red;
+  }
   }
 }
 

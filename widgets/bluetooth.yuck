@@ -76,13 +76,15 @@
     :spacing 10 
     (for device in devices
       (eventbox 
+        ;supress nondescript devices ie <dev> 00:00:00:00 with name 00-00-00-00.
+        :visible "${substring(device.id,0,2) != substring(device.Name,0,2) ? true : false}" 
         :onhover `eww update btHover="${device.id}"`
         :onhoverlost `eww update btHover=""`
         (box
           :space-evenly false
           (eventbox 
             :hexpand true
-            :class "btns-bar${device.Connected ? " active" : ""} ${adapter.Powered ? " enabled" : " disabled"}"
+            :class "btns-bar${device.Connected ? " active" : ""} ${adapter.Powered ? "${device.Trusted ? " enabled" : " newdevice"}" : " disabled"}"
             :onclick "${device.Connected ? "bluetoothctl disconnect ${device.id}" : 
                       "${device.Paired ? "bluetoothctl connect ${device.id}" : 
                       "./scripts/bluetooth_add.sh ${adapter.Powered} ${adapter.Pairable} ${adapter.Discoverable} ${device.id} ${device.trusted} 50 &"}"}"
@@ -146,7 +148,7 @@
             :reveal "${btHover == device.id ? true : false}"
             :duration "1000ms"
             (eventbox 
-              :visible  "${btHover == device.id ? "${device.Paired ? "${adapter.Powered ? true : false }" : false}" : false}"
+              :visible  "${btHover == device.id ? "${device.Trusted ? "${adapter.Powered ? true : false }" : false}" : false}"
               :class "redBox"
               :onclick `bluetoothctl remove ${device.id}`
               (label 

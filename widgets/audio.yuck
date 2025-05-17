@@ -209,51 +209,68 @@ Left click open/close panel`
 (defwidget mediaButtons [CanGoPrevious CanGoNext CanPlay 
                          Playing Name loop shuffle]
   (box 
-    ; :class "media-buttons"
     :orientation "h"
+    ; (image :image-height 30 :path "./assets/earbuds.svg")
     (box 
       :halign "start"
+      :class "padbottom"
       :spacing 10
       (eventbox 
-        :class "xlarge ${CanGoPrevious ? "text" : "inactive"}"
-        :onclick "playerctl --player=${Name} previous" "󰒮")
+        :onclick "playerctl --player=${Name} previous"
+        (image 
+          :fill-svg "${CanGoPrevious ? "#cdd6f4" : "#45475a"}"
+          :image-height 18 
+          :path "./assets/prev.svg"
+        )
+      )
       (eventbox 
-        :class "xlarge ${CanPlay ? "text" : "inactive"}"
         :onclick "playerctl --player=${Name} play-pause"
-        (label 
-          :text "${
-          Playing == "Playing" ? "󰏤" : "󰐊"
-               }"))
+        (image 
+          :fill-svg "${CanPlay ? "#cdd6f4" : "#45475a"}"
+          :image-height 18 
+          :path "./assets/${Playing == "Playing" ? "paused" : "play"}.svg"
+        )
+      )
       (eventbox 
-        :class "xlarge ${CanGoNext ? "text" : "inactive"}"
-        :onclick "playerctl --player=${Name} next" "󰒭"
+        :onclick "playerctl --player=${Name} next"
+        (image 
+          :fill-svg "${CanGoNext ? "#cdd6f4" : "#45475a"}"
+          :image-height 18 
+          :path "./assets/next.svg"
+        )
       )
     )
     (box
       :halign "end"
+      :class "padbottom"
+      :space-evenly false
       :spacing 10
       (eventbox
-        :class "xlarge ${loop == "Track" ? "text" :
-                        loop == "Playlist" ? "text" : "inactive"}"
         :onclick "playerctl --player=${Name} loop ${
                         loop == "None" ? "track" : 
                         loop == "Track" ? "playlist" : 
                         "none"
                       }"
-        (label :text "${loop == "Track" ? "󰑘" : 
-                        loop == "Playlist" ? "󰑖" : 
-                        loop == "None" ? "󰑖" : 
-                        "󰑗"
-                      }"
+        (image 
+          :fill-svg "${loop == "Track" ? "#cdd6f4" : 
+                       loop == "Playlist" ? "#cdd6f4" : "#45475a"}"
+          :image-height 24
+          :path "./assets/${loop == "Track" ? "loop_track" : 
+                            loop == "Playlist" ? "loop" : 
+                            loop == "None" ? "loop" : 
+                            "loop_disabled"
+                            }.svg"
         )
       )
       (eventbox 
-        :class "xlarge ${shuffle == true ? "text" : "inactive"}" 
         :onclick "playerctl --player=${Name} shuffle ${shuffle == true ? "off" : "on"}"
-        (label :text "${shuffle == true ? "󰒟" : 
-                        shuffle == false ? "󰒞" : 
-                        "󰒝"
-                       }"
+        (image 
+          :fill-svg "${shuffle == true ? "#cdd6f4" : "#45475a"}" 
+          :image-height 24
+          :path "./assets/${shuffle == true ? "shuffle_on" : 
+                        shuffle == false ? "shuffle_off" : 
+                        "shuffle_disabled"
+                       }.svg"
         )
       )
     )

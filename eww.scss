@@ -186,6 +186,14 @@ tooltip {
       }
     }
   }
+
+  .newdevice {
+    background-color: $Base;
+
+    &:hover {
+        background-image: linear-gradient(135deg, $Green 2.5%, transparent 7.5%);
+    }
+  }
 }
 
 /* Standard button */
@@ -298,4 +306,8 @@ menu {
 
 .margintop {
   margin-top: 7px;
+}
+
+.padbottom {
+  padding-bottom: 3px;
 }

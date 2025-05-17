@@ -51,13 +51,16 @@
     :spacing 10
     (box :space-evenly false
       (wifiCode)
-      (button 
-        :width 75
-        :height 75
-        :onclick "nmcli device wifi rescan ifname wlan0" 
-        (image 
-          :image-height 42
-          :path "/home/hermit/Pictures/icons/sat2.gif"
+      (box :class "btns-box"
+        (button 
+          :width 75
+          :height 75
+          :class "inactive"
+          :onclick "nmcli device wifi rescan ifname wlan0" 
+          (image 
+            :image-height 42
+            :path "./assets/sat-cloud.gif"
+          )
         )
       )
     )

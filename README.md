@@ -40,6 +40,7 @@ Everything is event driven if you wanted to grab [some code](https://github.com/
 ## App/Launcher
 ### Simply displays all apps and will launch them onclick. Currently supports user/system/flatpak desktop entries.
 Have ideas for this side panel? let me know because I'm a bit at a loss with it. It's tacky and I hate it.
+
 ![20250516_22h09m23s_grim](https://github.com/user-attachments/assets/c6b3b35f-5e08-48d1-9d83-0af6d0a80983)
 
 ## Audio/Media 
@@ -63,6 +64,7 @@ Have ideas for this side panel? let me know because I'm a bit at a loss with it.
 
 ## Pacman widget 
 ### Pretty output of pacman logs. this log can be limited to day,week,month,year, or not at all.
+
 ![20250516_21h28m07s_grim](https://github.com/user-attachments/assets/ee73c9b7-8c00-43d3-bf24-992263f3e8e4)
 
 >[!NOTE]
@@ -70,10 +72,12 @@ Have ideas for this side panel? let me know because I'm a bit at a loss with it.
 
 ## Wifi widget
 Non actionable and just displays information at the moment. you can toggle rfkill with the bar button and initiate a rescan in the panel.
+
 ![20250516_22h00m53s_grim](https://github.com/user-attachments/assets/43764b0b-915c-4f72-bf0f-58726adfef75)
 
 ## Mic widget 
  shows mute/volume/suspended state of mics and allows you to swap defaults
+ 
 ![20250516_22h01m16s_grim](https://github.com/user-attachments/assets/9a2784b4-b448-4fd3-972a-97b590b13af6)
 
 

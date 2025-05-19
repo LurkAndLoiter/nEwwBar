@@ -1,7 +1,7 @@
-(deflisten workspaces :initial "[]"
+(deflisten workspaces :initial '[{"id": 1, "windows": 0}]'
   "~/.config/eww/bin/workspace_list")
 
-(deflisten current_workspace :initial "1"
+(deflisten current_workspace :initial 1
   "~/.config/eww/bin/workspace_focus")
 
 (defwidget workspaces []

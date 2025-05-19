@@ -81,6 +81,8 @@ Left click open/close panel`
           :width 75
           :height 75
           (image 
+            ; :icon "${s.icon}"
+            ; :icon-size "dialog"
             :path "./assets/icons/${s.icon == "audio-headset-bluetooth" ? "audio-earbuds" : s.icon == "audio-speakers" ? "audio-speakers" : "media-tape"}.svg"
             :image-height 42
           )
@@ -145,7 +147,7 @@ Left click open/close panel`
               :halign "start"
               (image 
                 :image-height 100 
-                :path "${matches(p.title, " - Twitch$") ? "./assets/twitch_logo.svg" : p.artUrl}"
+                :path "${matches(p.title, " - Twitch$") ? "./assets/twitch-logo.svg" : p.artUrl}"
               )
             )
             (box 
@@ -213,7 +215,7 @@ Left click open/close panel`
     ; (image :image-height 30 :path "./assets/earbuds.svg")
     (box 
       :halign "start"
-      :class "padbottom"
+      :class "paddingbottom"
       :spacing 10
       (eventbox 
         :onclick "playerctl --player=${Name} previous"
@@ -242,7 +244,7 @@ Left click open/close panel`
     )
     (box
       :halign "end"
-      :class "padbottom"
+      :class "paddingbottom"
       :space-evenly false
       :spacing 10
       (eventbox
@@ -255,10 +257,10 @@ Left click open/close panel`
           :fill-svg "${loop == "Track" ? "#cdd6f4" : 
                        loop == "Playlist" ? "#cdd6f4" : "#45475a"}"
           :image-height 24
-          :path "./assets/${loop == "Track" ? "loop_track" : 
+          :path "./assets/${loop == "Track" ? "loop-track" : 
                             loop == "Playlist" ? "loop" : 
                             loop == "None" ? "loop" : 
-                            "loop_disabled"
+                            "loop-disabled"
                             }.svg"
         )
       )
@@ -267,9 +269,9 @@ Left click open/close panel`
         (image 
           :fill-svg "${shuffle == true ? "#cdd6f4" : "#45475a"}" 
           :image-height 24
-          :path "./assets/${shuffle == true ? "shuffle_on" : 
-                        shuffle == false ? "shuffle_off" : 
-                        "shuffle_disabled"
+          :path "./assets/${shuffle == true ? "shuffle-on" : 
+                        shuffle == false ? "shuffle-off" : 
+                        "shuffle-disabled"
                        }.svg"
         )
       )

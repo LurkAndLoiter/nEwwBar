@@ -9,21 +9,40 @@
     :onclick "eww open --toggle wifiPanel"
     :onrightclick "rfkill toggle wlan"
     (literal
+      :valign "center"
       :content {
-        wlan-monitor.state == 20 ? "(label :text '󰤮' :class 'marginright large inactive')" :
+        wlan-monitor.state == 20 ? "(image  
+                                      :image-height 24 
+                                      :path './assets/wifi-disabled.svg' 
+                                      :fill-svg '#45475a')":
         wlan-monitor.state == 10 ? "(label :text '' :class 'marginright large red')" :
         wlan-monitor.state == 60 ? "(label :text '󰤬' :class 'marginright large red')" :
-        wlan-monitor.state != 100 ? "(image :path './assets/sat.gif')" :
-        wlan-monitor.strength > 70 ? wSigGreat :
-        wlan-monitor.strength > 50 ? wSigGood :
-        wlan-monitor.strength > 35 ? wSigLow : 
-        wlan-monitor.strength > 20 ? wSigBad :
-        wSigNo
+        wlan-monitor.state != 100 ? "(image 
+                                       :path './assets/sat.gif')" :
+        wlan-monitor.strength > 70 ? "(image 
+                                        :image-height 24 
+                                        :path './assets/wifi-full.svg' 
+                                        :fill-svg '#89b4f1')" :
+        wlan-monitor.strength > 50 ? "(image 
+                                        :image-height 24 
+                                        :path './assets/wifi-high.svg' 
+                                        :fill-svg '#a6e3a1')" :
+        wlan-monitor.strength > 35 ? "(image 
+                                        :image-height 24 
+                                        :path './assets/wifi-mid.svg' 
+                                        :fill-svg '#f9e2af')" : 
+        wlan-monitor.strength > 20 ? "(image 
+                                        :image-height 24 
+                                        :path './assets/wifi-low.svg' 
+                                        :fill-svg '#fab387')" :
+        "(image 
+           :image-height 24 
+           :path './assets/wifi-none.svg' 
+           :fill-svg '#f38ba8')"
       }
     )
   )
 )
-
 
 (defwindow wifiPanel
   :monitor 1
@@ -69,51 +88,57 @@
         :hexpand true 
         :class "btns-bar ${w.connected == true ? "active enabled" : "enabled"}"
         (box :space-evenly false :class "marginleft marginright" :hexpand true
-          (StrengthLabel :strength "${w.Strength}")
-          (frequencyLabel :freq "${w.Frequency}")
+          (literal 
+            :valign "center"
+            :content 
+            {
+              w.Strength > 70 ? "(image
+                                    :image-height 42
+                                    :path './assets/wifi-full.svg'
+                                    :fill-svg '#89b4f1')" :
+              w.Strength > 50 ? "(image
+                                    :image-height 42
+                                    :path './assets/wifi-high.svg'
+                                    :fill-svg '#a6e3a1')" :
+              w.Strength > 35 ? "(image 
+                                    :image-height 42
+                                    :path './assets/wifi-mid.svg'
+                                    :fill-svg '#f9e2af')" :
+              w.Strength > 20 ? "(image
+                                    :image-height 42
+                                    :path './assets/wifi-low.svg'
+                                    :fill-svg '#fab387')" :
+              "(image 
+                  :image-height 42
+                  :path './assets/wifi-none.svg'
+                  :fill-svg '#f38ba8')"
+            }
+          )
+          (label
+            :yalign 1
+            :class "marginright small bold"
+            :text "${
+                    w.Frequency > 5000 ? "5G" :
+                    w.Frequency > 4000 ? "4G" :
+                    w.Frequency > 3000 ? "3G" :
+                    "2G"
+                    }"
+          )
+          (input 
+            :visible "${w.connected ? false : true}"
+            :class "tooltip"
+            :hexpand true
+            :value "Enter Password"
+            :password false
+            :onaccept 'echo {}'
+            :timeout 2000
+          )
           (label :halign "end" :hexpand true :text "${w.SSID} ")
         )
       )
     )
   )
 )
-
-(defwidget frequencyLabel [freq]
-  (label 
-    :yalign 1 
-    :class "marginright small bold"
-    :text "
-      ${
-        freq > 5000 ? "5G" :
-        freq > 4000 ? "4G" :
-        freq > 3000 ? "3G" : 
-        "2G"
-      }"
-  )
-)
-
-(defwidget StrengthLabel [strength]
-  (literal :content 
-    {
-      strength > 70 ? wSigGreat :
-      strength > 50 ? wSigGood :
-      strength > 35 ? wSigLow :
-      strength > 20 ? wSigBad :
-      wSigNo
-    }
-  )  
-)
-
-(defvar wSigGreat
-  "(label :text '󰤨' :class 'large marginright blue')")
-(defvar wSigGood
-  "(label :text '󰤥' :class 'large marginright green')")
-(defvar wSigLow
-  "(label :text '󰤟' :class 'large marginright yellow')")
-(defvar wSigBad
-  "(label :text '󰤯' :class 'large marginright orange')")
-(defvar wSigNo
-  "(label :text '󰤮' :class 'large marginright red')")
 
 (defwidget wifiCode []
   (label 

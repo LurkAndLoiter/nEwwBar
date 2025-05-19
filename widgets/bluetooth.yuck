@@ -82,9 +82,9 @@
         :onhoverlost `eww update btHover=""`
         (box
           :space-evenly false
+          :class "btns-bar${device.Connected ? " enabled active" : ""} ${adapter.Powered ? "${device.Trusted ? " enabled" : " newdevice"}" : " disabled"}"
           (eventbox 
             :hexpand true
-            :class "btns-bar${device.Connected ? " active" : ""} ${adapter.Powered ? "${device.Trusted ? " enabled" : " newdevice"}" : " disabled"}"
             :onclick "${device.Connected ? "bluetoothctl disconnect ${device.id}" : 
                       "${device.Paired ? "bluetoothctl connect ${device.id}" : 
                       "./scripts/bluetooth_add.sh ${adapter.Powered} ${adapter.Pairable} ${adapter.Discoverable} ${device.id} ${device.trusted} 50 &"}"}"
@@ -92,9 +92,10 @@
               :space-evenly false
               :spacing 10
               (image
-                :class "large"
-                :image-height 42
-                :path "./assets/icons/${device.Icon}.svg"
+                :icon-size "dialog"
+                :icon "${device.Icon}"
+                ; :image-height 42
+                ; :path "./assets/icons/${device.Icon}.svg"
               )
               (label 
                 :halign "start" 
@@ -112,7 +113,7 @@
                   :class "smallish colorMe"
                 )
                 (image 
-                  :valign "start"
+                  :valign "center"
                   :halign "start"
                   :image-height 36
                   :path "./assets/battery-${
@@ -123,24 +124,49 @@
                    device.Battery > 19 ? "caution" : "empty"}.svg"
                 )
               )
-              (box 
-                :orientation "v" 
-                :class "btns-bar"
-                (eventbox
-                  :onclick "${device.Paired ? "" : "bluetoothctl pairable on && bluetoothctl pair ${device.id} &"}"
-                  (label
-                    :text "${device.Paired ? "󰯄": "󰯅"}"
-                    :class "marginright ${device.Paired ? "green": "red"}"
-                  )
-                )
-                (eventbox
-                  :onclick "bluetoothctl ${device.Trusted ? 'un' : '' }trust ${device.id}"
-                  (label
-                    :text "${device.Trusted == true ? "󰯄": "󰯅"}"
-                    :class "marginright ${device.Trusted ? "green": "red"}"
-                  )
-                )
-              )
+            )
+          )
+          (box 
+            :orientation "v" 
+            :class "paddingright"
+            (literal ; I know it's ugly but it turns 3 evaluations into 1 so..
+              :content 
+                {
+                  device.Paired ? "(eventbox 
+                                      :onclick 'bluetoothctl pairable on && bluetoothctl pair ${device.id} &'
+                                      (label 
+                                        :text 'Pair'
+                                        :class 'green' 
+                                        :tooltip 'paired'
+                                      )
+                                    )" : 
+                                    "(label 
+                                      :text 'Pair'
+                                      :class 'red' 
+                                      :tooltip 'not paired'
+                                    )"
+                }
+            )
+            (literal 
+              :content 
+                {
+                  device.Trusted ? "(eventbox
+                                      :onclick 'bluetoothctl untrust ${device.id}' 
+                                      (label 
+                                        :text 'Auto' 
+                                        :class 'green'
+                                        :tooltip 'AutoConnect Enabled'
+                                      )
+                                    )" : 
+                                    "(eventbox 
+                                      :onclick 'bluetoothctl trust ${device.id}' 
+                                      (label 
+                                        :text 'Auto' 
+                                        :class 'red' 
+                                        :tooltip 'AutoConnect Disabled'
+                                      )
+                                    )"
+                }
             )
           )
           (revealer
@@ -148,9 +174,10 @@
             :reveal "${btHover == device.id ? true : false}"
             :duration "1000ms"
             (eventbox 
-              :visible  "${btHover == device.id ? "${device.Trusted ? "${adapter.Powered ? true : false }" : false}" : false}"
+              :visible  "${btHover == device.id ? "${adapter.Powered ? "${device.Trusted ? true : "${device.Paired ? true : false }"}" : false }" : false}"
               :class "redBox"
               :onclick `bluetoothctl remove ${device.id}`
+              :tooltip "Remove Device"
               (label 
                 :class "large marginright marginleft inactive"
                 :text "" 

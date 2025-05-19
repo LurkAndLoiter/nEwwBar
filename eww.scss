@@ -125,7 +125,7 @@ tooltip {
 
 /* Box container of bar */
 .bar-box {
-  background-color: rgba($Crust, 1);
+  background-color: $Crust;
   border-radius: 10px;
   margin: 0 10px;
   padding: 0 5px;
@@ -191,7 +191,7 @@ tooltip {
     background-color: $Base;
 
     &:hover {
-        background-image: linear-gradient(135deg, $Green 2.5%, transparent 7.5%);
+      background-image: linear-gradient(135deg, $Green 2.5%, transparent 7.5%);
     }
   }
 }
@@ -223,9 +223,9 @@ button {
       color: $Red;
       background-image: linear-gradient(135deg, $Mauve 10%, transparent 30%);
     }
-  &.power {
-    color: $Red;
-  }
+    &.power {
+      color: $Red;
+    }
   }
 }
 
@@ -308,6 +308,22 @@ menu {
   margin-top: 7px;
 }
 
-.padbottom {
+.marginbottom {
+  margin-bottom: 7px;
+}
+
+.paddingright {
+  padding-right: 7px;
+}
+
+.paddingleft {
+  padding-left: 7px;
+}
+
+.paddingtop {
+  padding-top: 3px;
+}
+
+.padingbottom {
   padding-bottom: 3px;
 }

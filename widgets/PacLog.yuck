@@ -45,7 +45,7 @@
       (box 
         :orientation "v"
         :space-evenly false
-        (image :image-height 90 :path "./assets/pacman_wide.svg")
+        (image :image-height 90 :path "./assets/pacman-wide.svg")
         (pacmanLog)
       )
     )

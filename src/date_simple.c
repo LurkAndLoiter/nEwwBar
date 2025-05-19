@@ -25,7 +25,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#define JSON_STR_LEN 128
+#define JSON_STR_LEN 128 // 83 bytes; set to 128 as buffer safety
 
 #ifndef DEBUG
 #define DEBUG 0

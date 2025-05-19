@@ -23,6 +23,7 @@
 #include <json-c/json.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -30,12 +31,21 @@
 #define MAX_WORKSPACES 6
 #define BUFFER_SIZE 1024
 
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+
+// Global variable to store last output
+static char *last_output = NULL;
+
 // Function to get workspace information
 void print_workspaces() {
   // Execute hyprctl command and capture output
   FILE *fp = popen("hyprctl workspaces -j", "r");
   if (!fp) {
-    perror("popen failed");
+    if (DEBUG) {
+      perror("popen failed");
+    }
     return;
   }
 
@@ -55,19 +65,23 @@ void print_workspaces() {
   pclose(fp);
 
   if (!json_str) {
-    printf("Failed to read hyprctl output\n");
+    if (DEBUG) {
+      printf("Failed to read hyprctl output\n");
+    }
     return;
   }
 
   // Parse JSON
   json_object *root = json_tokener_parse(json_str);
   if (!root) {
-    printf("Failed to parse JSON\n");
+    if (DEBUG) {
+      printf("Failed to parse JSON\n");
+    }
     free(json_str);
     return;
   }
 
-  // Create workspace windows object similar to jq processing
+  // Create workspace windows object
   json_object *workspace_windows = json_object_new_object();
   int len = json_object_array_length(root);
   for (int i = 0; i < len; i++) {
@@ -94,10 +108,18 @@ void print_workspaces() {
     json_object_array_add(output, entry);
   }
 
-  // Print compact JSON
-  printf("%s\n",
-         json_object_to_json_string_ext(output, JSON_C_TO_STRING_PLAIN));
-  fflush(stdout);
+  // Convert to string and compare with last output
+  const char *new_output = json_object_to_json_string_ext(output, JSON_C_TO_STRING_PLAIN);
+  
+  // Only print if different from last output
+  if (!last_output || strcmp(new_output, last_output) != 0) {
+    printf("%s\n", new_output);
+    fflush(stdout);
+    
+    // Update last_output
+    free(last_output);
+    last_output = strdup(new_output);
+  }
 
   // Cleanup
   json_object_put(root);
@@ -111,7 +133,9 @@ int main() {
   char *xdg_runtime = getenv("XDG_RUNTIME_DIR");
   char *hyprland_instance = getenv("HYPRLAND_INSTANCE_SIGNATURE");
   if (!xdg_runtime || !hyprland_instance) {
-    fprintf(stderr, "Required environment variables not set\n");
+    if (DEBUG) {
+      fprintf(stderr, "Required environment variables not set\n");
+    }
     return 1;
   }
 
@@ -123,7 +147,9 @@ int main() {
   // Create UNIX socket
   int sock = socket(AF_UNIX, SOCK_STREAM, 0);
   if (sock < 0) {
-    perror("socket creation failed");
+    if (DEBUG) {
+      perror("socket creation failed");
+    }
     return 1;
   }
 
@@ -134,7 +160,9 @@ int main() {
 
   // Connect to socket
   if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    perror("socket connect failed");
+    if (DEBUG) {
+      perror("socket connect failed");
+    }
     close(sock);
     return 1;
   }
@@ -148,16 +176,29 @@ int main() {
     ssize_t bytes = read(sock, buffer, BUFFER_SIZE - 1);
     if (bytes <= 0) {
       if (bytes == 0) {
-        printf("Socket closed\n");
+        if (DEBUG) {
+          printf("Socket closed\n");
+        }
       } else {
-        perror("socket read failed");
+        if (DEBUG) {
+          perror("socket read failed");
+        }
       }
       break;
     }
     buffer[bytes] = '\0';
-    print_workspaces();
+
+    // Check for relevant events
+    if (strstr(buffer, "closewindow>>") ||
+        strstr(buffer, "openwindow>>") ||
+        strstr(buffer, "createworkspace>>") ||
+        strstr(buffer, "destroyworkspace>>")) {
+      print_workspaces();
+    }
   }
 
+  // Cleanup
+  free(last_output);
   close(sock);
   return 0;
 }

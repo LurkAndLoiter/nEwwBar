@@ -30,10 +30,17 @@
 
 #define BUFFER_SIZE 1024
 
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+
 void print_initial_workspace() {
+  // hyprctl monitors -j | jq '.[] | select(.focused == true) | .id'
   FILE *fp = popen("hyprctl monitors -j", "r");
   if (!fp) {
-    perror("popen failed");
+    if (DEBUG) {
+      perror("popen failed");
+    }
     return;
   }
 
@@ -52,13 +59,17 @@ void print_initial_workspace() {
   pclose(fp);
 
   if (!json_str) {
-    printf("Failed to read hyprctl output\n");
+    if (DEBUG) {
+      printf("Failed to read hyprctl output\n");
+    }
     return;
   }
 
   json_object *root = json_tokener_parse(json_str);
   if (!root) {
-    printf("Failed to parse JSON\n");
+    if (DEBUG) {
+      printf("Failed to parse JSON\n");
+    }
     free(json_str);
     return;
   }
@@ -68,9 +79,7 @@ void print_initial_workspace() {
     json_object *monitor = json_object_array_get_idx(root, i);
     json_object *focused = json_object_object_get(monitor, "focused");
     if (json_object_get_boolean(focused)) {
-      json_object *workspace =
-          json_object_object_get(monitor, "activeWorkspace");
-      json_object *id = json_object_object_get(workspace, "id");
+      json_object *id = json_object_object_get(monitor, "id");
       printf("%d\n", json_object_get_int(id));
       fflush(stdout);
       break;
@@ -85,7 +94,9 @@ int main() {
   char *xdg_runtime = getenv("XDG_RUNTIME_DIR");
   char *hyprland_instance = getenv("HYPRLAND_INSTANCE_SIGNATURE");
   if (!xdg_runtime || !hyprland_instance) {
-    fprintf(stderr, "Required environment variables not set\n");
+    if (DEBUG) {
+      fprintf(stderr, "Required environment variables not set\n");
+    }
     return 1;
   }
 
@@ -95,7 +106,9 @@ int main() {
 
   int sock = socket(AF_UNIX, SOCK_STREAM, 0);
   if (sock < 0) {
-    perror("socket creation failed");
+    if (DEBUG) {
+      perror("socket creation failed");
+    }
     return 1;
   }
 
@@ -105,7 +118,9 @@ int main() {
   strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
 
   if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    perror("socket connect failed");
+    if (DEBUG) {
+      perror("socket connect failed");
+    }
     close(sock);
     return 1;
   }
@@ -120,9 +135,13 @@ int main() {
     ssize_t bytes = read(sock, buffer, BUFFER_SIZE - 1);
     if (bytes <= 0) {
       if (bytes == 0) {
-        printf("Socket closed\n");
+        if (DEBUG) {
+          printf("Socket closed\n");
+        }
       } else {
-        perror("socket read failed");
+        if (DEBUG) {
+          perror("socket read failed");
+        }
       }
       break;
     }
@@ -131,7 +150,9 @@ int main() {
     for (ssize_t i = 0; i < bytes; i++) {
       if (buffer[i] == '\n') {
         line[line_pos] = '\0';
-        // fprintf(stderr, "Raw event: %s\n", line);  // Debug: Log every line
+        if (DEBUG) {
+          fprintf(stderr, "Raw event: %s\n", line);  // Debug: Log every line
+        }
 
         if (strncmp(line, "workspace>>", 11) == 0) {
           char *id_str = line + 11;

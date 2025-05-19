@@ -37,7 +37,7 @@ Everything is event driven if you wanted to grab [some code](https://github.com/
 >[!WARNING]
 >You need to be on git release as the yuck utilizes properties (fill-svg, jq -r) not available on the 0.6.0 release.
 
-## App/Launcher
+## App Launcher
 ### Simply displays all apps and will launch them onclick. Currently supports user/system/flatpak desktop entries.
 Have ideas for this side panel? let me know because I'm a bit at a loss with it. It's tacky and I hate it.
 

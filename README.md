@@ -56,9 +56,6 @@ Have ideas for this side panel? let me know because I'm a bit at a loss with it.
 
 ## Bluetooth widget
 ### Simple click to scan; click to add/connect/disconnect/remove.
->[!NOTE]
-> Only legacy pairing support at the moment(same as blueman and blueberry)
-> I plan to add non legacy connection support soon.
 
 ![20250516_21h48m32s_grim](https://github.com/user-attachments/assets/bd10d8a0-79f5-44c7-96da-e7e546c3e59c)
 

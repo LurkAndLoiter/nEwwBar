@@ -89,7 +89,8 @@
             :hexpand true
             :onclick "${device.Connected ? "bluetoothctl disconnect ${device.id}" : 
                       "${device.Paired ? "bluetoothctl connect ${device.id}" : 
-                      "./scripts/bluetooth_add.sh ${adapter.Powered} ${adapter.Pairable} ${adapter.Discoverable} ${device.id} ${device.trusted} 50 &"}"}"
+                      "./bin/bluetooth_connect ${device.id} &"}"}"
+                      ; "./scripts/bluetooth_add.sh ${adapter.Powered} ${adapter.Pairable} ${adapter.Discoverable} ${device.id} ${device.trusted} 50 &"}"}"
             (box
               :space-evenly false
               :spacing 10

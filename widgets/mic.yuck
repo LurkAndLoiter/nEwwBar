@@ -47,7 +47,7 @@
               :halign "start" 
               ; :icon "${source.icon}"
               ; :icon-size "dialog"
-              :path "./assets/icons/devices/${source.icon == "audio-headset-bluetooth" ? "earbuds" : "input-microphone"}.svg"
+              :path "./assets/icons/devices/${source.icon == "audio-headset-bluetooth" ? "audio-earbuds" : "input-microphone"}.svg"
               :image-height 42
             )
             (label 

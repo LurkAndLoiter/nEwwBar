@@ -116,7 +116,7 @@ Left click open/close panel`
             :halign "start" 
             :onclick "wpctl set-mute ${s.id} toggle" 
             (image 
-              :image-height 24 
+              :image-width 24 
               :path "./assets/icons/media/volume-${s.mute ? "mute" : "high"}.svg"
               :fill-svg "${s.mute ? "#f38ba8" : "#a6e3a1" }"
             )
@@ -318,9 +318,10 @@ Left click open/close panel`
           :onclick 'wpctl set-mute ${targetID} toggle'
           (box :space-evenly false :valign "center"
             (image 
-              :class "marginleft marginright" 
+              :class "paddingleft paddingright" 
               :image-height 16 
               :valign "center"
+              :halign "center"
               :path "./assets/icons/media/volume-${pmute ? "mute" : "high"}.svg"
               :fill-svg "${pmute ? "#f38ba8" : "#a6e3a1"}"
             )

@@ -28,7 +28,7 @@ Right click Mute
 Left click open/close panel`
     :onclick "eww open --toggle audioPanel"
     :onrightclick "wpctl set-mute @DEFAULT_SINK@ toggle"
-    (literal :content 
+    (literal :halign "center" :valign "center" :content  
       {"${jq(audioSinks, '.[] | select(.default) | (.mute)') ? audioMuted : audioUnmuted}"
       }
     )
@@ -36,11 +36,19 @@ Left click open/close panel`
 )
 
 (defvar audioMuted 
-  '(label :text " " :class "large red")' 
+  '(image 
+    :path "./assets/icons/media/volume-mute.svg" 
+    :image-width 24 
+    :fill-svg "#f38ba8"
+  )' 
 )
 
 (defvar audioUnmuted 
-  '(label :text " " :class "large")' 
+  '(image :path "./assets/icons/media/volume-high.svg"
+    :class "large"
+    :image-width 24
+    :fill-svg "#a6e3a1"
+  )' 
 )
 
 (defwindow audioPanel
@@ -83,7 +91,7 @@ Left click open/close panel`
           (image 
             ; :icon "${s.icon}"
             ; :icon-size "dialog"
-            :path "./assets/icons/${s.icon == "audio-headset-bluetooth" ? "audio-earbuds" : s.icon == "audio-speakers" ? "audio-speakers" : "media-tape"}.svg"
+            :path "./assets/icons/devices/${s.icon == "audio-headset-bluetooth" ? "audio-earbuds" : s.icon == "audio-speakers" ? "audio-speakers" : "media-tape"}.svg"
             :image-height 42
           )
         )
@@ -109,7 +117,8 @@ Left click open/close panel`
             :onclick "wpctl set-mute ${s.id} toggle" 
             (image 
               :image-height 24 
-              :path "./assets/icons/audio-${s.mute ? "muted" : "high"}.svg"
+              :path "./assets/icons/media/volume-${s.mute ? "mute" : "high"}.svg"
+              :fill-svg "${s.mute ? "#f38ba8" : "#a6e3a1" }"
             )
           )
         )
@@ -222,7 +231,7 @@ Left click open/close panel`
         (image 
           :fill-svg "${CanGoPrevious ? "#cdd6f4" : "#45475a"}"
           :image-height 18 
-          :path "./assets/prev.svg"
+          :path "./assets/icons/media/prev.svg"
         )
       )
       (eventbox 
@@ -230,7 +239,7 @@ Left click open/close panel`
         (image 
           :fill-svg "${CanPlay ? "#cdd6f4" : "#45475a"}"
           :image-height 18 
-          :path "./assets/${Playing == "Playing" ? "paused" : "play"}.svg"
+          :path "./assets/icons/media/${Playing == "Playing" ? "pause" : "play"}.svg"
         )
       )
       (eventbox 
@@ -238,7 +247,7 @@ Left click open/close panel`
         (image 
           :fill-svg "${CanGoNext ? "#cdd6f4" : "#45475a"}"
           :image-height 18 
-          :path "./assets/next.svg"
+          :path "./assets/icons/media/next.svg"
         )
       )
     )
@@ -257,7 +266,7 @@ Left click open/close panel`
           :fill-svg "${loop == "Track" ? "#cdd6f4" : 
                        loop == "Playlist" ? "#cdd6f4" : "#45475a"}"
           :image-height 24
-          :path "./assets/${loop == "Track" ? "loop-track" : 
+          :path "./assets/icons/media/${loop == "Track" ? "loop-track" : 
                             loop == "Playlist" ? "loop" : 
                             loop == "None" ? "loop" : 
                             "loop-disabled"
@@ -269,7 +278,7 @@ Left click open/close panel`
         (image 
           :fill-svg "${shuffle == true ? "#cdd6f4" : "#45475a"}" 
           :image-height 24
-          :path "./assets/${shuffle == true ? "shuffle-on" : 
+          :path "./assets/icons/media/${shuffle == true ? "shuffle-on" : 
                         shuffle == false ? "shuffle-off" : 
                         "shuffle-disabled"
                        }.svg"
@@ -309,9 +318,11 @@ Left click open/close panel`
           :onclick 'wpctl set-mute ${targetID} toggle'
           (box :space-evenly false :valign "center"
             (image 
-              :class "marginleft" 
+              :class "marginleft marginright" 
               :image-height 16 
-              :path "./assets/icons/audio-${pmute ? "muted" : "high"}.svg"
+              :valign "center"
+              :path "./assets/icons/media/volume-${pmute ? "mute" : "high"}.svg"
+              :fill-svg "${pmute ? "#f38ba8" : "#a6e3a1"}"
             )
             (label 
               :class "${pmute ? "red" : ""}"

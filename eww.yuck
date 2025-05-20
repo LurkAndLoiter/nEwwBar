@@ -15,7 +15,7 @@
     (label :class "bold" :text "${Date.H}:${Date.M}")
     (label 
       :valign "start" 
-      :class "medium italic colorMe marginleft" 
+      :class "medium italic colorMe" 
       :text "${Date.Day}"
     ) 
     (box :orientation "v" :space-evenly false 
@@ -33,7 +33,7 @@
 )
 
 (defwindow barMin
-  :monitor 1 
+  :monitor '["<primary>", "1", "0"]' 
   :stacking "fg"
   :windowtype "dock"
   :wm-ignore true
@@ -47,7 +47,7 @@
    
 
 (defwindow bar
-  :monitor 1 
+  :monitor '["<primary>", "1", "0"]' 
   :stacking "fg"
   :windowtype "dock"
   :exclusive true
@@ -79,7 +79,6 @@
         (micButton)
         (bluetoothButton)
         (wifiButton)
-        (label :text "  ")
         (eventbox 
           :onclick "eww open --toggle rightPanel"
           (dateStyled)
@@ -92,7 +91,7 @@
 
 
 (defwindow leftPanel
-  :monitor 1
+  :monitor '["<primary>", "1", "0"]' 
   :stacking "fg"
   :focusable false
   :geometry (geometry
@@ -116,7 +115,7 @@
 
 
 (defwindow rightPanel
-  :monitor 1
+  :monitor '["<primary>", "1", "0"]' 
   :stacking "fg"
   :geometry (geometry
               :anchor "top right"

@@ -191,6 +191,7 @@ int main() {
     // Check for relevant events
     if (strstr(buffer, "closewindow>>") ||
         strstr(buffer, "openwindow>>") ||
+        strstr(buffer, "movewindow>>") ||
         strstr(buffer, "createworkspace>>") ||
         strstr(buffer, "destroyworkspace>>")) {
       print_workspaces();

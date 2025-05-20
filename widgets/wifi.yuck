@@ -10,34 +10,35 @@
     :onrightclick "rfkill toggle wlan"
     (literal
       :valign "center"
+      :halign "center"
       :content {
         wlan-monitor.state == 20 ? "(image  
-                                      :image-height 24 
-                                      :path './assets/wifi-disabled.svg' 
+                                      :image-width 24 
+                                      :path './assets/icons/wifi/disabled.svg' 
                                       :fill-svg '#45475a')":
         wlan-monitor.state == 10 ? "(label :text '' :class 'marginright large red')" :
         wlan-monitor.state == 60 ? "(label :text '󰤬' :class 'marginright large red')" :
         wlan-monitor.state != 100 ? "(image 
-                                       :path './assets/sat.gif')" :
+                                       :path './assets/icons/wifi/scan-small.gif')" :
         wlan-monitor.strength > 70 ? "(image 
-                                        :image-height 24 
-                                        :path './assets/wifi-full.svg' 
+                                        :image-width 24 
+                                        :path './assets/icons/wifi/full.svg' 
                                         :fill-svg '#89b4f1')" :
         wlan-monitor.strength > 50 ? "(image 
-                                        :image-height 24 
-                                        :path './assets/wifi-high.svg' 
+                                        :image-width 24 
+                                        :path './assets/icons/wifi/high.svg' 
                                         :fill-svg '#a6e3a1')" :
         wlan-monitor.strength > 35 ? "(image 
-                                        :image-height 24 
-                                        :path './assets/wifi-mid.svg' 
+                                        :image-width 24 
+                                        :path './assets/icons/wifi/mid.svg' 
                                         :fill-svg '#f9e2af')" : 
         wlan-monitor.strength > 20 ? "(image 
-                                        :image-height 24 
-                                        :path './assets/wifi-low.svg' 
+                                        :image-width 24 
+                                        :path './assets/icons/wifi/low.svg' 
                                         :fill-svg '#fab387')" :
         "(image 
-           :image-height 24 
-           :path './assets/wifi-none.svg' 
+           :image-width 24 
+           :path './assets/icons/wifi/none.svg' 
            :fill-svg '#f38ba8')"
       }
     )
@@ -78,7 +79,7 @@
           :onclick "nmcli device wifi rescan ifname wlan0" 
           (image 
             :image-height 42
-            :path "./assets/sat-cloud.gif"
+            :path "./assets/icons/wifi/scan-off.gif"
           )
         )
       )
@@ -89,28 +90,29 @@
         :class "btns-bar ${w.connected == true ? "active enabled" : "enabled"}"
         (box :space-evenly false :class "marginleft marginright" :hexpand true
           (literal 
+            :halign "center"
             :valign "center"
             :content 
             {
               w.Strength > 70 ? "(image
-                                    :image-height 42
-                                    :path './assets/wifi-full.svg'
+                                    :image-width 42
+                                    :path './assets/icons/wifi/full.svg'
                                     :fill-svg '#89b4f1')" :
               w.Strength > 50 ? "(image
-                                    :image-height 42
-                                    :path './assets/wifi-high.svg'
+                                    :image-width 42
+                                    :path './assets/icons/wifi/high.svg'
                                     :fill-svg '#a6e3a1')" :
               w.Strength > 35 ? "(image 
-                                    :image-height 42
-                                    :path './assets/wifi-mid.svg'
+                                    :image-width 42
+                                    :path './assets/icons/wifi/mid.svg'
                                     :fill-svg '#f9e2af')" :
               w.Strength > 20 ? "(image
-                                    :image-height 42
-                                    :path './assets/wifi-low.svg'
+                                    :image-width 42
+                                    :path './assets/icons/wifi/low.svg'
                                     :fill-svg '#fab387')" :
               "(image 
-                  :image-height 42
-                  :path './assets/wifi-none.svg'
+                  :image-width 42
+                  :path './assets/icons/wifi/none.svg'
                   :fill-svg '#f38ba8')"
             }
           )
@@ -123,15 +125,6 @@
                     w.Frequency > 3000 ? "3G" :
                     "2G"
                     }"
-          )
-          (input 
-            :visible "${w.connected ? false : true}"
-            :class "tooltip"
-            :hexpand true
-            :value "Enter Password"
-            :password false
-            :onaccept 'echo {}'
-            :timeout 2000
           )
           (label :halign "end" :hexpand true :text "${w.SSID} ")
         )

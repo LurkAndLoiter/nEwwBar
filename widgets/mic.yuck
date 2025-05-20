@@ -6,9 +6,10 @@
     (eventbox 
       :onclick "eww open --toggle micPanel"
       :onrightclick 'pactl set-source-mute "$(pactl get-default-source)" toggle'
-      (label 
-        :text "${jq(audioMonitors, '.[] | select(.default) | (.state == "suspended")') ? "󰍭" : "󰍬"}" 
-        :class "large ${jq(audioMonitors, '.[] | select(.default) | (.mute)') ? "inactive" : "red"}" 
+      (image 
+        :image-height 24
+        :path "./assets/icons/mic-${jq(audioMonitors, '.[] | select(.default) | (.state == "suspended")') ? "off" : "on"}.svg" 
+        :fill-svg "${jq(audioMonitors, '.[] | select(.default) | (.mute)') ? "#45475a" : "#f38ba8"}" 
       )
     )
   )
@@ -44,7 +45,9 @@
             (image
               :class "marginleft"
               :halign "start" 
-              :path "./assets/icons/audio-${source.icon == "audio-headset-bluetooth" ? "earbuds" : "input-microphone"}.svg"
+              ; :icon "${source.icon}"
+              ; :icon-size "dialog"
+              :path "./assets/icons/devices/${source.icon == "audio-headset-bluetooth" ? "earbuds" : "input-microphone"}.svg"
               :image-height 42
             )
             (label 

@@ -1,0 +1,12 @@
+<svg width="405.41" height="512" version="1.1" viewBox="0 0 405.41 512" xmlns="http://www.w3.org/2000/svg">
+	<rect y="53.941" width="405.41" height="458.06" ry="21.015" style="fill:#585b70;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:212.09"/>
+	<rect x="74.799" width="255.67" height="53.941" style="fill:#a6e3a1;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:214.84"/>
+	<rect x="37.004" y="357.63" width="331.64" height="103.24" style="fill:#393b49;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:213.77"/>
+	<rect x="37.004" y="230.99" width="331.64" height="103.24" style="fill:#393b49;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:213.77"/>
+	<rect x="37.004" y="104.35" width="331.64" height="103.24" style="fill:#393b49;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:213.77"/>
+	<g transform="matrix(.24338 0 0 .24338 409.69 330.34)">
+		<circle transform="matrix(2.9584 0 0 2.9584 -1532.3 -768.3)" cx="334.23" cy="334.23" r="177.77" style="fill:#f28ba8;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:291.39"/>
+		<rect transform="rotate(-45)" x="-625.56" y="-611.54" width="170.67" height="766.28" ry="58.416" style="fill:#f9e2a7;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:169.11"/>
+		<rect transform="rotate(45)" x="-313.73" y="157.08" width="170.67" height="766.28" ry="58.416" style="fill:#f9e2a7;paint-order:markers fill stroke;stroke-linecap:square;stroke-width:169.11"/>
+	</g>
+</svg>

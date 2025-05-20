@@ -11,9 +11,10 @@
   (eventbox 
     :onclick `eww open --toggle bluetoothPanel`
     :onrightclick "bluetoothctl power ${adapter.Powered ? "off" : "on"}"
-    (label 
-      :text "${adapter.Powered ? "󰂯" : "󰂲"}"
-      :class "large ${adapter.Powered ? "blue" : "inactive"}"
+    (image 
+      :path "./assets/icons/bluetooth.svg"
+      :image-height 24
+      :fill-svg "${adapter.Powered ? "#89b4fa" : "#45475a"}"
     )
   )
 )
@@ -50,7 +51,8 @@
         :class "${adapter.Powered ? "active" : "inactive"}"
         (image 
           :image-height 42
-          :path "./assets/icons/bluetooth-${adapter.Powered ? "active" : "disabled"}.svg"
+          :path "./assets/icons/bluetooth-pill.svg"
+          :fill-svg "${adapter.Powered ? "#89b4fa" : "#45475a"}"
         )
       )
       (button
@@ -61,7 +63,7 @@
         :onclick 'bluetoothctl agent NoInputNoOutput && bluetoothctl discoverable on && ./bin/bluetooth_scanner 15; bluetoothctl discoverable off &'
         (image 
           :image-height 42
-          :path "./assets/${adapter.Discovering ? 'sat.gif' : 'sat-cloud.gif'}")
+          :path "./assets/icons/wifi/${adapter.Discovering ? 'scan-large' : 'scan-off'}.gif")
        )
     )
     ; (label :text "${adapter}")
@@ -95,7 +97,7 @@
                 :icon-size "dialog"
                 :icon "${device.Icon}"
                 ; :image-height 42
-                ; :path "./assets/icons/${device.Icon}.svg"
+                ; :path "./assets/icons/devices/${device.Icon}.svg"
               )
               (label 
                 :halign "start" 
@@ -116,7 +118,7 @@
                   :valign "center"
                   :halign "start"
                   :image-height 36
-                  :path "./assets/battery-${
+                  :path "./assets/icons/battery/${
                    device.Battery == "" ? "missing" :
                    device.Battery > 79 ? "full" : 
                    device.Battery > 59 ? "good" :

@@ -59,8 +59,7 @@ Have ideas for this side panel? let me know because I'm a bit at a loss with it.
 
 ## Bluetooth widget
 ### Simple click to scan; click to add/connect/disconnect/remove.
-
-![20250516_21h48m32s_grim](https://github.com/user-attachments/assets/bd10d8a0-79f5-44c7-96da-e7e546c3e59c)
+![output](https://github.com/user-attachments/assets/4f4294fc-75ef-4a43-9a80-e5a5443a5bb5)
 
 ## Pacman widget 
 ### Pretty output of pacman logs. this log can be limited to day,week,month,year, or not at all.

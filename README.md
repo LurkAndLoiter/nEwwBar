@@ -1,5 +1,8 @@
 # nEwwBar
 ### The Noob Bar: Nearly Exactly What We Became Accustomed to Recongize.
+
+![20250521_02h03m01s_grim](https://github.com/user-attachments/assets/431da1e3-1c6f-4e1b-b79f-5ed7208ef8ca)
+
 A low resource eww bar that intends to implement all the basics one might need from a tray bar. why doesn't my tray bar have all the functionality pavucontrol does? &lt;- This is our goal. what do you open often? why? let us know. We want to implement it.
 
 >[!CAUTION]

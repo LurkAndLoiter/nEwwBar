@@ -82,9 +82,9 @@
         :visible "${substring(device.id,0,2) != substring(device.Name,0,2) ? true : false}" 
         :onhover `eww update btHover="${device.id}"`
         :onhoverlost `eww update btHover=""`
+        :class "btns-bar${adapter.Powered ? " enabled" : " disabled"}${device.Connected ? " active" : ""}${device.Paired ? "" : " newdevice"}"
         (box
           :space-evenly false
-          :class "btns-bar${device.Connected ? " enabled active" : ""} ${adapter.Powered ? "${device.Trusted ? " enabled" : " newdevice"}" : " disabled"}"
           (eventbox 
             :hexpand true
             :onclick "${device.Connected ? "bluetoothctl disconnect ${device.id}" : 

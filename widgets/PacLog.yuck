@@ -38,68 +38,70 @@
               :height "100%"
               :width 400
               :vexpand true)
-  (eventbox 
-    :onhover 'eww update hover_state="pacmanPanel"'
-    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh pacmanPanel &'
-    (box :class "window right"
-      (box 
-        :orientation "v"
-        :space-evenly false
-        (image :image-height 90 :path "./assets/pacman-wide.svg")
-        (pacmanLog)
-      )
-    )
-  )
+  (pacmanLog)
 )
 
 (defwidget pacmanLog []
-  (scroll 
-    :vscroll true
-    :hscroll false
-    :vexpand true
+  (eventbox 
+    :onhover 'eww update hover_state="pacmanPanel"'
+    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh pacmanPanel &'
     (box 
       :orientation "v"
+      :class "window right"
       :space-evenly false
-      :spacing 10
-      (for event in paclog
+      (image 
+        :image-height 90 
+        :path "./assets/pacman-wide.svg"
+      )
+      (scroll 
+        :vscroll true
+        :hscroll false
+        :vexpand true
         (box 
-          :hexpand true
           :orientation "v"
           :space-evenly false
-          (label 
-            :class "purple" 
-            :halign "start" 
-            :wrap true
-            :text "${event.command}")
-          (box
-            :class "panel"
-            :orientation "v"
-            (label 
-              :class "yellow" 
-              :halign "end" 
-              :text "${substring(event.transaction, 1,10)} @ ${
-                      substring(event.transaction, 12,8)}"
-            )
-            (label :text "") ;blank line spacer
-            (box
-              (label :halign "start" :text "Package")
-              (label :halign "end" :text "Version")
-            )
-            (for pack in "${event.packages}"
-              (box :hexpand true :space-evenly false
+          :spacing 10
+          (for event in paclog
+            (box 
+              :hexpand true
+              :orientation "v"
+              :space-evenly false
+              (label 
+                :class "purple" 
+                :halign "start" 
+                :wrap true
+                :text "${event.command}")
+              (box
+                :class "panel"
+                :orientation "v"
                 (label 
-                  :text "${pack.name}" 
-                  :halign "start"
-                  :class "${pack.change == "upgraded" ? "lavender" :
-                            pack.change == "installed" ? "green" :
-                            "red"}";<- pack.change == "removed"
+                  :class "yellow" 
+                  :halign "end" 
+                  :text "${substring(event.transaction, 1,10)} @ ${
+                          substring(event.transaction, 12,8)}"
                 )
-                (label 
-                  :text "${pack.version}"
-                  :hexpand true
-                  :halign "end"
-                  :truncate true
-                  :truncate-left true
+                (label :text "") ;blank line spacer
+                (box
+                  (label :halign "start" :text "Package")
+                  (label :halign "end" :text "Version")
+                )
+                (for pack in "${event.packages}"
+                  (box :hexpand true :space-evenly false
+                    (label 
+                      :text "${pack.name}" 
+                      :halign "start"
+                      :class "${pack.change == "upgraded" ? "lavender" :
+                                pack.change == "installed" ? "green" :
+                                "red"}";<- pack.change == "removed"
+                    )
+                    (label 
+                      :text "${pack.version}"
+                      :hexpand true
+                      :halign "end"
+                      :truncate true
+                      :truncate-left true
+                    )
+                  )
                 )
               )
             )

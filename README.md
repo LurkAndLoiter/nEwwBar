@@ -55,7 +55,7 @@ Have ideas for this side panel? let me know because I'm a bit at a loss with it.
 - volume control players and outputs
 - set default audio device.
 
-![20250516_21h48m02s_grim](https://github.com/user-attachments/assets/edd67091-464f-413f-b262-27a85d8915b3)
+![output](https://github.com/user-attachments/assets/0c1d66d5-6f8c-4193-bce2-4a577e20f7aa)
 
 ## Bluetooth widget
 ### Simple click to scan; click to add/connect/disconnect/remove.

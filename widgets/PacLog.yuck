@@ -2,7 +2,7 @@
   :initial '[{"transaction": "","command": "", "packages": [{"name": "","change": "", "version":""}]}]'
   :interval "30s"
 ; You can query today, month, week, year, all (no value defaults to week) 
-  '~/.config/eww/scripts/PacLog.sh week')
+  '~/.config/eww/scripts/PacLog.sh today')
 
 (defwidget pacmanButton []
   (eventbox
@@ -38,10 +38,6 @@
               :height "100%"
               :width 400
               :vexpand true)
-  (pacmanLog)
-)
-
-(defwidget pacmanLog []
   (eventbox 
     :onhover 'eww update hover_state="pacmanPanel"'
     :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh pacmanPanel &'
@@ -49,59 +45,60 @@
       :orientation "v"
       :class "window right"
       :space-evenly false
-      (image 
-        :image-height 90 
-        :path "./assets/pacman-wide.svg"
-      )
-      (scroll 
-        :vscroll true
-        :hscroll false
-        :vexpand true
+      (image :image-height 90 :path "./assets/pacman-wide.svg")
+      (pacmanLog)
+    )
+  )
+)
+
+(defwidget pacmanLog []
+  (scroll 
+    :vscroll true
+    :hscroll false
+    :vexpand true
+    (box 
+      :orientation "v"
+      :space-evenly false
+      :spacing 10
+      (for event in paclog
         (box 
+          :hexpand true
           :orientation "v"
           :space-evenly false
-          :spacing 10
-          (for event in paclog
-            (box 
-              :hexpand true
-              :orientation "v"
-              :space-evenly false
-              (label 
-                :class "purple" 
-                :halign "start" 
-                :wrap true
-                :text "${event.command}")
-              (box
-                :class "panel"
-                :orientation "v"
+          (label 
+            :class "purple" 
+            :halign "start" 
+            :wrap true
+            :text "${event.command}")
+          (box
+            :class "panel"
+            :orientation "v"
+            (label 
+              :class "yellow" 
+              :halign "end" 
+              :text "${substring(event.transaction, 1,10)} @ ${
+                      substring(event.transaction, 12,8)}"
+            )
+            (label :text "") ;blank line spacer
+            (box
+              (label :halign "start" :text "Package")
+              (label :halign "end" :text "Version")
+            )
+            (for pack in "${event.packages}"
+              (box :hexpand true :space-evenly false
                 (label 
-                  :class "yellow" 
-                  :halign "end" 
-                  :text "${substring(event.transaction, 1,10)} @ ${
-                          substring(event.transaction, 12,8)}"
+                  :text "${pack.name}" 
+                  :halign "start"
+                  :class "${pack.change == "upgraded" ? "lavender" :
+                            pack.change == "installed" ? "green" :
+                            "red"}";<- pack.change == "removed"
                 )
-                (label :text "") ;blank line spacer
-                (box
-                  (label :halign "start" :text "Package")
-                  (label :halign "end" :text "Version")
-                )
-                (for pack in "${event.packages}"
-                  (box :hexpand true :space-evenly false
-                    (label 
-                      :text "${pack.name}" 
-                      :halign "start"
-                      :class "${pack.change == "upgraded" ? "lavender" :
-                                pack.change == "installed" ? "green" :
-                                "red"}";<- pack.change == "removed"
-                    )
-                    (label 
-                      :text "${pack.version}"
-                      :hexpand true
-                      :halign "end"
-                      :truncate true
-                      :truncate-left true
-                    )
-                  )
+                (label 
+                  :text "${pack.version}"
+                  :hexpand true
+                  :halign "end"
+                  :truncate true
+                  :truncate-left true
                 )
               )
             )

@@ -8,18 +8,30 @@
   (box
     :class "workspaces-widget"
     :space-evenly true
-    ; Force Load  
-    (label :visible false :text "${workspaces}${current_workspace}")
     (for workspace in workspaces
       (eventbox
         :tooltip "${workspace.id}"
         :onclick "hyprctl dispatch workspace ${workspace.id}"
-        (box
-          :class "${workspace.id == current_workspace ? "red" : "${workspace.windows > 0 ? "text" : "inactive"}"}"
-          (label
-            :class "large"
-            :text "${workspace.id == current_workspace ? " " : " "}"
-          )
+        (literal 
+          :valign "center" 
+          :class "paddingleft paddingright" 
+          :content
+          {
+            workspace.id == current_workspace ? 
+              '(image 
+                :image-height 24
+                :path "./assets/circle_fill.svg" 
+                :fill-svg "#f38ba8")' :
+              workspace.windows > 0 ? 
+                '(image
+                  :image-height 24
+                  :path "./assets/circle_open.svg"
+                  :fill-svg "#cdd6f4")' :
+                '(image 
+                  :image-height 24
+                  :path "./assets/circle_open.svg"
+                  :fill-svg "#45475a")'
+          }
         )
       )
     )

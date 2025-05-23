@@ -1,9 +1,9 @@
 (defwidget powerButton []
- (eventbox 
-   :onclick "eww open --toggle powerPanel" 
-   (label 
-     :text "󰐥" 
-     :class "large marginright"
+  (eventbox 
+    :onclick "eww open --toggle powerPanel" 
+    (image 
+      :image-height 24
+      :path "./assets/power.svg"
     )
   )
 )
@@ -15,41 +15,67 @@
   :wm-ignore true
   :geometry (geometry
               :anchor "top right")
-  (box 
-    :class "window"
-    :space-evenly false
-    :orientation "v"
-    (power)))
-
-(defwidget power []
   (eventbox
     :onhover 'eww update hover_state="powerPanel"'
     :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh powerPanel &'
     (box 
-       :class "btns-box"
-       :halign "center"
-       :space-evenly false
-       (button 
-         :class "power inactive"
-         :tooltip "Shutdown PC"
-         :width 75
-         :height 75
-         :onclick "shutdown -P now" "󰐥")
-       (button 
-         :class "inactive"
-         :tooltip "Restart PC"
-         :width 75 
-         :height 75
-         :onclick "shutdown -r now" "󰜉")
-       (button 
-         :class "inactive"
-         :tooltip "Exit Hyprland"
-         :width 75 
-         :height 75
-         :onclick "eww close-all && hyprctl dispatch exit 1" "󰍃")
-       (button 
-         :class "inactive"
-         :tooltip "Reload hyprland"
-         :width 75
-         :height 75
-         :onclick "hyprctl reload" "󰑓"))))
+      :class "window"
+      :space-evenly false
+      :orientation "v"
+      (power)
+    )
+  )
+)
+
+(defwidget power []
+  (box 
+    :class "btns-box"
+    :halign "center"
+    :space-evenly false
+    (button 
+      :class "power inactive"
+      :tooltip "Shutdown PC"
+      :width 75
+      :height 75
+      :onclick "shutdown -P now"
+      (image 
+        :fill-svg "#f38ba8"
+        :path "./assets/power.svg"
+        :image-height 32
+      )
+    )
+    (button 
+      :class "inactive"
+      :tooltip "Restart PC"
+      :width 75 
+      :height 75
+      :onclick "shutdown -r now"
+      (image 
+        :path "./assets/restart.svg"
+        :image-height 32
+      )
+    )
+    (button 
+      :class "inactive"
+      :tooltip "Exit Hyprland"
+      :width 75 
+      :height 75
+      :onclick "eww close-all && hyprctl dispatch exit 1"
+      (image 
+        :path "./assets/logout.svg"
+        :image-height 32
+      )
+    )
+    (button 
+      :class "inactive"
+      :tooltip "Reload hyprland"
+      :width 75
+      :height 75
+      :onclick "hyprctl reload"
+      (image 
+        :path "./assets/reload.svg"
+        :image-height 32
+      )
+    )
+  )
+)

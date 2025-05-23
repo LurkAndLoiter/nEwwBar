@@ -24,43 +24,44 @@
   (eventbox
     :onhover 'eww update hover_state="micPanel"'
     :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh micPanel &'
-    (box
+    (box 
       :class "window"
-      :space-evenly false 
+      :space-evenly false
       :orientation "v"
-      (microphone))))
+      :spacing 10
+      (microphone)
+    )
+  )
+)
 
 (defwidget microphone []
   (box 
-    :space-evenly false
     :orientation "v"
     :spacing 10
     (for source in audioMonitors
-      (box 
-        ; :class "barspacer"
+      (eventbox
+        ; Do not display Virtual 'Monitors' of sources.
         :visible "${matches(source.name, "^Monitor") ? false : true}"
-        (eventbox
-          :class 'btns-bar${source.state == "suspended" ? " disabled" : " enabled"} ${source.default == true ? " active": ""}'
-          (box :hexpand true :space-evenly false 
-            (image
-              :class "marginleft"
-              :halign "start" 
-              ; :icon "${source.icon}"
-              ; :icon-size "dialog"
-              :path "./assets/icons/devices/${source.icon == "audio-headset-bluetooth" ? "audio-earbuds" : "input-microphone"}.svg"
-              :image-height 42
-            )
-            (label 
-              :class "marginleft marginright"
-              :hexpand true 
-              :xalign 0 
-              :text "${source.name}"
-            )
-            (label 
-              :class 'marginright${source.mute ? " red" : ""}'
-              :xalign 1 
-              :text "${source.mute ? "Muted" : source.volume}"
-            )
+        :class 'btns-bar${source.state == "suspended" ? " disabled" : " enabled"} ${source.default == true ? " active": ""}'
+        (box :hexpand true :space-evenly false 
+          (image
+            :class "marginleft"
+            :halign "start" 
+            ; :icon "${source.icon}"
+            ; :icon-size "dialog"
+            :path "./assets/icons/devices/${source.icon == "audio-headset-bluetooth" ? "audio-earbuds" : "input-microphone"}.svg"
+            :image-height 42
+          )
+          (label 
+            :class "marginleft marginright"
+            :hexpand true 
+            :xalign 0 
+            :text "${source.name}"
+          )
+          (label 
+            :class 'marginright${source.mute ? " red" : ""}'
+            :xalign 1 
+            :text "${source.mute ? "Muted" : source.volume}"
           )
         )
       )

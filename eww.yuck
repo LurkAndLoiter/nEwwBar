@@ -129,15 +129,8 @@
       (box 
         :orientation "v"
         :space-evenly false
-        (box 
-          :valign "start"
-          ; :vexpand true
-          :orientation "v"
-          :space-evenly false
-          (audioDevices)
-          (audioSources)
-          (Spacer)
-        )
+        (audio)
+        (Spacer)
         (box 
           :valign "start"
           :orientation "v"
@@ -163,12 +156,7 @@
             (wifi)
           )
         )
-        (box 
-          :valign "end"
-          :orientation "v"
-          :space-evenly false
-          (power)
-        )
+        (power)
       )
     )
   )

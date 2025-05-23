@@ -28,9 +28,11 @@
   (eventbox
     :onhover 'eww update hover_state="bluetoothPanel"'
     :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh bluetoothPanel &'
-    (box
+    (box 
       :class "window"
       :orientation "v"
+      :space-evenly false
+      :spacing 10
       (bluetooth)
     )
   )
@@ -66,7 +68,6 @@
           :path "./assets/icons/wifi/${adapter.Discovering ? 'scan-large' : 'scan-off'}.gif")
        )
     )
-    ; (label :text "${adapter}")
     (bluetoothDevices)
   )
 )
@@ -80,8 +81,8 @@
       (eventbox 
         ;supress nondescript devices ie <dev> 00:00:00:00 with name 00-00-00-00.
         :visible "${substring(device.id,0,2) != substring(device.Name,0,2) ? true : false}" 
-        :onhover `eww update btHover="${device.id}"`
-        :onhoverlost `eww update btHover=""`
+        :onhover 'eww update btHover="${device.id}"'
+        :onhoverlost 'eww update btHover=""'
         :class "btns-bar${adapter.Powered ? " enabled" : " disabled"}${device.Connected ? " active" : ""}${device.Paired ? "" : " newdevice"}"
         (box
           :space-evenly false
@@ -134,40 +135,42 @@
             (literal ; I know it's ugly but it turns 3 evaluations into 1 so..
               :content 
                 {
-                  device.Paired ? "(eventbox 
-                                      :onclick 'bluetoothctl pairable on && bluetoothctl pair ${device.id} &'
-                                      (label 
-                                        :text 'Pair'
-                                        :class 'green' 
-                                        :tooltip 'paired'
-                                      )
-                                    )" : 
-                                    "(label 
-                                      :text 'Pair'
-                                      :class 'red' 
-                                      :tooltip 'not paired'
-                                    )"
+                  device.Paired ? 
+                    "(eventbox 
+                      :onclick 'bluetoothctl pairable on && bluetoothctl pair ${device.id} &'
+                      (label 
+                        :text 'Pair'
+                        :class 'green' 
+                        :tooltip 'paired'
+                      )
+                    )" :
+                    "(label 
+                      :text 'Pair'
+                      :class 'red' 
+                      :tooltip 'not paired'
+                    )"
                 }
             )
             (literal 
               :content 
                 {
-                  device.Trusted ? "(eventbox
-                                      :onclick 'bluetoothctl untrust ${device.id}' 
-                                      (label 
-                                        :text 'Auto' 
-                                        :class 'green'
-                                        :tooltip 'AutoConnect Enabled'
-                                      )
-                                    )" : 
-                                    "(eventbox 
-                                      :onclick 'bluetoothctl trust ${device.id}' 
-                                      (label 
-                                        :text 'Auto' 
-                                        :class 'red' 
-                                        :tooltip 'AutoConnect Disabled'
-                                      )
-                                    )"
+                  device.Trusted ? 
+                    "(eventbox
+                      :onclick 'bluetoothctl untrust ${device.id}' 
+                      (label 
+                        :text 'Auto' 
+                        :class 'green'
+                        :tooltip 'AutoConnect Enabled'
+                      )
+                    )" : 
+                    "(eventbox 
+                      :onclick 'bluetoothctl trust ${device.id}' 
+                      (label 
+                        :text 'Auto' 
+                        :class 'red' 
+                        :tooltip 'AutoConnect Disabled'
+                      )
+                    )"
                 }
             )
           )
@@ -182,7 +185,7 @@
               :tooltip "Remove Device"
               (label 
                 :class "large marginright marginleft inactive"
-                :text "" 
+                :text "X" 
               )
             )
           )

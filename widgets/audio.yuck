@@ -13,13 +13,6 @@
   `~/.config/eww/bin/mpris_position`
 )
 
-(defwidget forceLoadAudio []
-  (label
-    :visible false
-    :text "${audioPosition}${audioSinks}${audioSources}"
-  )
-)
-
 (defwidget audioButton []
   (eventbox 
     :tooltip 
@@ -29,27 +22,23 @@ Left click open/close panel`
     :onclick "eww open --toggle audioPanel"
     :onrightclick "wpctl set-mute @DEFAULT_SINK@ toggle"
     (literal :halign "center" :valign "center" :content  
-      {"${jq(audioSinks, '.[] | select(.default) | (.mute)') ? audioMuted : audioUnmuted}"
+      {
+        "${jq(audioSinks, '.[] | select(.default) | (.mute)') ? 
+          '(image 
+            :path "./assets/icons/media/volume-mute.svg" 
+            :image-width 24 
+            :fill-svg "#f38ba8"
+          )': 
+          '(image :path "./assets/icons/media/volume-high.svg"
+            :image-width 24
+            :fill-svg "#a6e3a1"
+          )'
+        }"
       }
     )
   )
 )
 
-(defvar audioMuted 
-  '(image 
-    :path "./assets/icons/media/volume-mute.svg" 
-    :image-width 24 
-    :fill-svg "#f38ba8"
-  )' 
-)
-
-(defvar audioUnmuted 
-  '(image :path "./assets/icons/media/volume-high.svg"
-    :class "large"
-    :image-width 24
-    :fill-svg "#a6e3a1"
-  )' 
-)
 
 (defwindow audioPanel
   :monitor 1
@@ -64,21 +53,24 @@ Left click open/close panel`
       :class "window"
       :space-evenly false 
       :orientation "v"
-      (forceLoadAudio)
-      (audioDevices)
-      (audioSources)
+      (audio)
     )
+  )
+)
+
+(defwidget audio []
+  (box 
+    :space-evenly false
+    :orientation "v"
+    :spacing 10
+    (audioDevices)
+    (audioSources)
   )
 )
 
 (defwidget audioDevices []
   (box 
     :space-evenly false
-    (label
-      :text "${audioSinks}"
-      :visible false
-      :show-truncated false
-      :wrap true)
     (for s in audioSinks
       (box
         :hexpand true
@@ -220,8 +212,6 @@ Left click open/close panel`
 (defwidget mediaButtons [CanGoPrevious CanGoNext CanPlay 
                          Playing Name loop shuffle]
   (box 
-    :orientation "h"
-    ; (image :image-height 30 :path "./assets/earbuds.svg")
     (box 
       :halign "start"
       :class "paddingbottom"
@@ -302,9 +292,15 @@ Left click open/close panel`
         (eventbox
           :onclick "pactl move-sink-input ${serial} ${s.sink}"
           :tooltip "${s.name}"
-          :class "${s.sink == sinkID ? "text" : "inactive"}"
-          (label :text "${s.icon == "audio-speakers" ? "󰓃" :
-                          s.icon == "audio-headset-bluetooth" ? "󱡏 " : "?"}"
+          (image 
+            :class "paddingright"
+            :image-height 16 
+            :fill-svg "${s.sink == sinkID ? "#cdd6f4" : "#45475a"}"
+            :path "${s.icon == "audio-speakers" ? 
+              "./assets/icons/media/small-speaker.svg" :
+              s.icon == "audio-headset-bluetooth" ? 
+              "./assets/icons/media/small-earbuds.svg" : 
+              "./assets/icons/missing.svg"}"
           )
         )
       )

@@ -12,34 +12,46 @@
       :valign "center"
       :halign "center"
       :content {
-        wlan-monitor.state == 20 ? "(image  
-                                      :image-width 24 
-                                      :path './assets/icons/wifi/disabled.svg' 
-                                      :fill-svg '#45475a')":
-        wlan-monitor.state == 10 ? "(label :text '' :class 'marginright large red')" :
-        wlan-monitor.state == 60 ? "(label :text '󰤬' :class 'marginright large red')" :
-        wlan-monitor.state != 100 ? "(image 
-                                       :path './assets/icons/wifi/scan-small.gif')" :
-        wlan-monitor.strength > 70 ? "(image 
-                                        :image-width 24 
-                                        :path './assets/icons/wifi/full.svg' 
-                                        :fill-svg '#89b4f1')" :
-        wlan-monitor.strength > 50 ? "(image 
-                                        :image-width 24 
-                                        :path './assets/icons/wifi/high.svg' 
-                                        :fill-svg '#a6e3a1')" :
-        wlan-monitor.strength > 35 ? "(image 
-                                        :image-width 24 
-                                        :path './assets/icons/wifi/mid.svg' 
-                                        :fill-svg '#f9e2af')" : 
-        wlan-monitor.strength > 20 ? "(image 
-                                        :image-width 24 
-                                        :path './assets/icons/wifi/low.svg' 
-                                        :fill-svg '#fab387')" :
-        "(image 
-           :image-width 24 
-           :path './assets/icons/wifi/none.svg' 
-           :fill-svg '#f38ba8')"
+        wlan-monitor.state == 20 ? 
+          "(image  
+            :image-width 24 
+            :path './assets/icons/wifi/disabled.svg' 
+            :fill-svg '#45475a')":
+        wlan-monitor.state == 10 ? 
+          "(label 
+            :text '' 
+            :class 'marginright large red')" :
+        wlan-monitor.state == 60 ? 
+          "(label 
+            :text '󰤬' 
+            :class 'marginright large red')" :
+        wlan-monitor.state != 100 ? 
+          "(image 
+            :path './assets/icons/wifi/scan-small.gif')" :
+        wlan-monitor.strength > 70 ? 
+          "(image 
+            :image-width 24 
+            :path './assets/icons/wifi/full.svg' 
+            :fill-svg '#89b4f1')" :
+        wlan-monitor.strength > 50 ? 
+          "(image 
+            :image-width 24 
+            :path './assets/icons/wifi/high.svg' 
+            :fill-svg '#a6e3a1')" :
+        wlan-monitor.strength > 35 ? 
+          "(image 
+            :image-width 24 
+            :path './assets/icons/wifi/mid.svg' 
+            :fill-svg '#f9e2af')" : 
+        wlan-monitor.strength > 20 ? 
+          "(image 
+            :image-width 24 
+            :path './assets/icons/wifi/low.svg' 
+            :fill-svg '#fab387')" :
+          "(image 
+            :image-width 24 
+            :path './assets/icons/wifi/none.svg' 
+            :fill-svg '#f38ba8')"
       }
     )
   )
@@ -54,10 +66,11 @@
   (eventbox
     :onhover 'eww update hover_state="wifiPanel"'
     :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh wifiPanel &'
-    (box
+    (box 
       :class "window"
-      :space-evenly false 
       :orientation "v"
+      :space-evenly false
+      :spacing 10
       (wifi)
     )
   )
@@ -69,7 +82,8 @@
     :orientation "v"
     :space-evenly false
     :spacing 10
-    (box :space-evenly false
+    (box 
+      :space-evenly false
       (wifiCode)
       (box :class "btns-box"
         (button 
@@ -88,29 +102,36 @@
       (eventbox 
         :hexpand true 
         :class "btns-bar ${w.connected == true ? "active enabled" : "enabled"}"
-        (box :space-evenly false :class "marginleft marginright" :hexpand true
+        (box 
+          :space-evenly false 
+          :class "marginleft marginright" 
+          :hexpand true
           (literal 
             :halign "center"
             :valign "center"
             :content 
             {
-              w.Strength > 70 ? "(image
-                                    :image-width 42
-                                    :path './assets/icons/wifi/full.svg'
-                                    :fill-svg '#89b4f1')" :
-              w.Strength > 50 ? "(image
-                                    :image-width 42
-                                    :path './assets/icons/wifi/high.svg'
-                                    :fill-svg '#a6e3a1')" :
-              w.Strength > 35 ? "(image 
-                                    :image-width 42
-                                    :path './assets/icons/wifi/mid.svg'
-                                    :fill-svg '#f9e2af')" :
-              w.Strength > 20 ? "(image
-                                    :image-width 42
-                                    :path './assets/icons/wifi/low.svg'
-                                    :fill-svg '#fab387')" :
-              "(image 
+              w.Strength > 70 ? 
+                "(image
+                  :image-width 42
+                  :path './assets/icons/wifi/full.svg'
+                  :fill-svg '#89b4f1')" :
+              w.Strength > 50 ? 
+                "(image
+                  :image-width 42
+                  :path './assets/icons/wifi/high.svg'
+                  :fill-svg '#a6e3a1')" :
+              w.Strength > 35 ? 
+                "(image 
+                  :image-width 42
+                  :path './assets/icons/wifi/mid.svg'
+                  :fill-svg '#f9e2af')" :
+              w.Strength > 20 ? 
+                "(image
+                  :image-width 42
+                  :path './assets/icons/wifi/low.svg'
+                  :fill-svg '#fab387')" :
+                "(image 
                   :image-width 42
                   :path './assets/icons/wifi/none.svg'
                   :fill-svg '#f38ba8')"
@@ -126,7 +147,11 @@
                     "2G"
                     }"
           )
-          (label :halign "end" :hexpand true :text "${w.SSID} ")
+          (label 
+            :halign "end" 
+            :hexpand true 
+            :text "${w.SSID} "
+          )
         )
       )
     )

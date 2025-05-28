@@ -119,7 +119,7 @@ static void print_player_list(GList *players, gboolean force_output);
 
 // Convert microseconds to HMS (MM:SS or H:MM:SS), or "live" for specified max
 void to_hms(int64_t us, char *hms, size_t hms_size) {
-    if (us == 9223372036854000000LL) {
+    if (us >= 9223372036854000000LL) { // max int64 9223372036854775807 Firefox truncates to nearest second.
         snprintf(hms, hms_size, "live");
         return;
     }

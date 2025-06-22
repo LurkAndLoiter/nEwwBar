@@ -2,7 +2,7 @@
   :initial '[{"transaction": "","command": "", "packages": [{"name": "","change": "", "version":""}]}]'
   :interval "30s"
 ; You can query today, month, week, year, all (no value defaults to week) 
-  '~/.config/eww/scripts/PacLog.sh today')
+  '~/.config/eww/scripts/PacLog.sh week')
 
 (defwidget pacmanButton []
   (eventbox

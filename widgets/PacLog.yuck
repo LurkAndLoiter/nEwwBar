@@ -40,7 +40,7 @@
               :vexpand true)
   (eventbox 
     :onhover 'eww update hover_state="pacmanPanel"'
-    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh pacmanPanel &'
+    ; :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh pacmanPanel &'
     (box 
       :orientation "v"
       :class "window right"
@@ -89,9 +89,10 @@
                 (label 
                   :text "${pack.name}" 
                   :halign "start"
-                  :class "${pack.change == "upgraded" ? "lavender" :
+                  :class "${pack.installed ? "" : "strikeRed " } 
+                          ${pack.change == "upgraded" ? "lavender" :
                             pack.change == "installed" ? "green" :
-                            "red"}";<- pack.change == "removed"
+                            "red"}"
                 )
                 (label 
                   :text "${pack.version}"

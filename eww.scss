@@ -109,6 +109,10 @@ $highlight: $Red;
   color: $Mauve;
 }
 
+.strikeRed {
+  text-decoration: line-through wavy $Red;
+}
+
 tooltip {
   background: $Mauve;
   color: $Base;

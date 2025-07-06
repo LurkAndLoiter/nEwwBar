@@ -33,6 +33,7 @@ date_simple: date_simple.c
 
 mpris_combined: mpris_combined.c 
 	$(CC) -o ../bin/mpris_combined mpris_combined.c `pkg-config --cflags dbus-1 --libs dbus-1 libpulse`
+
 mpris_fetch: mpris_fetch.c
 	$(CC) -o ../bin/mpris_fetch mpris_fetch.c `pkg-config --cflags json-glib-1.0 --libs glib-2.0 playerctl json-glib-1.0 libpulse libpulse-mainloop-glib` 
 

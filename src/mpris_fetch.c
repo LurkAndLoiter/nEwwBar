@@ -319,6 +319,7 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i, int e
                 media_name ? media_name : "null", i->corked);
 
     // Find matching player
+    // TODO This is not reliable way to match PA to MPRIS need better UUID.
     PlayerData *matched_player = NULL;
     for (GList *iter = *pulse->players; iter; iter = iter->next) {
         PlayerData *player = iter->data;
@@ -335,6 +336,14 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i, int e
             break;
         }
         if (media_name && player->name && strstr(media_name, player->name)) {
+            matched_player = player;
+            break;
+        }
+        if (app_name && player->name && strcasecmp(app_name, "LibreWolf") == 0 && strcasecmp(player->name, "Firefox") == 0) {
+            matched_player = player;
+            break;
+        }
+        if (binary_name && player->name && strcasecmp(binary_name, "librewolf") == 0 && strcasecmp(player->name, "Firefox") == 0) {
             matched_player = player;
             break;
         }

@@ -130,7 +130,7 @@ Left click open/close panel`
         :onhoverlost `eww update playerhov=""`
         (box
           :class "panel"
-          :visible "${p.PlaybackStatus == "Stopped" ? false : true}"
+          :visible "${p.PlaybackStatus == "Stopped" ? false : "${matches(p.title, "^Linux_Tech_Support")}" ? false : true}"
           :space-evenly false
           :orientation "v"
           (label 

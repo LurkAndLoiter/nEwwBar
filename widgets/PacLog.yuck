@@ -96,6 +96,7 @@
                 )
                 (label 
                   :text "${pack.version}"
+                  :class "${pack.installed ? "" : "strikeRed"}"
                   :hexpand true
                   :halign "end"
                   :truncate true

@@ -1,5 +1,5 @@
 (defpoll paclog 
-  :initial '[{"transaction": "","command": "", "packages": [{"name": "","change": "", "version":""}]}]'
+  :initial '[{"transaction": "","command": "", "packages": [{"name": "","change": "", "version":"", "installed": "false"}]}]'
   :interval "30s"
 ; You can query today, month, week, year, all (no value defaults to week) 
   '~/.config/eww/scripts/PacLog.sh week')
@@ -41,10 +41,11 @@
   (eventbox 
     :onhover 'eww update hover_state="pacmanPanel"'
     ; :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh pacmanPanel &'
-    (box 
+    (box
       :orientation "v"
-      :class "window right"
       :space-evenly false
+      :class "window right"
+      ; :timeout "2000ms" ; TODO drawing large json with eww can cause an orphaned window if it times out.
       (image :image-height 90 :path "./assets/pacman-wide.svg")
       (pacmanLog)
     )

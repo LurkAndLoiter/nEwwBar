@@ -62,7 +62,8 @@
         :height 75
         :class "inactive"
         :halign "end"
-        :onclick 'bluetoothctl agent NoInputNoOutput && bluetoothctl discoverable on && ./bin/bluetooth_scanner 15; bluetoothctl discoverable off &'
+        ; :onclick 'bluetoothctl agent NoInputNoOutput && bluetoothctl discoverable on && ./bin/bluetooth_scanner 15; bluetoothctl discoverable off &'
+        :onclick './bin/bluetooth_scanner 25 &'
         (image 
           :image-height 42
           :path "./assets/icons/wifi/${adapter.Discovering ? 'scan-large' : 'scan-off'}.gif")

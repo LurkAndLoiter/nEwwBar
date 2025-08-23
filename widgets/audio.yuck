@@ -133,13 +133,24 @@ Left click open/close panel`
           :visible "${p.PlaybackStatus == "Stopped" ? false : "${matches(p.title, "^Linux_Tech_Support")}" ? false : true}"
           :space-evenly false
           :orientation "v"
-          (label 
-            :class "green"
-            :xalign 0
-            :wrap true
-            :hexpand true
-            :show-truncated false
-            :text "${p.title}"
+          (box
+            :space-evenly false
+            :orientation "h"
+            (label 
+              :class "green"
+              :xalign 0
+              :wrap true
+              :hexpand true
+              :show-truncated false
+              :text "${p.title}"
+            )
+            (eventbox
+              :onclick "dbus-send --print-reply --dest=${p.longName} /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Quit"
+              (label
+                :class "red"
+                :text "X"
+              )
+            )
           )
           (box 
             :space-evenly false

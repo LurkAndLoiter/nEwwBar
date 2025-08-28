@@ -182,9 +182,8 @@ Left click open/close panel`
                 :class "${p.CanSeek == false ? "inactive" : 
                        "${matches(p.title, "Twitch$")}" ? "inactive" : ""}"
                 :max 100 
-                :onchange "playerctl --player=${p.Name} position $((({} * ${round(p.length / 1000000,0)}) / 100))"
-                :value "${round((100 / (p.length)) * (jq(audioPosition, '."${p.longName}"', 'r')),0)}"
-                ; :value "${round((99 / (p.length)) * (p.Position),0)}"
+                :onchange "playerctl --player=${p.Name} position $(({} * ${p.length} / 100000000))"
+                :value "${100 * (jq(audioPosition, '."${p.longName}"', 'r')) / p.length}"
               ) 
               (label
                 :xalign 1 

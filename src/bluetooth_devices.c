@@ -20,15 +20,17 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef DEBUG
-#define DEBUG 0
-#endif
-
 #include <dbus/dbus.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef DEBUG
+#define DEBUG_MSG(fmt, ...) do { printf(fmt "\n", ##__VA_ARGS__); } while (0)
+#else
+#define DEBUG_MSG(fmt, ...) do { } while (0)
+#endif
 
 #define BLUEZ_SERVICE "org.bluez"
 #define BLUEZ_PATH "/org/bluez"
@@ -46,24 +48,6 @@ typedef struct {
   KeyValuePair *properties;
   int prop_count;
 } Device;
-
-static void log_debug(const char *message) {
-#if DEBUG
-  fprintf(stderr, "DEBUG: %s\n", message);
-  fflush(stderr);
-#endif
-}
-
-static void log_error(const char *message, DBusError *err) {
-#if DEBUG
-  if (err && dbus_error_is_set(err)) {
-    fprintf(stderr, "ERROR: %s: %s\n", message, err->message);
-  } else {
-    fprintf(stderr, "ERROR: %s\n", message);
-  }
-  fflush(stderr);
-#endif
-}
 
 static void free_device(Device *device) {
   if (device->path)
@@ -83,21 +67,21 @@ static char *get_property(DBusConnection *conn, const char *path,
   DBusMessage *msg = dbus_message_new_method_call(
       BLUEZ_SERVICE, path, "org.freedesktop.DBus.Properties", "Get");
   if (!msg) {
-    log_error("Failed to create Get message", NULL);
+    DEBUG_MSG("Failed to create Get message");
     return NULL;
   }
 
   if (!dbus_message_append_args(msg, DBUS_TYPE_STRING, &interface,
                                 DBUS_TYPE_STRING, &property,
                                 DBUS_TYPE_INVALID)) {
-    log_error("Failed to append args to Get message", NULL);
+    DEBUG_MSG("Failed to append args to Get message");
     dbus_message_unref(msg);
     return NULL;
   }
 
   DBusPendingCall *pending = NULL;
   if (!dbus_connection_send_with_reply(conn, msg, &pending, -1)) {
-    log_error("Failed to send Get message", NULL);
+    DEBUG_MSG("Failed to send Get message");
     dbus_message_unref(msg);
     return NULL;
   }
@@ -106,7 +90,7 @@ static char *get_property(DBusConnection *conn, const char *path,
   dbus_pending_call_block(pending);
   DBusMessage *reply = dbus_pending_call_steal_reply(pending);
   if (!reply) {
-    log_error("No reply from Properties.Get", NULL);
+    DEBUG_MSG("No reply from Properties.Get");
     dbus_pending_call_unref(pending);
     dbus_message_unref(msg);
     return NULL;
@@ -144,17 +128,16 @@ static char *get_property(DBusConnection *conn, const char *path,
 }
 
 static Device *get_devices(DBusConnection *conn, int *device_count) {
-  log_debug("Getting managed objects");
   DBusMessage *msg = dbus_message_new_method_call(
       BLUEZ_SERVICE, "/", DBUS_INTERFACE, "GetManagedObjects");
   if (!msg) {
-    log_error("Failed to create GetManagedObjects message", NULL);
+    DEBUG_MSG("Failed to create GetManagedObjects message");
     return NULL;
   }
 
   DBusPendingCall *pending = NULL;
   if (!dbus_connection_send_with_reply(conn, msg, &pending, -1)) {
-    log_error("Failed to send GetManagedObjects message", NULL);
+    DEBUG_MSG("Failed to send GetManagedObjects message");
     dbus_message_unref(msg);
     return NULL;
   }
@@ -163,7 +146,7 @@ static Device *get_devices(DBusConnection *conn, int *device_count) {
   dbus_pending_call_block(pending);
   DBusMessage *reply = dbus_pending_call_steal_reply(pending);
   if (!reply) {
-    log_error("No reply from GetManagedObjects", NULL);
+    DEBUG_MSG("No reply from GetManagedObjects");
     dbus_pending_call_unref(pending);
     dbus_message_unref(msg);
     return NULL;
@@ -268,7 +251,7 @@ static void print_devices(Device *devices, int device_count) {
   size_t buffer_size = 1024;  // Initial buffer size
   char *buffer = malloc(buffer_size);
   if (!buffer) {
-    log_error("Failed to allocate buffer for JSON output", NULL);
+    DEBUG_MSG("Failed to allocate buffer for JSON output");
     return;
   }
   size_t offset = 0;
@@ -308,7 +291,7 @@ static void print_devices(Device *devices, int device_count) {
         buffer_size *= 2;
         char *new_buffer = realloc(buffer, buffer_size);
         if (!new_buffer) {
-          log_error("Failed to reallocate buffer for JSON output", NULL);
+          DEBUG_MSG("Failed to reallocate buffer for JSON output");
           free(buffer);
           return;
         }
@@ -332,18 +315,16 @@ static void print_devices(Device *devices, int device_count) {
 }
 
 int main() {
-  log_debug("Starting program");
+  DEBUG_MSG("Debug enabled");
   DBusError err;
   dbus_error_init(&err);
 
-  log_debug("Connecting to system bus");
   DBusConnection *conn = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
   if (!conn) {
-    log_error("Failed to connect to system bus", &err);
+    DEBUG_MSG("Failed to connect to system bus");
     dbus_error_free(&err);
     return 1;
   }
-  log_debug("Connected to system bus");
 
   // Initial device list
   int device_count = 0;
@@ -374,7 +355,7 @@ int main() {
                      "ObjectManager',member='InterfacesRemoved'",
                      &err);
   if (dbus_error_is_set(&err)) {
-    log_error("Failed to add match rules", &err);
+    DEBUG_MSG("Failed to add match rules");
     for (int i = 0; i < device_count; i++)
       free_device(&devices[i]);
     if (devices)
@@ -384,9 +365,7 @@ int main() {
     dbus_error_free(&err);
     return 1;
   }
-  log_debug("Added match rules");
 
-  log_debug("Entering main loop");
   while (dbus_connection_read_write(conn, -1)) {
     DBusMessage *msg;
     while ((msg = dbus_connection_pop_message(conn)) != NULL) {
@@ -396,7 +375,6 @@ int main() {
                                  "InterfacesAdded") ||
           dbus_message_is_signal(msg, "org.freedesktop.DBus.ObjectManager",
                                  "InterfacesRemoved")) {
-        log_debug("Received change signal");
 
         // Free previous devices and refresh the list
         for (int i = 0; i < device_count; i++) {
@@ -432,6 +410,5 @@ int main() {
   dbus_connection_unref(conn);
   dbus_error_free(&err);
 
-  log_debug("Program finished");
   return 0;
 }

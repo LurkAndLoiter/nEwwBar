@@ -26,18 +26,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Define DEBUG mode
-#ifndef DEBUG
-#define DEBUG 0
-#endif
-
-// Debug macros
-#if DEBUG
-#define DEBUG_PRINT(...) g_print(__VA_ARGS__)
-#define DEBUG_ERROR(...) g_printerr(__VA_ARGS__)
+#ifdef DEBUG
+#define DEBUG_MSG(fmt, ...) do { printf(fmt "\n", ##__VA_ARGS__); } while (0)
 #else
-#define DEBUG_PRINT(...)
-#define DEBUG_ERROR(...)
+#define DEBUG_MSG(fmt, ...) do { } while (0)
 #endif
 
 // D-Bus constants
@@ -66,7 +58,7 @@ static void variant_to_json(JsonBuilder *builder, const char *prop_name, GVarian
         json_builder_add_int_value(builder, g_variant_get_int32(value));
     } else {
         json_builder_add_string_value(builder, "unsupported_type");
-        DEBUG_ERROR("Unsupported type for property %s: %s\n", prop_name, g_variant_get_type_string(value));
+        DEBUG_MSG("Unsupported type for property %s: %s\n", prop_name, g_variant_get_type_string(value));
     }
 }
 
@@ -89,7 +81,7 @@ static void create_json_from_properties(GDBusProxy *proxy) {
         );
 
         if (error) {
-            DEBUG_ERROR("Failed to get property %s: %s\n", prop, error->message);
+            DEBUG_MSG("Failed to get property %s: %s\n", prop, error->message);
             g_error_free(error);
             continue;
         }
@@ -185,20 +177,21 @@ static gboolean check_adapter_exists(GDBusConnection *conn, GError **error) {
 }
 
 int main(void) {
+    DEBUG_MSG("DEBUG enabled"); 
     GMainLoop *loop = g_main_loop_new(NULL, FALSE);
     GError *error = NULL;
 
     // Connect to the system bus
     GDBusConnection *conn = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
     if (!conn) {
-        DEBUG_ERROR("Failed to connect to system bus: %s\n", error->message);
+        DEBUG_MSG("Failed to connect to system bus: %s\n", error->message);
         g_error_free(error);
         return 1;
     }
 
     // Check if adapter exists
     if (!check_adapter_exists(conn, &error)) {
-        DEBUG_ERROR("Adapter %s not found: %s\n", ADAPTER_OBJECT_PATH, error ? error->message : "Unknown error");
+        DEBUG_MSG("Adapter %s not found: %s\n", ADAPTER_OBJECT_PATH, error ? error->message : "Unknown error");
         if (error) g_error_free(error);
         g_object_unref(conn);
         return 1;
@@ -217,7 +210,7 @@ int main(void) {
     );
 
     if (!proxy) {
-        DEBUG_ERROR("Failed to create proxy: %s\n", error->message);
+        DEBUG_MSG("Failed to create proxy: %s\n", error->message);
         g_error_free(error);
         g_object_unref(conn);
         return 1;

@@ -27,15 +27,8 @@
 #include <string.h>
 #include <inttypes.h>
 
-// Define DEBUG mode
-#ifndef DEBUG
-#define DEBUG 0
-#endif
-
-// Debug macros
-#if DEBUG
-#define DEBUG_PRINT(...) g_print(__VA_ARGS__)
-#define DEBUG_ERROR(...) g_printerr(__VA_ARGS__)
+#ifdef DEBUG
+#define DEBUG_MSG(fmt, ...) do { printf(fmt "\n", ##__VA_ARGS__); } while (0)
 // Helper function to convert playback status to string
 static const char *playback_status_to_string(PlayerctlPlaybackStatus status) {
     switch (status) {
@@ -46,8 +39,7 @@ static const char *playback_status_to_string(PlayerctlPlaybackStatus status) {
     }
 }
 #else
-#define DEBUG_PRINT(...)
-#define DEBUG_ERROR(...)
+#define DEBUG_MSG(fmt, ...) do { } while (0)
 #endif
 
 // Structure to hold player data
@@ -145,17 +137,17 @@ static void on_playback_status(PlayerctlPlayer *player, PlayerctlPlaybackStatus 
             GError *error = NULL;
             data->last_position = playerctl_player_get_position(data->player, &error);
             if (error != NULL) {
-                DEBUG_ERROR("Failed to get position for %s on status change: %s\n", data->name, error->message);
+                DEBUG_MSG("Failed to get position for %s on status change: %s", data->name, error->message);
                 g_error_free(error);
                 data->last_position = -1;
             }
         }
-        DEBUG_PRINT("Player %s (instance: %s): Playback status changed to %s (position: %ld)\n",
+        DEBUG_MSG("Player %s (instance: %s): Playback status changed to %s (position: %ld)",
                     data->name, data->instance, playback_status_to_string(status), data->last_position);
-        DEBUG_PRINT("Playback status: List pointer %p, length %d\n", *players, g_list_length(*players));
+        DEBUG_MSG("Playback status: List pointer %p, length %d", *players, g_list_length(*players));
         print_player_list(*players);
     } else {
-        DEBUG_PRINT("Playback status: Invalid PlayerData (name: %p, instance: %p)\n",
+        DEBUG_MSG("Playback status: Invalid PlayerData (name: %p, instance: %p)",
                     data ? data->name : NULL, data ? data->instance : NULL);
     }
 }
@@ -170,7 +162,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name, GList **players) {
     data->last_position = -1; // Initialize last position
     data->player = playerctl_player_new_from_name(name, &error);
     if (error != NULL) {
-        DEBUG_ERROR("Failed to create player for %s: %s\n", name->name, error->message);
+        DEBUG_MSG("Failed to create player for %s: %s", name->name, error->message);
         g_error_free(error);
     }
     if (data->player) {
@@ -178,14 +170,14 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name, GList **players) {
         error = NULL;
         data->last_position = playerctl_player_get_position(data->player, &error);
         if (error != NULL) {
-            DEBUG_ERROR("Failed to get initial position for %s: %s\n", name->name, error->message);
+            DEBUG_MSG("Failed to get initial position for %s: %s", name->name, error->message);
             g_error_free(error);
             data->last_position = -1;
         }
         // Connect to playback-status signal
         g_signal_connect(data->player, "playback-status", G_CALLBACK(on_playback_status), players);
     }
-    DEBUG_PRINT("Created PlayerData for %s (instance: %s, player: %p, initial position: %ld)\n", 
+    DEBUG_MSG("Created PlayerData for %s (instance: %s, player: %p, initial position: %ld)", 
                 data->name, data->instance, data->player, data->last_position);
     return data;
 }
@@ -229,16 +221,16 @@ static void on_seeked(PlayerctlPlayer *player, gint64 position, gpointer user_da
         GError *error = NULL;
         data->last_position = playerctl_player_get_position(data->player, &error);
         if (error != NULL) {
-            DEBUG_ERROR("Failed to get position for %s: %s\n", data->name, error->message);
+            DEBUG_MSG("Failed to get position for %s: %s", data->name, error->message);
             g_error_free(error);
             data->last_position = -1;
         }
-        DEBUG_PRINT("Player %s (instance: %s): Seeked to %ld microseconds\n",
+        DEBUG_MSG("Player %s (instance: %s): Seeked to %ld microseconds",
                     data->name, data->instance, data->last_position);
-        DEBUG_PRINT("Seeked: List pointer %p, length %d\n", *players, g_list_length(*players));
+        DEBUG_MSG("Seeked: List pointer %p, length %d", *players, g_list_length(*players));
         print_player_list(*players);
     } else {
-        DEBUG_PRINT("Seeked: Invalid PlayerData (name: %p, instance: %p)\n",
+        DEBUG_MSG("Seeked: Invalid PlayerData (name: %p, instance: %p)",
                     data ? data->name : NULL, data ? data->instance : NULL);
     }
 }
@@ -246,12 +238,12 @@ static void on_seeked(PlayerctlPlayer *player, gint64 position, gpointer user_da
 // Periodic callback to check positions of playing players
 static gboolean check_positions(gpointer user_data) {
     GList **players = user_data;
-    DEBUG_PRINT("Checking positions: List pointer %p, length %d\n", 
+    DEBUG_MSG("Checking positions: List pointer %p, length %d", 
                 *players, g_list_length(*players));
     if (*players == NULL) {
-        DEBUG_PRINT("No players found.\n");
+        DEBUG_MSG("No players found.");
     } else {
-        DEBUG_PRINT("Current players (%d total):\n", g_list_length(*players));
+        DEBUG_MSG("Current players (%d total):", g_list_length(*players));
         int playing_count = 0;
         for (GList *iter = *players; iter != NULL; iter = iter->next) {
             PlayerData *data = iter->data;
@@ -263,7 +255,7 @@ static gboolean check_positions(gpointer user_data) {
                     GError *error = NULL;
                     position = playerctl_player_get_position(data->player, &error);
                     if (error != NULL) {
-                        DEBUG_ERROR("Failed to get position for %s: %s\n", data->name, error->message);
+                        DEBUG_MSG("Failed to get position for %s: %s", data->name, error->message);
                         g_error_free(error);
                         position = -1;
                     }
@@ -271,11 +263,11 @@ static gboolean check_positions(gpointer user_data) {
                     playing_count++;
                 }
             }
-            DEBUG_PRINT("  - %s (instance: %s, source: %d, position: %ld microseconds, status: %s)\n",
+            DEBUG_MSG("  - %s (instance: %s, source: %d, position: %ld microseconds, status: %s)",
                         data->name, data->instance, data->source, position, playback_status_to_string(status));
         }
         if (playing_count == 0) {
-            DEBUG_PRINT("  No players are currently playing.\n");
+            DEBUG_MSG("  No players are currently playing.");
         }
         print_player_list(*players); // Output JSON with updated positions
     }
@@ -284,38 +276,38 @@ static gboolean check_positions(gpointer user_data) {
 
 // Callback for the name-appeared signal
 static void on_name_appeared(PlayerctlPlayerManager *manager, PlayerctlPlayerName *name, GList **players) {
-    DEBUG_PRINT("Received name-appeared for %s (instance: %s)\n", name->name, name->instance);
+    DEBUG_MSG("Received name-appeared for %s (instance: %s)", name->name, name->instance);
     // Check if player already exists to avoid duplicates
     if (find_player_by_instance(*players, name->instance) == NULL) {
         PlayerData *data = player_data_new(name, players);
         *players = g_list_append(*players, data);
-        DEBUG_PRINT("Player appeared: %s (instance: %s, source: %d)\n",
+        DEBUG_MSG("Player appeared: %s (instance: %s, source: %d)",
                     name->name, name->instance, name->source);
         // Connect to seeked signal if player was created
         if (data->player) {
             g_signal_connect(data->player, "seeked", G_CALLBACK(on_seeked), players);
         }
-        DEBUG_PRINT("List after adding %s:\n", name->instance);
+        DEBUG_MSG("List after adding %s:", name->instance);
         print_player_list(*players);
     } else {
-        DEBUG_PRINT("Player %s (instance: %s) already exists, skipping\n", name->name, name->instance);
+        DEBUG_MSG("Player %s (instance: %s) already exists, skipping", name->name, name->instance);
     }
 }
 
 // Callback for the name-vanished signal
 static void on_name_vanished(PlayerctlPlayerManager *manager, PlayerctlPlayerName *name, GList **players) {
-    DEBUG_PRINT("Received name-vanished for %s (instance: %s)\n", name->name, name->instance);
+    DEBUG_MSG("Received name-vanished for %s (instance: %s)", name->name, name->instance);
     GList *node = find_player_by_instance(*players, name->instance);
     if (node != NULL) {
         PlayerData *data = node->data;
         *players = g_list_delete_link(*players, node);
-        DEBUG_PRINT("Player vanished: %s (instance: %s, source: %d)\n",
+        DEBUG_MSG("Player vanished: %s (instance: %s, source: %d)",
                     name->name, name->instance, name->source);
-        DEBUG_PRINT("List after removing %s:\n", name->instance);
+        DEBUG_MSG("List after removing %s:", name->instance);
         print_player_list(*players);
         player_data_free(data);
     } else {
-        DEBUG_PRINT("Player %s (instance: %s) not found in list\n", name->name, name->instance);
+        DEBUG_MSG("Player %s (instance: %s) not found in list", name->name, name->instance);
     }
 }
 
@@ -325,7 +317,7 @@ int main(int argc, char *argv[]) {
     // Create a new PlayerctlPlayerManager
     PlayerctlPlayerManager *manager = playerctl_player_manager_new(&error);
     if (error != NULL) {
-        DEBUG_ERROR("Failed to create player manager: %s\n", error->message);
+        DEBUG_MSG("Failed to create player manager: %s", error->message);
         g_error_free(error);
         return 1;
     }
@@ -334,10 +326,10 @@ int main(int argc, char *argv[]) {
     GList *players = NULL;
     GList *current_players = playerctl_list_players(&error);
     if (error != NULL) {
-        DEBUG_ERROR("Failed to list initial players: %s\n", error->message);
+        DEBUG_MSG("Failed to list initial players: %s", error->message);
         g_error_free(error);
     } else {
-        DEBUG_PRINT("Found %d initial players\n", g_list_length(current_players));
+        DEBUG_MSG("Found %d initial players", g_list_length(current_players));
         for (GList *iter = current_players; iter != NULL; iter = iter->next) {
             PlayerctlPlayerName *name = iter->data;
             PlayerData *data = player_data_new(name, &players);
@@ -351,7 +343,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Print initial player list
-    DEBUG_PRINT("Initial player list:\n");
+    DEBUG_MSG("Initial player list:");
     print_player_list(players);
 
     // Connect to the name-appeared signal
@@ -364,7 +356,7 @@ int main(int argc, char *argv[]) {
     g_timeout_add_seconds(1, check_positions, &players);
 
     // Create and run the GLib main loop
-    DEBUG_PRINT("Listening for player events...\n");
+    DEBUG_MSG("Listening for player events...");
     GMainLoop *loop = g_main_loop_new(NULL, FALSE);
     g_main_loop_run(loop);
 

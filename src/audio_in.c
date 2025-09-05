@@ -28,14 +28,14 @@
 
 // Structure to hold source information
 typedef struct {
-  uint32_t index;  // PulseAudio index
+  uint32_t index;
   char *name;
   char *description;
   char *icon;
   bool muted;
-  int volume;  // 0-100 range
+  int volume;
   bool is_default;
-  pa_source_state_t state;  // Add source state
+  pa_source_state_t state;
 } AudioSource;
 
 // Context for storing state
@@ -56,7 +56,6 @@ void source_info_cb(pa_context *c, const pa_source_info *i, int eol,
   AppContext *app = (AppContext *)userdata;
   if (eol) {
     print_sources(app);
-    // Reset the source list after printing
     for (size_t j = 0; j < app->source_count; j++) {
       free(app->sources[j].name);
       free(app->sources[j].description);
@@ -80,10 +79,10 @@ void source_info_cb(pa_context *c, const pa_source_info *i, int eol,
                          : "audio-input-microphone");
   src->muted = i->mute;
   src->volume = (int)((pa_cvolume_avg(&i->volume) * 100) /
-                      PA_VOLUME_NORM);  // Convert to 0-100
+                      PA_VOLUME_NORM);
   src->is_default =
       app->default_source && strcmp(i->name, app->default_source) == 0;
-  src->state = i->state;  // Store the state
+  src->state = i->state;
 }
 
 // Server info callback for default source
@@ -137,7 +136,7 @@ void print_sources(AppContext *app) {
            src->index, src->muted ? "true" : "false", src->volume,
            src->is_default ? "true" : "false", src->name, src->description,
            src->icon,
-           state_to_string(src->state));  // Add state to JSON
+           state_to_string(src->state));
   }
   printf("]\n");
   fflush(stdout);

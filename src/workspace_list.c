@@ -31,9 +31,12 @@
 #define MAX_WORKSPACES 6
 #define BUFFER_SIZE 1024
 
-#ifndef DEBUG
-#define DEBUG 0
+#ifdef DEBUG
+#define DEBUG_MSG(fmt, ...) do { printf(fmt "\n", ##__VA_ARGS__); } while (0)
+#else
+#define DEBUG_MSG(fmt, ...) do { } while (0)
 #endif
+
 
 // Global variable to store last output
 static char *last_output = NULL;
@@ -43,9 +46,7 @@ void print_workspaces() {
   // Execute hyprctl command and capture output
   FILE *fp = popen("hyprctl workspaces -j", "r");
   if (!fp) {
-    if (DEBUG) {
-      perror("popen failed");
-    }
+    DEBUG_MSG("popen failed");
     return;
   }
 
@@ -65,18 +66,14 @@ void print_workspaces() {
   pclose(fp);
 
   if (!json_str) {
-    if (DEBUG) {
-      printf("Failed to read hyprctl output\n");
-    }
+    DEBUG_MSG("Failed to read hyprctl output");
     return;
   }
 
   // Parse JSON
   json_object *root = json_tokener_parse(json_str);
   if (!root) {
-    if (DEBUG) {
-      printf("Failed to parse JSON\n");
-    }
+    DEBUG_MSG("Failed to parse JSON");
     free(json_str);
     return;
   }
@@ -129,13 +126,12 @@ void print_workspaces() {
 }
 
 int main() {
+  DEBUG_MSG("DEBUG enabled.");
   // Get required environment variables
   char *xdg_runtime = getenv("XDG_RUNTIME_DIR");
   char *hyprland_instance = getenv("HYPRLAND_INSTANCE_SIGNATURE");
   if (!xdg_runtime || !hyprland_instance) {
-    if (DEBUG) {
-      fprintf(stderr, "Required environment variables not set\n");
-    }
+    DEBUG_MSG("Required environment variables not set");
     return 1;
   }
 
@@ -147,9 +143,7 @@ int main() {
   // Create UNIX socket
   int sock = socket(AF_UNIX, SOCK_STREAM, 0);
   if (sock < 0) {
-    if (DEBUG) {
-      perror("socket creation failed");
-    }
+    DEBUG_MSG("socket creation failed");
     return 1;
   }
 
@@ -160,9 +154,7 @@ int main() {
 
   // Connect to socket
   if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    if (DEBUG) {
-      perror("socket connect failed");
-    }
+    DEBUG_MSG("socket connect failed");
     close(sock);
     return 1;
   }
@@ -176,13 +168,9 @@ int main() {
     ssize_t bytes = read(sock, buffer, BUFFER_SIZE - 1);
     if (bytes <= 0) {
       if (bytes == 0) {
-        if (DEBUG) {
-          printf("Socket closed\n");
-        }
+        DEBUG_MSG("Socket closed");
       } else {
-        if (DEBUG) {
-          perror("socket read failed");
-        }
+        DEBUG_MSG("socket read failed");
       }
       break;
     }

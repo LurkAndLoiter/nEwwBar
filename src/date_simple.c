@@ -27,8 +27,10 @@
 
 #define JSON_STR_LEN 128 // 83 bytes; set to 128 as buffer safety
 
-#ifndef DEBUG
-#define DEBUG 0
+#ifdef DEBUG
+#define DEBUG_MSG(fmt, ...) do { printf(fmt "\n", ##__VA_ARGS__); } while (0)
+#else
+#define DEBUG_MSG(fmt, ...) do { } while (0)
 #endif
 
 static const char *days_of_week[] = {"Sunday",    "Monday",   "Tuesday",
@@ -38,42 +40,35 @@ static const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 int main(void) {
-  struct tm prev_time = {0}; // Initialize to zero for first comparison
+  DEBUG_MSG("DEBUG enabled.");
+  struct tm prev_time = {0};
 
   while (1) {
     time_t rawtime;
     if (time(&rawtime) == (time_t)-1) {
-      if (DEBUG) {
-        fprintf(stderr, "ERROR: Failed to get system time\n");
-      }
-      sleep(1); // Brief sleep to avoid busy loop on error
+      DEBUG_MSG("ERROR: Failed to get system time");
+      sleep(1);
       continue;
     }
 
     struct tm *local_time = localtime(&rawtime);
     if (local_time == NULL) {
-      if (DEBUG) {
-        fprintf(stderr, "ERROR: Failed to convert to local time\n");
-      }
+      DEBUG_MSG("ERROR: Failed to convert to local time");
       sleep(1);
       continue;
     }
 
-    struct tm curr_time = *local_time; // Copy to avoid static buffer issues
+    struct tm curr_time = *local_time;
 
     // Calculate sleep time to next minute boundary
     int sleep_seconds = 60 - curr_time.tm_sec;
     if (sleep_seconds <= 0) {
-      sleep_seconds = 1; // Handle edge cases (e.g., leap seconds)
-    }
-
-    if (DEBUG) {
-      fprintf(stderr, "DEBUG: Sleeping for %d seconds\n", sleep_seconds);
+      sleep_seconds = 1;
     }
 
     // Output JSON if time has changed (or on first valid iteration)
-    if (curr_time.tm_min != prev_time.tm_min || // Optimized placement
-        prev_time.tm_year == 0 || // (uninitialized prev_time)
+    if (curr_time.tm_min != prev_time.tm_min || 
+        prev_time.tm_year == 0 ||
         curr_time.tm_hour != prev_time.tm_hour ||
         curr_time.tm_mday != prev_time.tm_mday ||
         curr_time.tm_mon != prev_time.tm_mon ||
@@ -94,21 +89,20 @@ int main(void) {
                    curr_time.tm_hour, curr_time.tm_min);
 
       if (result < 0 || result >= (int)sizeof(json_str)) {
-        if (DEBUG) {
-          fprintf(stderr, "ERROR: Failed to create JSON string\n");
-        }
+        DEBUG_MSG("ERROR: Failed to create JSON string");
         sleep(1);
         continue;
       }
 
       printf("%s", json_str);
       fflush(stdout);
-      prev_time = curr_time; // Update previous time
+      prev_time = curr_time;
     }
 
     // Sleep until the next minute boundary
+    DEBUG_MSG("DEBUG: Sleeping for %d seconds", sleep_seconds);
     sleep(sleep_seconds);
   }
 
-  return EXIT_SUCCESS; // Unreachable, but included for completeness
+  return EXIT_SUCCESS;
 }

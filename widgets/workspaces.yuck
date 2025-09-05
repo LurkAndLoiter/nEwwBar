@@ -1,3 +1,4 @@
+;; -*- mode: lisp -*-
 (deflisten workspaces :initial '[{"id": 1, "windows": 0}]'
   "~/.config/eww/bin/workspace_list")
 

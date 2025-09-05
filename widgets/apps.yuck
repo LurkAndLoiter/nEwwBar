@@ -1,3 +1,4 @@
+;; -*- mode: lisp -*-
 (defpoll listOfApplications 
   :interval "10s" 
   :initial '[{"Name": "Application", "Exec": "echo hello", "Tooltip": "prints hello", "Icon": "world"}]'

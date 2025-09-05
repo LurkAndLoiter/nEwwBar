@@ -1,3 +1,4 @@
+;; -*- mode: lisp -*-
 (deflisten audioSources 
   :initial '[{"longName": "UUID","Name": "firefox","CanControl": false,"CanGoNext": false,"CanGoPrevious": false,"CanPause": false,"CanPlay": false,"CanSeek": false,"PlaybackStatus": "Playing","shuffle": false, "loop": "disabled", "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","sinkID": "UUIDpointer","id": "117","serial": "3736","volume": 100,"mute": false}]'
   `~/.config/eww/bin/mpris_fetch`

@@ -1,3 +1,4 @@
+;; -*- mode: lisp -*-
 (deflisten wifiScan :initial '[{"SSID": "Catalyst", "Frequency": 5180, "Strength": 63, "connected": true}]'
   `~/.config/eww/bin/wlan_scan`)
 

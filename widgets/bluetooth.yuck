@@ -1,3 +1,4 @@
+;; -*- mode: lisp -*-
 (deflisten devices :initial '[{"id": "UUID","Name": "Name","Icon": "audio-headset","Connected": false,"Paired": false,"Trusted": false,"Battery": "999"}]'
   `~/.config/eww/bin/bluetooth_devices 2> /dev/null`
 )

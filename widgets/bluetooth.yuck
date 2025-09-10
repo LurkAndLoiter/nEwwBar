@@ -8,6 +8,9 @@
   `~/.config/eww/bin/bluetooth_adapter`
 )
 
+
+(defvar btHover "")
+
 (defwidget bluetoothButton []
   (eventbox 
     :onclick `eww open --toggle bluetoothPanel`
@@ -181,7 +184,7 @@
             :reveal "${btHover == device.id ? true : false}"
             :duration "1000ms"
             (eventbox 
-              :visible  "${btHover == device.id ? "${adapter.Powered ? "${device.Trusted ? true : "${device.Paired ? true : false }"}" : false }" : false}"
+              :visible  "${adapter.Powered ? "${device.Trusted ? true : "${device.Paired ? true : false }"}" : false }"
               :class "redBox"
               :onclick `bluetoothctl remove ${device.id}`
               :tooltip "Remove Device"
@@ -197,5 +200,3 @@
   )
 )
 
-
-(defvar btHover "")

@@ -9,8 +9,8 @@
   `~/.config/eww/bin/audio_out`
 ) 
 
-(deflisten audioPosition 
-  :initial '{"UUID": 1000000, "UUIDHMS": "1:30"}'
+(deflisten audioPosition ; Seperated from audioSources to limit the GTK redraw 
+  :initial '{"UUID": 90, "UUIDHMS": "1:30"}'
   `~/.config/eww/bin/mpris_position`
 )
 
@@ -187,8 +187,12 @@ Left click open/close panel`
               (scale
                 :class "${p.CanSeek == false ? "inactive" : 
                        "${matches(p.title, "Twitch$")}" ? "inactive" : ""}"
+                ; Slow GTK draw if length is large. Compress to max length 100.
+                ; :max "${p.length}"
+                ; :onchange "playerctl --player=${p.Name} position {}"
+                ; :value "${jq(audioPosition, '."${p.longName}"', 'r')}"
                 :max 101 
-                :onchange "playerctl --player=${p.Name} position $(({} * ${p.length} / 100000000))"
+                :onchange "playerctl --player=${p.Name} position $(({} * ${p.length} / 100))"
                 :value "${100 * jq(audioPosition, '."${p.longName}"', 'r') / p.length}"
               ) 
               (label

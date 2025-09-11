@@ -649,7 +649,7 @@ static void print_player_list(GList *players, gboolean force_output) {
         json_builder_add_string_value(builder, data->url ? data->url : "");
 
         json_builder_set_member_name(builder, "length");
-        json_builder_add_int_value(builder, data->length);
+        json_builder_add_int_value(builder, data->length / 1000000);
 
         json_builder_set_member_name(builder, "lengthHMS");
         char hms[32];

@@ -83,7 +83,7 @@ static void print_player_list(GList *players) {
         // Add microsecond position
         gchar *key = g_strdup_printf("org.mpris.MediaPlayer2.%s", data->instance);
         json_builder_set_member_name(builder, key);
-        json_builder_add_int_value(builder, data->last_position);
+        json_builder_add_int_value(builder, data->last_position / 1000000);
         g_free(key);
 
         // Add HMS position

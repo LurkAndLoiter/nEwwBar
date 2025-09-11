@@ -15,7 +15,7 @@
 )
 
 (defvar playerVolumeIsHovered false)
-(defvar scale_exp "start")
+(defvar playerVolumeHoverAligner "start")
 (defvar hoveredPlayer "")
 
 (defwidget audioButton []
@@ -303,7 +303,7 @@ Left click open/close panel`
                          playerIsHovered]
   (box
     :hexpand true
-    :halign scale_exp
+    :halign playerVolumeHoverAligner
     :space-evenly false
     :visible "${wireplumberID == "" ? false : true}"
     (box 
@@ -328,8 +328,8 @@ Left click open/close panel`
       )
     )
     (eventbox
-      :onhover 'eww update playerVolumeIsHovered=true && eww update scale_exp="fill"'
-      :onhoverlost 'eww update playerVolumeIsHovered=false && eww update scale_exp="start"'
+      :onhover 'eww update playerVolumeIsHovered=true && eww update playerVolumeHoverAligner="fill"'
+      :onhoverlost 'eww update playerVolumeIsHovered=false && eww update playerVolumeHoverAligner="start"'
       (box
         :space-evenly false
         (eventbox

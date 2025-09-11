@@ -15,7 +15,6 @@
 )
 
 (defvar playerVolumeIsHovered false)
-(defvar playerVolumeHoverAligner "start")
 (defvar hoveredPlayer "")
 
 (defwidget audioButton []
@@ -53,7 +52,7 @@ Left click open/close panel`
               :anchor "top right")
   (eventbox
     :onhover 'eww update hover_state="audioPanel"'
-    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh audioPanel &'
+    :onhoverlost './scripts/check_hover.sh audioPanel &'
     (box
       :class "window"
       :space-evenly false 
@@ -135,7 +134,7 @@ Left click open/close panel`
         :onhoverlost `eww update hoveredPlayer""`
         (box
           :class "panel"
-          :visible "${p.PlaybackStatus == "Stopped" ? false : "${matches(p.title, "^Linux_Tech_Support")}" ? false : true}"
+          :visible "${p.PlaybackStatus == "Stopped" ? false : true}"
           :space-evenly false
           :orientation "v"
           (box
@@ -303,7 +302,7 @@ Left click open/close panel`
                          playerIsHovered]
   (box
     :hexpand true
-    :halign playerVolumeHoverAligner
+    :halign "${playerVolumeIsHovered ? "fill" : "start"}"
     :space-evenly false
     :visible "${wireplumberID == "" ? false : true}"
     (box 
@@ -328,8 +327,8 @@ Left click open/close panel`
       )
     )
     (eventbox
-      :onhover 'eww update playerVolumeIsHovered=true && eww update playerVolumeHoverAligner="fill"'
-      :onhoverlost 'eww update playerVolumeIsHovered=false && eww update playerVolumeHoverAligner="start"'
+      :onhover 'eww update playerVolumeIsHovered=true'
+      :onhoverlost 'eww update playerVolumeIsHovered=false'
       (box
         :space-evenly false
         (eventbox

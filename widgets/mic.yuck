@@ -24,7 +24,7 @@
               :anchor "top right")
   (eventbox
     :onhover 'eww update hover_state="micPanel"'
-    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh micPanel &'
+    :onhoverlost './scripts/check_hover.sh micPanel &'
     (box 
       :class "window"
       :space-evenly false

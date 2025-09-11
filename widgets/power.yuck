@@ -18,7 +18,7 @@
               :anchor "top right")
   (eventbox
     :onhover 'eww update hover_state="powerPanel"'
-    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh powerPanel &'
+    :onhoverlost './scripts/check_hover.sh powerPanel &'
     (box 
       :class "window"
       :space-evenly false

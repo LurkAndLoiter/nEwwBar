@@ -31,7 +31,7 @@
               :anchor "top right")
   (eventbox
     :onhover 'eww update hover_state="bluetoothPanel"'
-    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh bluetoothPanel &'
+    :onhoverlost './scripts/check_hover.sh bluetoothPanel &'
     (box 
       :class "window"
       :orientation "v"

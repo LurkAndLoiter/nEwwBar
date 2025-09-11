@@ -41,7 +41,7 @@
               :vexpand true)
   (eventbox 
     :onhover 'eww update hover_state="pacmanPanel"'
-    ; :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh pacmanPanel &'
+    ; :onhoverlost './scripts/check_hover.sh pacmanPanel &'
     (box
       :orientation "v"
       :space-evenly false

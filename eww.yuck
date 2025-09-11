@@ -11,6 +11,11 @@
 (deflisten Date :initial "{}"
   `~/.config/eww/bin/date_simple`)
 
+(defvar networkIndex 0)
+(defvar hover_state "")
+
+(defwidget Spacer [] (box :halign "fill" :class "spacerbar"))
+
 (defwidget dateStyled []
   (box :class "large" :space-evenly false 
     (label :class "bold" :text "${Date.H}:${Date.M}")
@@ -102,7 +107,7 @@
               :vexpand true)
   (eventbox 
     :onhover 'eww update hover_state="leftPanel"'
-    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh leftPanel &'
+    :onhoverlost './scripts/check_hover.sh leftPanel &'
     (box 
       :class "window left"
       (box 
@@ -125,7 +130,7 @@
               :vexpand true)
   (eventbox 
     :onhover 'eww update hover_state="rightPanel"'
-    :onhoverlost 'eww update hover_state="" && ./scripts/check_hover.sh rightPanel &'
+    :onhoverlost './scripts/check_hover.sh rightPanel &'
     (box :class "window right"
       (box 
         :orientation "v"
@@ -163,8 +168,3 @@
   )
 )
 
-(defvar networkIndex 0)
-
-(defwidget Spacer [] (box :halign "fill" :class "spacerbar"))
-
-(defvar hover_state "")

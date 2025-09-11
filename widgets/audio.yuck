@@ -14,6 +14,10 @@
   `~/.config/eww/bin/mpris_position`
 )
 
+(defvar playerVolumeIsHovered false)
+(defvar scale_exp "start")
+(defvar hoveredPlayer "")
+
 (defwidget audioButton []
   (eventbox 
     :tooltip 
@@ -127,8 +131,8 @@ Left click open/close panel`
     :space-evenly false
     (for p in audioSources
       (eventbox
-        :onhover `eww update playerhov="${p.Name}"`
-        :onhoverlost `eww update playerhov=""`
+        :onhover `eww update hoveredPlayer="${p.Name}"`
+        :onhoverlost `eww update hoveredPlayer""`
         (box
           :class "panel"
           :visible "${p.PlaybackStatus == "Stopped" ? false : "${matches(p.title, "^Linux_Tech_Support")}" ? false : true}"
@@ -145,6 +149,8 @@ Left click open/close panel`
               :show-truncated false
               :text "${p.title}"
             )
+           ; TODO add a call to CanQuit to determine if the player is exitable from playerctl
+           ; Rough in just to include the option to quit from panel some players will not work
             (eventbox
               :onclick "dbus-send --print-reply --dest=${p.longName} /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Quit"
               (label
@@ -182,9 +188,9 @@ Left click open/close panel`
               (scale
                 :class "${p.CanSeek == false ? "inactive" : 
                        "${matches(p.title, "Twitch$")}" ? "inactive" : ""}"
-                :max 100 
+                :max 101 
                 :onchange "playerctl --player=${p.Name} position $(({} * ${p.length} / 100000000))"
-                :value "${100 * (jq(audioPosition, '."${p.longName}"', 'r')) / p.length}"
+                :value "${100 * jq(audioPosition, '."${p.longName}"', 'r') / p.length}"
               ) 
               (label
                 :xalign 1 
@@ -200,12 +206,12 @@ Left click open/close panel`
             :space-evenly false
             :class "smallish green"
             (playerVolume
-              :pvol "${p.volume}"
-              :pmute "${p.mute}"
-              :targetID "${p.id}"
+              :playerVolume "${p.volume}"
+              :playerIsMute "${p.mute}"
+              :wireplumberID "${p.id}"
               :sinkID "${p.sinkID}"
-              :serial "${p.serial}"
-              :switch "${p.Name}")
+              :pulseAudioID "${p.serial}"
+              :playerIsHovered "${p.Name == hoveredPlayer ? true : false}")
             (label 
               :class "subtext"
               :hexpand "${p.id == "" ? true : false}"
@@ -289,19 +295,24 @@ Left click open/close panel`
   )
 )
 
-(defwidget playerVolume [pvol pmute targetID sinkID serial switch]
+(defwidget playerVolume [playerVolume 
+                         playerIsMute 
+                         wireplumberID 
+                         sinkID 
+                         pulseAudioID 
+                         playerIsHovered]
   (box
     :hexpand true
     :halign scale_exp
     :space-evenly false
-    :visible "${targetID == "" ? false : true}"
+    :visible "${wireplumberID == "" ? false : true}"
     (box 
       :halign "start" 
       :valign "center" 
       :visible "${arraylength(audioSinks) > 1 ? true : false}"
       (for s in audioSinks
         (eventbox
-          :onclick "pactl move-sink-input ${serial} ${s.sink}"
+          :onclick "pactl move-sink-input ${pulseAudioID} ${s.sink}"
           :tooltip "${s.name}"
           (image 
             :class "paddingright"
@@ -317,36 +328,36 @@ Left click open/close panel`
       )
     )
     (eventbox
-      :onhover 'eww update playerVol=true && eww update scale_exp="fill"'
-      :onhoverlost 'eww update playerVol=false && eww update scale_exp="start"'
+      :onhover 'eww update playerVolumeIsHovered=true && eww update scale_exp="fill"'
+      :onhoverlost 'eww update playerVolumeIsHovered=false && eww update scale_exp="start"'
       (box
         :space-evenly false
         (eventbox
-          :onclick 'wpctl set-mute ${targetID} toggle'
+          :onclick 'wpctl set-mute ${wireplumberID} toggle'
           (box :space-evenly false :valign "center"
             (image 
               :class "paddingleft paddingright" 
               :image-height 16 
               :valign "center"
               :halign "center"
-              :path "./assets/icons/media/volume-${pmute ? "mute" : "high"}.svg"
-              :fill-svg "${pmute ? "#f38ba8" : "#a6e3a1"}"
+              :path "./assets/icons/media/volume-${playerIsMute ? "mute" : "high"}.svg"
+              :fill-svg "${playerIsMute ? "#f38ba8" : "#a6e3a1"}"
             )
             (label 
-              :class "${pmute ? "red" : ""}"
-              :text pvol
+              :class "${playerIsMute ? "red" : ""}"
+              :text playerVolume
             )
           )
         )
         (revealer
           :transition "slideleft"
-          :reveal "${playerVol ? "${playerhov == switch ? true : false}": false}"
+          :reveal "${playerVolumeIsHovered ? playerIsHovered : false}"
           :duration "1000ms"
           (scale
             :class "low-vis marginright marginleft margintop"
             :width 150
-            :value pvol
-            :onchange "./scripts/set-volume ${targetID} {}"
+            :value playerVolume
+            :onchange "./scripts/set-volume ${wireplumberID} {}"
             :max 101
             :min 0
           )
@@ -356,6 +367,3 @@ Left click open/close panel`
   )
 )
 
-(defvar playerVol false)
-(defvar scale_exp "start")
-(defvar playerhov "")

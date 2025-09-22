@@ -41,18 +41,15 @@ mpris_position: mpris_position.c
 	$(CC) -o ../bin/mpris_position mpris_position.c `pkg-config --cflags json-glib-1.0 --libs playerctl` 
 
 wlan_monitor: wlan_monitor.c 
-	# dependency for compiling 'gio' packaged in 'glib2'
 	$(CC) -o ../bin/wlan_monitor wlan_monitor.c `pkg-config --cflags --libs gio-2.0`
 
 wlan_scan: wlan_scan.c 
 	$(CC) -o ../bin/wlan_scan wlan_scan.c `pkg-config --cflags --libs dbus-1`
 
 workspace_focus: workspace_focus.c 
-	# dependency for compilation 'json-c'
 	$(CC) -o ../bin/workspace_focus workspace_focus.c `pkg-config --libs json-c`
 
 workspace_list: workspace_list.c
-	#dependency for compilation 'json-c'
 	$(CC) -o ../bin/workspace_list workspace_list.c `pkg-config --libs json-c`
 
 clean:

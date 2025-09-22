@@ -97,7 +97,7 @@ Left click open/close panel`
           :space-evenly false
           :valign "end"
           (box :space-evenly false
-            (label :class "inactive" :text "${s.volume}")
+            (label :class "green" :text "${s.volume}")
             (scale
               :hexpand true
               :class "low-vis marginleft margintop"

@@ -22,6 +22,7 @@
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,10 +50,12 @@ static void initialRun(void) {
     DEBUG_MSG("popen failed");
     return;
   }
-  char line[4]; // more than 99 windows or workspaces?
-  int id = atoi(fgets(line, 2, fp));
+  char line[16];
+  if (fgets(line, sizeof(line), fp)) {
+    int id = atoi(line);
+    printf("%i\n",id);
+  }
   pclose(fp);
-  printf("%i\n",id);
 }
 
 int main() {
@@ -79,7 +82,8 @@ int main() {
   addr.sun_family = AF_UNIX;
   strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
 
-  if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+  size_t addr_len = offsetof(struct sockaddr_un, sun_path) + strlen(addr.sun_path) + 1;
+  if (connect(sock, (struct sockaddr *)&addr, addr_len) < 0) {
     DEBUG_MSG("socket connect failed");
     close(sock);
     return 1;
@@ -114,7 +118,10 @@ int main() {
         }
       }
       if (last_digits) {
-        printf("%s",last_digits);
+        char *end = last_digits;
+        while (isdigit(*end)) end++;
+        fwrite(last_digits, 1, end - last_digits, stdout);
+        fputc('\n', stdout);
         fflush(stdout);
       } else {
         DEBUG_MSG("No digits found\n");

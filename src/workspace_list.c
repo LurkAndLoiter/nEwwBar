@@ -52,8 +52,8 @@ Workspace workspaces[MAX_WORKSPACES] = {0};
 
 void print_json() {
   printf("[");
-  for (int i = 1; i <= MAX_WORKSPACES; i++) {
-    if (i != 1) printf(",");
+  for (int i = 0; i < MAX_WORKSPACES; i++) {
+    if (i) printf(",");
     printf("{\"WorkspaceID\": %i,", workspaces[i].WorkspaceID);
     printf("\"hasWindows\": %s", (workspaces[i].hasWindows ? "true" : "false"));
     printf("}");
@@ -70,29 +70,31 @@ static void update_workspaces(void) {
     return;
   }
 
-  for (int i = 1; i <= MAX_WORKSPACES; i++){
+  for (int i = 0; i < MAX_WORKSPACES; i++){
     workspaces[i].prevhasWindows = workspaces[i].hasWindows;
     workspaces[i].hasWindows = false;
   }
 
-  char line[8]; // more than 99 windows or workspaces?
+  char line[16];
   int id;
-  while (fgets(line, 8, fp)) {
+  while (fgets(line, 16, fp)) {
     id = atoi(line);
     DEBUG_MSG("%s:%i\n", line, id);
-    if (fgets(line, 8, fp)) {
+    if (fgets(line, 16, fp)) {
       int windows = atoi(line);
       DEBUG_MSG("%s:%i\n", line, windows);
-      workspaces[id].hasWindows = (windows > 0);
+      if (id >= 1 && id <= MAX_WORKSPACES) {
+        workspaces[id - 1].hasWindows = (windows > 0);
+      }
     }
   }
 
   pclose(fp);
 
   bool outputFlag = false;
-  for (int i = 1; i <= MAX_WORKSPACES; i++) {
-    DEBUG_MSG("ID: %i, hasWindows: %i isFocused: %i\n", workspaces[i].WorkspaceID, 
-        workspaces[i].hasWindows, workspaces[i].isFocused);
+  for (int i = 0; i < MAX_WORKSPACES; i++) {
+    DEBUG_MSG("ID: %i, hasWindows: %i\n", workspaces[i].WorkspaceID, 
+        workspaces[i].hasWindows);
     if (workspaces[i].hasWindows != workspaces[i].prevhasWindows) {
         outputFlag = true;
     }
@@ -132,8 +134,8 @@ int main() {
     return 1;
   }
 
-  for (int i = 1; i <= MAX_WORKSPACES; i++) {
-    workspaces[i].WorkspaceID = i;
+  for (int i = 0; i < MAX_WORKSPACES; i++) {
+    workspaces[i].WorkspaceID = i + 1;
     workspaces[i].hasWindows = false;
     workspaces[i].prevhasWindows = false;
   }

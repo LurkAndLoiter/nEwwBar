@@ -31,9 +31,6 @@ bluetooth_scanner: bluetooth_scanner.c
 date_simple: date_simple.c 
 	$(CC) -o ../bin/date_simple date_simple.c
 
-mpris_combined: mpris_combined.c 
-	$(CC) -o ../bin/mpris_combined mpris_combined.c `pkg-config --cflags dbus-1 --libs dbus-1 libpulse`
-
 mpris_fetch: mpris_fetch.c
 	$(CC) -o ../bin/mpris_fetch mpris_fetch.c `pkg-config --cflags json-glib-1.0 --libs glib-2.0 playerctl json-glib-1.0 libpulse libpulse-mainloop-glib` 
 
@@ -47,10 +44,10 @@ wlan_scan: wlan_scan.c
 	$(CC) -o ../bin/wlan_scan wlan_scan.c `pkg-config --cflags --libs dbus-1`
 
 workspace_focus: workspace_focus.c 
-	$(CC) -o ../bin/workspace_focus workspace_focus.c `pkg-config --libs json-c`
+	$(CC) -o ../bin/workspace_focus workspace_focus.c
 
 workspace_list: workspace_list.c
-	$(CC) -o ../bin/workspace_list workspace_list.c `pkg-config --libs json-c`
+	$(CC) -o ../bin/workspace_list workspace_list.c
 
 clean:
 	[ -f ../bin/audio_in ] && rm ../bin/audio_in || true
@@ -60,7 +57,6 @@ clean:
 	[ -f ../bin/bluetooth_devices ] && rm ../bin/bluetooth_devices || true
 	[ -f ../bin/bluetooth_scanner ] && rm ../bin/bluetooth_scanner || true
 	[ -f ../bin/date_simple ] && rm ../bin/date_simple || true  
-	# [ -f ../bin/mpris_combined ] && rm ../bin/mpris_combined || true  
 	[ -f ../bin/mpris_fetch ] && rm ../bin/mpris_fetch || true 
 	[ -f ../bin/mpris_position ] && rm ../bin/mpris_position || true
 	[ -f ../bin/wlan_monitor ] && rm ../bin/wlan_monitor || true  

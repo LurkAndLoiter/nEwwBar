@@ -28,9 +28,9 @@
 #define JSON_STR_LEN 128 // 83 bytes; set to 128 as buffer safety
 
 #ifdef DEBUG
-#define DEBUG_MSG(fmt, ...) do { printf(fmt "\n", ##__VA_ARGS__); } while (0)
+#define DEBUG_MSG(std, fmt, ...) do { fprintf(std ,fmt "\n", ##__VA_ARGS__); } while (0)
 #else
-#define DEBUG_MSG(fmt, ...) do { } while (0)
+#define DEBUG_MSG(fmt, ...)
 #endif
 
 static const char *days_of_week[] = {"Sunday",    "Monday",   "Tuesday",
@@ -46,14 +46,14 @@ int main(void) {
   while (1) {
     time_t rawtime;
     if (time(&rawtime) == (time_t)-1) {
-      DEBUG_MSG("ERROR: Failed to get system time");
+      DEBUG_MSG(stderr, "ERROR: Failed to get system time");
       sleep(1);
       continue;
     }
 
     struct tm *local_time = localtime(&rawtime);
     if (local_time == NULL) {
-      DEBUG_MSG("ERROR: Failed to convert to local time");
+      DEBUG_MSG(stderr, "ERROR: Failed to convert to local time");
       sleep(1);
       continue;
     }
@@ -89,7 +89,7 @@ int main(void) {
                    curr_time.tm_hour, curr_time.tm_min);
 
       if (result < 0 || result >= (int)sizeof(json_str)) {
-        DEBUG_MSG("ERROR: Failed to create JSON string");
+        DEBUG_MSG(stderr, "ERROR: Failed to create JSON string");
         sleep(1);
         continue;
       }
@@ -100,7 +100,7 @@ int main(void) {
     }
 
     // Sleep until the next minute boundary
-    DEBUG_MSG("DEBUG: Sleeping for %d seconds", sleep_seconds);
+    DEBUG_MSG(stdout, "DEBUG: Sleeping for %d seconds", sleep_seconds);
     sleep(sleep_seconds);
   }
 

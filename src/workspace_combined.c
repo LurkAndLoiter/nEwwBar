@@ -20,6 +20,7 @@
  * IN THE SOFTWARE.
  */
 
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,6 +47,7 @@ typedef struct {
   int WorkspaceID;
   bool hasWindows;
   bool prevhasWindows;
+  bool isFocused;
 } Workspace;
 
 Workspace workspaces[MAX_WORKSPACES] = {0};
@@ -55,11 +57,19 @@ void print_json() {
   for (int i = 1; i <= MAX_WORKSPACES; i++) {
     if (i != 1) printf(",");
     printf("{\"WorkspaceID\": %i,", workspaces[i].WorkspaceID);
-    printf("\"hasWindows\": %s", (workspaces[i].hasWindows ? "true" : "false"));
+    printf("\"hasWindows\": %s,", (workspaces[i].hasWindows ? "true" : "false"));
+    printf("\"isFocused\": %s", (workspaces[i].isFocused ? "true" : "false"));
     printf("}");
   }
   printf("]\n");
   fflush(stdout);
+}
+
+static void update_focus(int id) {
+  for (int i = 1; i <= MAX_WORKSPACES; i++) {
+    workspaces[i].isFocused = (id == i ? true : false);
+  }
+  print_json();
 }
 
 static void update_workspaces(void) {
@@ -101,6 +111,26 @@ static void update_workspaces(void) {
   if (outputFlag) { print_json(); }
 }
 
+void initial(void) {
+  FILE *fp = popen("hyprctl workspaces -j | jq '.[] | .id, .windows'", "r");
+  if (!fp) {
+    DEBUG_MSG("popen failed");
+    return;
+  }
+  char line[8]; // more than 99 windows or workspaces?
+  int id = atoi(fgets(line, 8, fp));
+  pclose(fp);
+
+  for (int i = 1; i <= MAX_WORKSPACES; i++) {
+    workspaces[i].WorkspaceID = i;
+    workspaces[i].hasWindows = false;
+    workspaces[i].prevhasWindows = false;
+    workspaces[i].isFocused = (id == i ? true : false);
+  }
+
+  update_workspaces();
+}
+
 
 int main() {
   DEBUG_MSG("DEBUG enabled.");
@@ -138,7 +168,7 @@ int main() {
     workspaces[i].prevhasWindows = false;
   }
 
-  update_workspaces(); // initialize
+  initial();
 
   char buffer[BUFFER_SIZE];
   while (1) {
@@ -152,9 +182,28 @@ int main() {
       break;
     }
     buffer[bytes] = '\0';
-    if (strncmp(buffer, "closewindow>", 12) == 0 ||
-               strncmp(buffer, "openwindow>", 11) == 0 ||
-               strncmp(buffer, "movewindow>", 11) == 0) {
+    if (strncmp(buffer, "workspace>", 10) == 0 ||
+        strncmp(buffer, "focusedmon>", 11) == 0) {
+      /* Get last set of digits(workspaceID) in buffer */
+      char *ptr = buffer;
+      char *last_digits = NULL;
+      while (*ptr) {
+        if (isdigit(*ptr)) {
+          last_digits = ptr;
+          while (isdigit(*ptr))
+            ptr++;
+        } else {
+          ptr++;
+        }
+      }
+      if (last_digits) {
+        update_focus(atoi(last_digits));
+      } else {
+        DEBUG_MSG("No digits found\n");
+      }
+    } else if (strncmp(buffer, "closewindow>", 12) == 0 || 
+        strncmp(buffer, "openwindow>", 11) == 0 ||
+        strncmp(buffer, "movewindow>", 11) == 0) {
       DEBUG_MSG("CAUGHT:windows %s\n", buffer);
       update_workspaces();
     }
@@ -163,3 +212,4 @@ int main() {
   close(sock);
   return 0;
 }
+

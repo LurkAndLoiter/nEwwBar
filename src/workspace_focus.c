@@ -20,7 +20,8 @@
  * IN THE SOFTWARE.
  */
 
-#include <json-c/json.h>
+#include <ctype.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,66 +29,34 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 64 
 
 #ifdef DEBUG
-#define DEBUG_MSG(fmt, ...) do { printf(fmt "\n", ##__VA_ARGS__); } while (0)
+#define DEBUG_MSG(fmt, ...)                                                    \
+  do {                                                                         \
+    printf(fmt "\n", ##__VA_ARGS__);                                           \
+  } while (0)
 #else
-#define DEBUG_MSG(fmt, ...) do { } while (0)
+#define DEBUG_MSG(fmt, ...)                                                    \
+  do {                                                                         \
+  } while (0)
 #endif
 
-void print_initial_workspace() {
-  // hyprctl monitors -j | jq '.[] | select(.focused == true) | .id'
-  FILE *fp = popen("hyprctl monitors -j", "r");
+
+static void initialRun(void) {
+  FILE *fp = popen("hyprctl monitors -j | jq '.[] | select(.focused == true) | .id'", "r");
   if (!fp) {
     DEBUG_MSG("popen failed");
     return;
   }
-
-  char buffer[BUFFER_SIZE];
-  size_t bytes_read;
-  char *json_str = NULL;
-  size_t total_size = 0;
-
-  while ((bytes_read = fread(buffer, 1, BUFFER_SIZE - 1, fp)) > 0) {
-    buffer[bytes_read] = '\0';
-    json_str = realloc(json_str, total_size + bytes_read + 1);
-    memcpy(json_str + total_size, buffer, bytes_read);
-    total_size += bytes_read;
-    json_str[total_size] = '\0';
-  }
+  char line[4]; // more than 99 windows or workspaces?
+  int id = atoi(fgets(line, 2, fp));
   pclose(fp);
-
-  if (!json_str) {
-    DEBUG_MSG("Failed to read hyprctl output\n");
-    return;
-  }
-
-  json_object *root = json_tokener_parse(json_str);
-  if (!root) {
-    DEBUG_MSG("Failed to parse JSON\n");
-    free(json_str);
-    return;
-  }
-
-  int array_len = json_object_array_length(root);
-  for (int i = 0; i < array_len; i++) {
-    json_object *monitor = json_object_array_get_idx(root, i);
-    json_object *focused = json_object_object_get(monitor, "focused");
-    if (json_object_get_boolean(focused)) {
-      json_object *id = json_object_object_get(monitor, "id");
-      printf("%d\n", json_object_get_int(id));
-      fflush(stdout);
-      break;
-    }
-  }
-
-  json_object_put(root);
-  free(json_str);
+  printf("%i\n",id);
 }
 
 int main() {
-  DEBUG_MSG("DEBUG enabled");
+  DEBUG_MSG("DEBUG enabled.");
   char *xdg_runtime = getenv("XDG_RUNTIME_DIR");
   char *hyprland_instance = getenv("HYPRLAND_INSTANCE_SIGNATURE");
   if (!xdg_runtime || !hyprland_instance) {
@@ -116,12 +85,9 @@ int main() {
     return 1;
   }
 
-  print_initial_workspace();
+  initialRun();
 
   char buffer[BUFFER_SIZE];
-  char line[BUFFER_SIZE];
-  size_t line_pos = 0;
-
   while (1) {
     ssize_t bytes = read(sock, buffer, BUFFER_SIZE - 1);
     if (bytes <= 0) {
@@ -133,37 +99,25 @@ int main() {
       break;
     }
     buffer[bytes] = '\0';
-
-    for (ssize_t i = 0; i < bytes; i++) {
-      if (buffer[i] == '\n') {
-        line[line_pos] = '\0';
-        DEBUG_MSG("Raw event: %s\n", line);
-
-        if (strncmp(line, "workspace>>", 11) == 0) {
-          char *id_str = line + 11;
-          char *comma = strchr(id_str, ',');
-          if (comma)
-            *comma = '\0';  // Truncate at comma if present
-          printf("%s\n", id_str);
-          fflush(stdout);
-        } else if (strncmp(line, "focusedmon>>", 12) == 0) {
-          char *fields = line + 12;
-          char *comma1 = strchr(fields, ',');
-          if (comma1) {
-            *comma1 = '\0';  // Split at first comma
-            char *workspace_id = comma1 + 1;
-            char *comma2 = strchr(workspace_id, ',');
-            if (comma2)
-              *comma2 = '\0';  // Handle extra commas
-            printf("%s\n", workspace_id);
-            fflush(stdout);
-          }
+    if (strncmp(buffer, "workspace>", 10) == 0 ||
+        strncmp(buffer, "focusedmon>", 11) == 0) {
+      /* Get last set of digits(workspaceID) in buffer */
+      char *ptr = buffer;
+      char *last_digits = NULL;
+      while (*ptr) {
+        if (isdigit(*ptr)) {
+          last_digits = ptr;
+          while (isdigit(*ptr))
+            ptr++;
+        } else {
+          ptr++;
         }
-        // Reset line_pos and clear line for the next event
-        line_pos = 0;
-        memset(line, 0, BUFFER_SIZE);  // Clear residual data
-      } else if (line_pos < BUFFER_SIZE - 1) {
-        line[line_pos++] = buffer[i];
+      }
+      if (last_digits) {
+        printf("%s",last_digits);
+        fflush(stdout);
+      } else {
+        DEBUG_MSG("No digits found\n");
       }
     }
   }

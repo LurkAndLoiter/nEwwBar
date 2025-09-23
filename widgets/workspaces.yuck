@@ -1,29 +1,29 @@
 ;; -*- mode: lisp -*-
-(deflisten workspaces :initial '[{"id": 1, "windows": 0}]'
+(deflisten workspaces :initial '[{"WorkspaceID": 1, "hasWindows": 0}]'
   "~/.config/eww/bin/workspace_list")
 
-(deflisten current_workspace :initial 1
+(deflisten focusedID :initial 1
   "~/.config/eww/bin/workspace_focus")
 
 (defwidget workspaces []
   (box
     :class "workspaces-widget"
     :space-evenly true
-    (for workspace in workspaces
+    (for w in workspaces
       (eventbox
-        :tooltip "${workspace.id}"
-        :onclick "hyprctl dispatch workspace ${workspace.id}"
+        :tooltip "${w.WorkspaceID}"
+        :onclick "hyprctl dispatch workspace ${w.WorkspaceID}"
         (literal 
           :valign "center" 
           :class "paddingleft paddingright" 
           :content
           {
-            workspace.id == current_workspace ? 
+            w.WorkspaceID == focusedID ? 
               '(image 
                 :image-height 24
                 :path "./assets/circle_fill.svg" 
                 :fill-svg "#f38ba8")' :
-              workspace.windows > 0 ? 
+              w.hasWindows ? 
                 '(image
                   :image-height 24
                   :path "./assets/circle_open.svg"

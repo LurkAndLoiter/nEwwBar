@@ -1,17 +1,17 @@
 ;; -*- mode: lisp -*-
 (deflisten audioSources 
   :initial '[{"longName": "UUID","Name": "firefox","CanControl": false,"CanGoNext": false,"CanGoPrevious": false,"CanPause": false,"CanPlay": false,"CanSeek": false,"PlaybackStatus": "Playing","shuffle": false, "loop": "disabled", "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","sinkID": "UUIDpointer","id": "117","serial": "3736","volume": 100,"mute": false}]'
-  `~/.config/eww/bin/mpris_fetch`
+  `$HOME/.config/eww/bin/mpris_fetch`
 )
 
 (deflisten audioSinks 
   :initial '[{"id": "1", "mute": true, "volume": 0, "default": true, "sink": "UUIDpointer", "name": "Name", "icon": "audio-speakers"}]'
-  `~/.config/eww/bin/audio_out`
+  `$HOME/.config/eww/bin/audio_out`
 ) 
 
 (deflisten audioPosition ; Seperated from audioSources to limit the GTK redraw 
-  :initial '{"UUID": 90, "UUIDHMS": "1:30"}'
-  `~/.config/eww/bin/mpris_position`
+  :initial '{"UUID":90, "UUIDHMS":"1:30"}'
+  `$HOME/.config/eww/bin/mpris_position`
 )
 
 (defvar playerVolumeIsHovered false)

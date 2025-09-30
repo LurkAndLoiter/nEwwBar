@@ -1,5 +1,17 @@
-/*
+/*  _               _        _              _ _          _ _
+ * | |   _   _ _ __| | __   / \   _ __   __| | |    ___ (_) |_ ___ _ __
+ * | |  | | | | '__| |/ /  / _ \ | '_ \ / _` | |   / _ \| | __/ _ \ '__|
+ * | |__| |_| | |  |   <  / ___ \| | | | (_| | |__| (_) | | ||  __/ |
+ * |_____\__,_|_|  |_|\_\/_/   \_\_| |_|\__,_|_____\___/|_|\__\___|_|
+ * ____________________________________________________________________________
+ * ----------------------------------------------------------------------------
  * Copyright 2025 LurkAndLoiter.
+ * ____________________________________________________________________________
+ *  __  __ ___ _____   _     _
+ * |  \/  |_ _|_   _| | |   (_) ___ ___ _ __  ___  ___
+ * | |\/| || |  | |   | |   | |/ __/ _ \ '_ \/ __|/ _ \
+ * | |  | || |  | |   | |___| | (_|  __/ | | \__ \  __/
+ * |_|  |_|___| |_|   |_____|_|\___\___|_| |_|___/\___|
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -18,7 +30,13 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
- */
+ * ____________________________________________________________________________
+ * ----------------------------------------------------------------------------
+ * "Zetus Lupetus" "Omelette du fromage" "You're killing me smalls" "Ugh As If"
+ * "Hey. Listen!" "Do a barrel roll!" "Dear Darla, I hate your stinking guts."
+ * "If we listen to each other's hearts. We'll find we're never too far apart."
+ * ____________________________________________________________________________
+*/
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -29,7 +47,7 @@
 #include <unistd.h>
 
 #define MAX_WORKSPACES 6
-#define BUFFER_SIZE 64 
+#define BUFFER_SIZE 64
 
 #ifdef DEBUG
 #define DEBUG_MSG(fmt, ...)                                                    \
@@ -93,7 +111,7 @@ static void update_workspaces(void) {
 
   bool outputFlag = false;
   for (int i = 0; i < MAX_WORKSPACES; i++) {
-    DEBUG_MSG("ID: %i, hasWindows: %i\n", workspaces[i].WorkspaceID, 
+    DEBUG_MSG("ID: %i, hasWindows: %i\n", workspaces[i].WorkspaceID,
         workspaces[i].hasWindows);
     if (workspaces[i].hasWindows != workspaces[i].prevhasWindows) {
         outputFlag = true;

@@ -1,4 +1,44 @@
 ;; -*- mode: lisp -*-
+
+;;  _               _        _              _ _          _ _
+;; | |   _   _ _ __| | __   / \   _ __   __| | |    ___ (_) |_ ___ _ __
+;; | |  | | | | '__| |/ /  / _ \ | '_ \ / _` | |   / _ \| | __/ _ \ '__|
+;; | |__| |_| | |  |   <  / ___ \| | | | (_| | |__| (_) | | ||  __/ |
+;; |_____\__,_|_|  |_|\_\/_/   \_\_| |_|\__,_|_____\___/|_|\__\___|_|
+;; ____________________________________________________________________________
+;; ----------------------------------------------------------------------------
+;; Copyright 2025 LurkAndLoiter.
+;; ____________________________________________________________________________
+;;  __  __ ___ _____   _     _
+;; |  \/  |_ _|_   _| | |   (_) ___ ___ _ __  ___  ___
+;; | |\/| || |  | |   | |   | |/ __/ _ \ '_ \/ __|/ _ \
+;; | |  | || |  | |   | |___| | (_|  __/ | | \__ \  __/
+;; |_|  |_|___| |_|   |_____|_|\___\___|_| |_|___/\___|
+;;
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to
+;; deal in the Software without restriction, including without limitation the
+;; rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+;; sell copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+;;
+;; The above copyright notice and this permission notice shall be included in
+;; all copies or substantial portions of the Software.
+;;
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+;; IN THE SOFTWARE.
+;; ____________________________________________________________________________
+;; ----------------------------------------------------------------------------
+;; "Zetus Lupetus" "Omelette du fromage" "You're killing me smalls" "Ugh As If"
+;; "Hey. Listen!" "Do a barrel roll!" "Dear Darla, I hate your stinking guts."
+;; "If we listen to each other's hearts. We'll find we're never too far apart."
+;; ____________________________________________________________________________
+
 (deflisten wifiScan :initial '[{"SSID": "Catalyst", "Frequency": 5180, "Strength": 63, "connected": true}]'
   `~/.config/eww/bin/wlan_scan`)
 
@@ -6,52 +46,52 @@
   `~/.config/eww/bin/wlan_monitor`)
 
 (defwidget wifiButton []
-  (eventbox 
+  (eventbox
     :onclick "eww open --toggle wifiPanel"
     :onrightclick "rfkill toggle wlan"
     (literal
       :valign "center"
       :halign "center"
       :content {
-        wlan-monitor.state == 20 ? 
-          "(image  
-            :image-width 24 
-            :path './assets/icons/wifi/disabled.svg' 
+        wlan-monitor.state == 20 ?
+          "(image
+            :image-width 24
+            :path './assets/icons/wifi/disabled.svg'
             :fill-svg '#45475a')":
-        wlan-monitor.state == 10 ? 
-          "(label 
-            :text '' 
+        wlan-monitor.state == 10 ?
+          "(label
+            :text ''
             :class 'marginright large red')" :
-        wlan-monitor.state == 60 ? 
-          "(label 
-            :text '󰤬' 
+        wlan-monitor.state == 60 ?
+          "(label
+            :text '󰤬'
             :class 'marginright large red')" :
-        wlan-monitor.state != 100 ? 
-          "(image 
+        wlan-monitor.state != 100 ?
+          "(image
             :path './assets/icons/wifi/scan-small.gif')" :
-        wlan-monitor.strength > 70 ? 
-          "(image 
-            :image-width 24 
-            :path './assets/icons/wifi/full.svg' 
+        wlan-monitor.strength > 70 ?
+          "(image
+            :image-width 24
+            :path './assets/icons/wifi/full.svg'
             :fill-svg '#89b4f1')" :
-        wlan-monitor.strength > 50 ? 
-          "(image 
-            :image-width 24 
-            :path './assets/icons/wifi/high.svg' 
+        wlan-monitor.strength > 50 ?
+          "(image
+            :image-width 24
+            :path './assets/icons/wifi/high.svg'
             :fill-svg '#a6e3a1')" :
-        wlan-monitor.strength > 35 ? 
-          "(image 
-            :image-width 24 
-            :path './assets/icons/wifi/mid.svg' 
-            :fill-svg '#f9e2af')" : 
-        wlan-monitor.strength > 20 ? 
-          "(image 
-            :image-width 24 
-            :path './assets/icons/wifi/low.svg' 
+        wlan-monitor.strength > 35 ?
+          "(image
+            :image-width 24
+            :path './assets/icons/wifi/mid.svg'
+            :fill-svg '#f9e2af')" :
+        wlan-monitor.strength > 20 ?
+          "(image
+            :image-width 24
+            :path './assets/icons/wifi/low.svg'
             :fill-svg '#fab387')" :
-          "(image 
-            :image-width 24 
-            :path './assets/icons/wifi/none.svg' 
+          "(image
+            :image-width 24
+            :path './assets/icons/wifi/none.svg'
             :fill-svg '#f38ba8')"
       }
     )
@@ -67,7 +107,7 @@
   (eventbox
     :onhover 'eww update hover_state="wifiPanel"'
     :onhoverlost './scripts/check_hover.sh wifiPanel &'
-    (box 
+    (box
       :class "window"
       :orientation "v"
       :space-evenly false
@@ -79,20 +119,20 @@
 
 
 (defwidget wifi []
-  (box 
+  (box
     :orientation "v"
     :space-evenly false
     :spacing 10
-    (box 
+    (box
       :space-evenly false
       (wifiCode)
       (box :class "btns-box"
-        (button 
+        (button
           :width 75
           :height 75
           :class "inactive"
-          :onclick "nmcli device wifi rescan ifname wlan0" 
-          (image 
+          :onclick "nmcli device wifi rescan ifname wlan0"
+          (image
             :image-height 42
             :path "./assets/icons/wifi/scan-off.gif"
           )
@@ -100,39 +140,39 @@
       )
     )
     (for w in wifiScan
-      (eventbox 
-        :hexpand true 
+      (eventbox
+        :hexpand true
         :class "btns-bar ${w.connected == true ? "active enabled" : "enabled"}"
-        (box 
-          :space-evenly false 
-          :class "marginleft marginright" 
+        (box
+          :space-evenly false
+          :class "marginleft marginright"
           :hexpand true
-          (literal 
+          (literal
             :halign "center"
             :valign "center"
-            :content 
+            :content
             {
-              w.Strength > 70 ? 
+              w.Strength > 70 ?
                 "(image
                   :image-width 42
                   :path './assets/icons/wifi/full.svg'
                   :fill-svg '#89b4f1')" :
-              w.Strength > 50 ? 
+              w.Strength > 50 ?
                 "(image
                   :image-width 42
                   :path './assets/icons/wifi/high.svg'
                   :fill-svg '#a6e3a1')" :
-              w.Strength > 35 ? 
-                "(image 
+              w.Strength > 35 ?
+                "(image
                   :image-width 42
                   :path './assets/icons/wifi/mid.svg'
                   :fill-svg '#f9e2af')" :
-              w.Strength > 20 ? 
+              w.Strength > 20 ?
                 "(image
                   :image-width 42
                   :path './assets/icons/wifi/low.svg'
                   :fill-svg '#fab387')" :
-                "(image 
+                "(image
                   :image-width 42
                   :path './assets/icons/wifi/none.svg'
                   :fill-svg '#f38ba8')"
@@ -148,9 +188,9 @@
                     "2G"
                     }"
           )
-          (label 
-            :halign "end" 
-            :hexpand true 
+          (label
+            :halign "end"
+            :hexpand true
             :text "${w.SSID} "
           )
         )
@@ -160,7 +200,7 @@
 )
 
 (defwidget wifiCode []
-  (label 
+  (label
     :halign "start"
     :valign "end"
     :hexpand true
@@ -177,7 +217,7 @@
       wlan-monitor.state == 100 ? "Fully Connected and active" :
       wlan-monitor.state == 110 ? "Disconnecting from Network" :
       wlan-monitor.state == 120 ? "Connection to Network Failed!" :
-      wlan-monitor.state == 0 ? "Returned in error. D-Bus Failure!" : 
+      wlan-monitor.state == 0 ? "Returned in error. D-Bus Failure!" :
       "Unknown State!"}"
   )
 )

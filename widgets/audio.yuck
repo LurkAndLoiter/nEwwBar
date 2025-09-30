@@ -1,15 +1,55 @@
 ;; -*- mode: lisp -*-
-(deflisten audioSources 
+
+;;  _               _        _              _ _          _ _
+;; | |   _   _ _ __| | __   / \   _ __   __| | |    ___ (_) |_ ___ _ __
+;; | |  | | | | '__| |/ /  / _ \ | '_ \ / _` | |   / _ \| | __/ _ \ '__|
+;; | |__| |_| | |  |   <  / ___ \| | | | (_| | |__| (_) | | ||  __/ |
+;; |_____\__,_|_|  |_|\_\/_/   \_\_| |_|\__,_|_____\___/|_|\__\___|_|
+;; ____________________________________________________________________________
+;; ----------------------------------------------------------------------------
+;; Copyright 2025 LurkAndLoiter.
+;; ____________________________________________________________________________
+;;  __  __ ___ _____   _     _
+;; |  \/  |_ _|_   _| | |   (_) ___ ___ _ __  ___  ___
+;; | |\/| || |  | |   | |   | |/ __/ _ \ '_ \/ __|/ _ \
+;; | |  | || |  | |   | |___| | (_|  __/ | | \__ \  __/
+;; |_|  |_|___| |_|   |_____|_|\___\___|_| |_|___/\___|
+;;
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to
+;; deal in the Software without restriction, including without limitation the
+;; rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+;; sell copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+;;
+;; The above copyright notice and this permission notice shall be included in
+;; all copies or substantial portions of the Software.
+;;
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+;; IN THE SOFTWARE.
+;; ____________________________________________________________________________
+;; ----------------------------------------------------------------------------
+;; "Zetus Lupetus" "Omelette du fromage" "You're killing me smalls" "Ugh As If"
+;; "Hey. Listen!" "Do a barrel roll!" "Dear Darla, I hate your stinking guts."
+;; "If we listen to each other's hearts. We'll find we're never too far apart."
+;; ____________________________________________________________________________
+
+(deflisten audioSources
   :initial '[{"longName": "UUID","Name": "firefox","CanControl": false,"CanGoNext": false,"CanGoPrevious": false,"CanPause": false,"CanPlay": false,"CanSeek": false,"PlaybackStatus": "Playing","shuffle": false, "loop": "disabled", "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","sinkID": "UUIDpointer","id": "117","serial": "3736","volume": 100,"mute": false}]'
   `$HOME/.config/eww/bin/mpris_fetch`
 )
 
-(deflisten audioSinks 
+(deflisten audioSinks
   :initial '[{"id": "1", "mute": true, "volume": 0, "default": true, "sink": "UUIDpointer", "name": "Name", "icon": "audio-speakers"}]'
   `$HOME/.config/eww/bin/audio_out`
-) 
+)
 
-(deflisten audioPosition ; Seperated from audioSources to limit the GTK redraw 
+(deflisten audioPosition ; Seperated from audioSources to limit the GTK redraw
   :initial '{"UUID":90, "UUIDHMS":"1:30"}'
   `$HOME/.config/eww/bin/mpris_position`
 )
@@ -18,21 +58,21 @@
 (defvar hoveredPlayer "")
 
 (defwidget audioButton []
-  (eventbox 
-    :tooltip 
+  (eventbox
+    :tooltip
 `Audio panel:
 Right click Mute
 Left click open/close panel`
     :onclick "eww open --toggle audioPanel"
     :onrightclick "wpctl set-mute @DEFAULT_SINK@ toggle"
-    (literal :halign "center" :valign "center" :content  
+    (literal :halign "center" :valign "center" :content
       {
-        "${jq(audioSinks, '.[] | select(.default) | (.mute)') ? 
-          '(image 
-            :path "./assets/icons/media/volume-mute.svg" 
-            :image-width 24 
+        "${jq(audioSinks, '.[] | select(.default) | (.mute)') ?
+          '(image
+            :path "./assets/icons/media/volume-mute.svg"
+            :image-width 24
             :fill-svg "#f38ba8"
-          )': 
+          )':
           '(image :path "./assets/icons/media/volume-high.svg"
             :image-width 24
             :fill-svg "#a6e3a1"
@@ -55,7 +95,7 @@ Left click open/close panel`
     :onhoverlost './scripts/check_hover.sh audioPanel &'
     (box
       :class "window"
-      :space-evenly false 
+      :space-evenly false
       :orientation "v"
       (audio)
     )
@@ -63,7 +103,7 @@ Left click open/close panel`
 )
 
 (defwidget audio []
-  (box 
+  (box
     :space-evenly false
     :orientation "v"
     :spacing 10
@@ -73,7 +113,7 @@ Left click open/close panel`
 )
 
 (defwidget audioDevices []
-  (box 
+  (box
     :space-evenly false
     (for s in audioSinks
       (box
@@ -84,14 +124,14 @@ Left click open/close panel`
           :tooltip "${s.name}"
           :width 75
           :height 75
-          (image 
+          (image
             ; :icon "${s.icon}"
             ; :icon-size "dialog"
             :path "./assets/icons/devices/${s.icon == "audio-headset-bluetooth" ? "audio-earbuds" : s.icon == "audio-speakers" ? "audio-speakers" : "media-tape"}.svg"
             :image-height 42
           )
         )
-        (box 
+        (box
           :hexpand true
           :orientation "v"
           :space-evenly false
@@ -102,17 +142,17 @@ Left click open/close panel`
               :hexpand true
               :class "low-vis marginleft margintop"
               :round-digits 0
-              :min 0 
+              :min 0
               :max 101
               :value "${s.volume}"
               :onchange "./scripts/set-volume ${s.id} {}"
             )
           )
-          (eventbox 
-            :halign "start" 
-            :onclick "wpctl set-mute ${s.id} toggle" 
-            (image 
-              :image-width 24 
+          (eventbox
+            :halign "start"
+            :onclick "wpctl set-mute ${s.id} toggle"
+            (image
+              :image-width 24
               :path "./assets/icons/media/volume-${s.mute ? "mute" : "high"}.svg"
               :fill-svg "${s.mute ? "#f38ba8" : "#a6e3a1" }"
             )
@@ -125,7 +165,7 @@ Left click open/close panel`
 
 
 (defwidget audioSources []
-  (box 
+  (box
     :orientation "v"
     :space-evenly false
     (for p in audioSources
@@ -140,7 +180,7 @@ Left click open/close panel`
           (box
             :space-evenly false
             :orientation "h"
-            (label 
+            (label
               :class "green"
               :xalign 0
               :wrap true
@@ -158,54 +198,54 @@ Left click open/close panel`
               )
             )
           )
-          (box 
+          (box
             :space-evenly false
             :spacing 10
             (box
               :halign "start"
-              (image 
-                :image-height 100 
+              (image
+                :image-height 100
                 :path "${matches(p.title, " - Twitch$") ? "./assets/twitch-logo.svg" : p.artUrl}"
               )
             )
-            (box 
+            (box
               :class "smallish green"
               :hexpand true
               :orientation "v"
               :space-evenly false
               (label :truncate true :class "subtext" :xalign 0 :text "${p.artist}")
               (label :truncate true :class "subtext" :xalign 0 :text "${p.album}")
-              (mediaButtons 
+              (mediaButtons
                 :CanGoPrevious "${p.CanGoPrevious}"
-                :CanGoNext "${p.CanGoNext}" 
-                :CanPlay "${p.CanPlay}" 
-                :Playing "${p.PlaybackStatus}" 
-                :Name "${p.Name}" 
-                :loop "${p.loop}" 
-                :shuffle "${p.shuffle}" 
+                :CanGoNext "${p.CanGoNext}"
+                :CanPlay "${p.CanPlay}"
+                :Playing "${p.PlaybackStatus}"
+                :Name "${p.Name}"
+                :loop "${p.loop}"
+                :shuffle "${p.shuffle}"
               )
               (scale
-                :class "${p.CanSeek == false ? "inactive" : 
+                :class "${p.CanSeek == false ? "inactive" :
                        "${matches(p.title, "Twitch$")}" ? "inactive" : ""}"
                 ; Slow GTK draw if length is large. Compress to max length 100.
                 ; :max "${p.length}"
                 ; :onchange "playerctl --player=${p.Name} position {}"
                 ; :value "${jq(audioPosition, '."${p.longName}"', 'r')}"
-                :max 101 
+                :max 101
                 :onchange "playerctl --player=${p.Name} position $(({} * ${p.length} / 100))"
                 :value "${100 * jq(audioPosition, '."${p.longName}"', 'r') / p.length}"
-              ) 
+              )
               (label
-                :xalign 1 
+                :xalign 1
                 :class "${p.lengthHMS == "live" ? "red" : ""}"
-                :text "${p.lengthHMS == "live" ? " live" : 
+                :text "${p.lengthHMS == "live" ? " live" :
                          p.length == "" ? "--/--" :
                         "${jq(audioPosition, '."${p.longName}HMS"', "r")}/${p.lengthHMS}"
                         }"
               )
             )
-          ) 
-          (box 
+          )
+          (box
             :space-evenly false
             :class "smallish green"
             (playerVolume
@@ -215,10 +255,10 @@ Left click open/close panel`
               :sinkID "${p.sinkID}"
               :pulseAudioID "${p.serial}"
               :playerIsHovered "${p.Name == hoveredPlayer ? true : false}")
-            (label 
+            (label
               :class "subtext"
               :hexpand "${p.id == "" ? true : false}"
-              :halign "end" 
+              :halign "end"
               :text "${p.Name}"
             )
           )
@@ -229,34 +269,34 @@ Left click open/close panel`
 )
 
 
-(defwidget mediaButtons [CanGoPrevious CanGoNext CanPlay 
+(defwidget mediaButtons [CanGoPrevious CanGoNext CanPlay
                          Playing Name loop shuffle]
-  (box 
-    (box 
+  (box
+    (box
       :halign "start"
       :class "paddingbottom"
       :spacing 10
-      (eventbox 
+      (eventbox
         :onclick "playerctl --player=${Name} previous"
-        (image 
+        (image
           :fill-svg "${CanGoPrevious ? "#cdd6f4" : "#45475a"}"
-          :image-height 18 
+          :image-height 18
           :path "./assets/icons/media/prev.svg"
         )
       )
-      (eventbox 
+      (eventbox
         :onclick "playerctl --player=${Name} play-pause"
-        (image 
+        (image
           :fill-svg "${CanPlay ? "#cdd6f4" : "#45475a"}"
-          :image-height 18 
+          :image-height 18
           :path "./assets/icons/media/${Playing == "Playing" ? "pause" : "play"}.svg"
         )
       )
-      (eventbox 
+      (eventbox
         :onclick "playerctl --player=${Name} next"
-        (image 
+        (image
           :fill-svg "${CanGoNext ? "#cdd6f4" : "#45475a"}"
-          :image-height 18 
+          :image-height 18
           :path "./assets/icons/media/next.svg"
         )
       )
@@ -268,28 +308,28 @@ Left click open/close panel`
       :spacing 10
       (eventbox
         :onclick "playerctl --player=${Name} loop ${
-                        loop == "None" ? "track" : 
-                        loop == "Track" ? "playlist" : 
+                        loop == "None" ? "track" :
+                        loop == "Track" ? "playlist" :
                         "none"
                       }"
-        (image 
-          :fill-svg "${loop == "Track" ? "#cdd6f4" : 
+        (image
+          :fill-svg "${loop == "Track" ? "#cdd6f4" :
                        loop == "Playlist" ? "#cdd6f4" : "#45475a"}"
           :image-height 24
-          :path "./assets/icons/media/${loop == "Track" ? "loop-track" : 
-                            loop == "Playlist" ? "loop" : 
-                            loop == "None" ? "loop" : 
+          :path "./assets/icons/media/${loop == "Track" ? "loop-track" :
+                            loop == "Playlist" ? "loop" :
+                            loop == "None" ? "loop" :
                             "loop-disabled"
                             }.svg"
         )
       )
-      (eventbox 
+      (eventbox
         :onclick "playerctl --player=${Name} shuffle ${shuffle == true ? "off" : "on"}"
-        (image 
-          :fill-svg "${shuffle == true ? "#cdd6f4" : "#45475a"}" 
+        (image
+          :fill-svg "${shuffle == true ? "#cdd6f4" : "#45475a"}"
           :image-height 24
-          :path "./assets/icons/media/${shuffle == true ? "shuffle-on" : 
-                        shuffle == false ? "shuffle-off" : 
+          :path "./assets/icons/media/${shuffle == true ? "shuffle-on" :
+                        shuffle == false ? "shuffle-off" :
                         "shuffle-disabled"
                        }.svg"
         )
@@ -298,33 +338,33 @@ Left click open/close panel`
   )
 )
 
-(defwidget playerVolume [playerVolume 
-                         playerIsMute 
-                         wireplumberID 
-                         sinkID 
-                         pulseAudioID 
+(defwidget playerVolume [playerVolume
+                         playerIsMute
+                         wireplumberID
+                         sinkID
+                         pulseAudioID
                          playerIsHovered]
   (box
     :hexpand true
     :halign "${playerVolumeIsHovered ? "fill" : "start"}"
     :space-evenly false
     :visible "${wireplumberID == "" ? false : true}"
-    (box 
-      :halign "start" 
-      :valign "center" 
+    (box
+      :halign "start"
+      :valign "center"
       :visible "${arraylength(audioSinks) > 1 ? true : false}"
       (for s in audioSinks
         (eventbox
           :onclick "pactl move-sink-input ${pulseAudioID} ${s.sink}"
           :tooltip "${s.name}"
-          (image 
+          (image
             :class "paddingright"
-            :image-height 16 
+            :image-height 16
             :fill-svg "${s.sink == sinkID ? "#cdd6f4" : "#45475a"}"
-            :path "${s.icon == "audio-speakers" ? 
+            :path "${s.icon == "audio-speakers" ?
               "./assets/icons/media/small-speaker.svg" :
-              s.icon == "audio-headset-bluetooth" ? 
-              "./assets/icons/media/small-earbuds.svg" : 
+              s.icon == "audio-headset-bluetooth" ?
+              "./assets/icons/media/small-earbuds.svg" :
               "./assets/icons/missing.svg"}"
           )
         )
@@ -338,15 +378,15 @@ Left click open/close panel`
         (eventbox
           :onclick 'wpctl set-mute ${wireplumberID} toggle'
           (box :space-evenly false :valign "center"
-            (image 
-              :class "paddingleft paddingright" 
-              :image-height 16 
+            (image
+              :class "paddingleft paddingright"
+              :image-height 16
               :valign "center"
               :halign "center"
               :path "./assets/icons/media/volume-${playerIsMute ? "mute" : "high"}.svg"
               :fill-svg "${playerIsMute ? "#f38ba8" : "#a6e3a1"}"
             )
-            (label 
+            (label
               :class "${playerIsMute ? "red" : ""}"
               :text playerVolume
             )
@@ -369,4 +409,3 @@ Left click open/close panel`
     )
   )
 )
-

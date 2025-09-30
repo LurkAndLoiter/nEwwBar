@@ -1,16 +1,56 @@
 ;; -*- mode: lisp -*-
+
+;;  _               _        _              _ _          _ _
+;; | |   _   _ _ __| | __   / \   _ __   __| | |    ___ (_) |_ ___ _ __
+;; | |  | | | | '__| |/ /  / _ \ | '_ \ / _` | |   / _ \| | __/ _ \ '__|
+;; | |__| |_| | |  |   <  / ___ \| | | | (_| | |__| (_) | | ||  __/ |
+;; |_____\__,_|_|  |_|\_\/_/   \_\_| |_|\__,_|_____\___/|_|\__\___|_|
+;; ____________________________________________________________________________
+;; ----------------------------------------------------------------------------
+;; Copyright 2025 LurkAndLoiter.
+;; ____________________________________________________________________________
+;;  __  __ ___ _____   _     _
+;; |  \/  |_ _|_   _| | |   (_) ___ ___ _ __  ___  ___
+;; | |\/| || |  | |   | |   | |/ __/ _ \ '_ \/ __|/ _ \
+;; | |  | || |  | |   | |___| | (_|  __/ | | \__ \  __/
+;; |_|  |_|___| |_|   |_____|_|\___\___|_| |_|___/\___|
+;;
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to
+;; deal in the Software without restriction, including without limitation the
+;; rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+;; sell copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+;;
+;; The above copyright notice and this permission notice shall be included in
+;; all copies or substantial portions of the Software.
+;;
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+;; IN THE SOFTWARE.
+;; ____________________________________________________________________________
+;; ----------------------------------------------------------------------------
+;; "Zetus Lupetus" "Omelette du fromage" "You're killing me smalls" "Ugh As If"
+;; "Hey. Listen!" "Do a barrel roll!" "Dear Darla, I hate your stinking guts."
+;; "If we listen to each other's hearts. We'll find we're never too far apart."
+;; ____________________________________________________________________________
+
 (deflisten audioMonitors :initial '[{"id": 1, "mute": true, "volume": 0, "default": true, "source": "pointer", "name": "Name", "icon": "audio-card-analog", "state": "suspended"}]'
   `~/.config/eww/bin/audio_in`)
 
 (defwidget micButton []
-  (box 
-    (eventbox 
+  (box
+    (eventbox
       :onclick "eww open --toggle micPanel"
       :onrightclick 'pactl set-source-mute "$(pactl get-default-source)" toggle'
-      (image 
+      (image
         :image-height 24
-        :path "./assets/icons/mic-${jq(audioMonitors, '.[] | select(.default) | (.state == "suspended")') ? "off" : "on"}.svg" 
-        :fill-svg "${jq(audioMonitors, '.[] | select(.default) | (.mute)') ? "#45475a" : "#f38ba8"}" 
+        :path "./assets/icons/mic-${jq(audioMonitors, '.[] | select(.default) | (.state == "suspended")') ? "off" : "on"}.svg"
+        :fill-svg "${jq(audioMonitors, '.[] | select(.default) | (.mute)') ? "#45475a" : "#f38ba8"}"
       )
     )
   )
@@ -25,7 +65,7 @@
   (eventbox
     :onhover 'eww update hover_state="micPanel"'
     :onhoverlost './scripts/check_hover.sh micPanel &'
-    (box 
+    (box
       :class "window"
       :space-evenly false
       :orientation "v"
@@ -36,7 +76,7 @@
 )
 
 (defwidget microphone []
-  (box 
+  (box
     :orientation "v"
     :spacing 10
     (for source in audioMonitors
@@ -44,24 +84,24 @@
         ; Do not display Virtual 'Monitors' of sources.
         :visible "${matches(source.name, "^Monitor") ? false : true}"
         :class 'btns-bar${source.state == "suspended" ? " disabled" : " enabled"} ${source.default == true ? " active": ""}'
-        (box :hexpand true :space-evenly false 
+        (box :hexpand true :space-evenly false
           (image
             :class "marginleft"
-            :halign "start" 
+            :halign "start"
             ; :icon "${source.icon}"
             ; :icon-size "dialog"
             :path "./assets/icons/devices/${source.icon == "audio-headset-bluetooth" ? "audio-earbuds" : "input-microphone"}.svg"
             :image-height 42
           )
-          (label 
+          (label
             :class "marginleft marginright"
-            :hexpand true 
-            :xalign 0 
+            :hexpand true
+            :xalign 0
             :text "${source.name}"
           )
-          (label 
+          (label
             :class 'marginright${source.mute ? " red" : ""}'
-            :xalign 1 
+            :xalign 1
             :text "${source.mute ? "Muted" : source.volume}"
           )
         )

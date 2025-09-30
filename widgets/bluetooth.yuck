@@ -1,9 +1,49 @@
 ;; -*- mode: lisp -*-
+
+;;  _               _        _              _ _          _ _
+;; | |   _   _ _ __| | __   / \   _ __   __| | |    ___ (_) |_ ___ _ __
+;; | |  | | | | '__| |/ /  / _ \ | '_ \ / _` | |   / _ \| | __/ _ \ '__|
+;; | |__| |_| | |  |   <  / ___ \| | | | (_| | |__| (_) | | ||  __/ |
+;; |_____\__,_|_|  |_|\_\/_/   \_\_| |_|\__,_|_____\___/|_|\__\___|_|
+;; ____________________________________________________________________________
+;; ----------------------------------------------------------------------------
+;; Copyright 2025 LurkAndLoiter.
+;; ____________________________________________________________________________
+;;  __  __ ___ _____   _     _
+;; |  \/  |_ _|_   _| | |   (_) ___ ___ _ __  ___  ___
+;; | |\/| || |  | |   | |   | |/ __/ _ \ '_ \/ __|/ _ \
+;; | |  | || |  | |   | |___| | (_|  __/ | | \__ \  __/
+;; |_|  |_|___| |_|   |_____|_|\___\___|_| |_|___/\___|
+;;
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to
+;; deal in the Software without restriction, including without limitation the
+;; rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+;; sell copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+;;
+;; The above copyright notice and this permission notice shall be included in
+;; all copies or substantial portions of the Software.
+;;
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+;; IN THE SOFTWARE.
+;; ____________________________________________________________________________
+;; ----------------------------------------------------------------------------
+;; "Zetus Lupetus" "Omelette du fromage" "You're killing me smalls" "Ugh As If"
+;; "Hey. Listen!" "Do a barrel roll!" "Dear Darla, I hate your stinking guts."
+;; "If we listen to each other's hearts. We'll find we're never too far apart."
+;; ____________________________________________________________________________
+
 (deflisten devices :initial '[{"id": "UUID","Name": "Name","Icon": "audio-headset","Connected": false,"Paired": false,"Trusted": false,"Battery": "999"}]'
   `~/.config/eww/bin/bluetooth_devices 2> /dev/null`
 )
 
-(deflisten adapter 
+(deflisten adapter
   :initial '{"Powered": false, "Pairable": false, "Discovering": false, "Discoverable": false}'
   `~/.config/eww/bin/bluetooth_adapter`
 )
@@ -12,10 +52,10 @@
 (defvar btHover "")
 
 (defwidget bluetoothButton []
-  (eventbox 
+  (eventbox
     :onclick `eww open --toggle bluetoothPanel`
     :onrightclick "bluetoothctl power ${adapter.Powered ? "off" : "on"}"
-    (image 
+    (image
       :path "./assets/icons/bluetooth.svg"
       :image-height 24
       :fill-svg "${adapter.Powered ? "#89b4fa" : "#45475a"}"
@@ -32,7 +72,7 @@
   (eventbox
     :onhover 'eww update hover_state="bluetoothPanel"'
     :onhoverlost './scripts/check_hover.sh bluetoothPanel &'
-    (box 
+    (box
       :class "window"
       :orientation "v"
       :space-evenly false
@@ -43,11 +83,11 @@
 )
 
 (defwidget bluetooth []
-  (box 
+  (box
     :orientation "v"
     :space-evenly false
     :spacing 10
-    (box 
+    (box
       :class "btns-box"
       (button
         :halign "start"
@@ -55,7 +95,7 @@
         :height 75
         :onclick "bluetoothctl power ${adapter.Powered ? "off" : "on" }"
         :class "${adapter.Powered ? "active" : "inactive"}"
-        (image 
+        (image
           :image-height 42
           :path "./assets/icons/bluetooth-pill.svg"
           :fill-svg "${adapter.Powered ? "#89b4fa" : "#45475a"}"
@@ -68,7 +108,7 @@
         :halign "end"
         ; :onclick 'bluetoothctl agent NoInputNoOutput && bluetoothctl discoverable on && ./bin/bluetooth_scanner 15; bluetoothctl discoverable off &'
         :onclick './bin/bluetooth_scanner 5 &'
-        (image 
+        (image
           :image-height 42
           :path "./assets/icons/wifi/${adapter.Discovering ? 'scan-large' : 'scan-off'}.gif")
        )
@@ -79,22 +119,22 @@
 
 
 (defwidget bluetoothDevices []
-  (box 
-    :orientation "v" 
-    :spacing 10 
+  (box
+    :orientation "v"
+    :spacing 10
     (for device in devices
-      (eventbox 
+      (eventbox
         ;supress nondescript devices ie <dev> 00:00:00:00 with name 00-00-00-00.
-        :visible "${substring(device.id,0,2) != substring(device.Name,0,2) ? true : false}" 
+        :visible "${substring(device.id,0,2) != substring(device.Name,0,2) ? true : false}"
         :onhover 'eww update btHover="${device.id}"'
         :onhoverlost 'eww update btHover=""'
         :class "btns-bar${adapter.Powered ? " enabled" : " disabled"}${device.Connected ? " active" : ""}${device.Paired ? "" : " newdevice"}"
         (box
           :space-evenly false
-          (eventbox 
+          (eventbox
             :hexpand true
-            :onclick "${device.Connected ? "bluetoothctl disconnect ${device.id}" : 
-                      "${device.Paired ? "bluetoothctl connect ${device.id}" : 
+            :onclick "${device.Connected ? "bluetoothctl disconnect ${device.id}" :
+                      "${device.Paired ? "bluetoothctl connect ${device.id}" :
                       "./bin/bluetooth_connect ${device.id} &"}"}"
             (box
               :space-evenly false
@@ -105,28 +145,28 @@
                 ; :image-height 42
                 ; :path "./assets/icons/devices/${device.Icon}.svg"
               )
-              (label 
-                :halign "start" 
-                :hexpand true 
+              (label
+                :halign "start"
+                :hexpand true
                 :text "${device.Name}"
               )
               (box ; Battery Box
-                :orientation "h" 
+                :orientation "h"
                 :space-evenly false
                 :visible "${device.Battery == "999" ? false : true}"
-                (label 
+                (label
                   :valign "center"
                   :angle 90
                   :text "${device.Battery}"
                   :class "smallish colorMe"
                 )
-                (image 
+                (image
                   :valign "center"
                   :halign "start"
                   :image-height 36
                   :path "./assets/icons/battery/${
                    device.Battery == "" ? "missing" :
-                   device.Battery > 79 ? "full" : 
+                   device.Battery > 79 ? "full" :
                    device.Battery > 59 ? "good" :
                    device.Battery > 39 ? "low" :
                    device.Battery > 19 ? "caution" : "empty"}.svg"
@@ -134,45 +174,45 @@
               )
             )
           )
-          (box 
-            :orientation "v" 
+          (box
+            :orientation "v"
             :class "paddingright"
             (literal ; I know it's ugly but it turns 3 evaluations into 1 so..
-              :content 
+              :content
                 {
-                  device.Paired ? 
-                    "(eventbox 
+                  device.Paired ?
+                    "(eventbox
                       :onclick 'bluetoothctl pairable on && bluetoothctl pair ${device.id} &'
-                      (label 
+                      (label
                         :text 'Pair'
-                        :class 'green' 
+                        :class 'green'
                         :tooltip 'paired'
                       )
                     )" :
-                    "(label 
+                    "(label
                       :text 'Pair'
-                      :class 'red' 
+                      :class 'red'
                       :tooltip 'not paired'
                     )"
                 }
             )
-            (literal 
-              :content 
+            (literal
+              :content
                 {
-                  device.Trusted ? 
+                  device.Trusted ?
                     "(eventbox
-                      :onclick 'bluetoothctl untrust ${device.id}' 
-                      (label 
-                        :text 'Auto' 
+                      :onclick 'bluetoothctl untrust ${device.id}'
+                      (label
+                        :text 'Auto'
                         :class 'green'
                         :tooltip 'AutoConnect Enabled'
                       )
-                    )" : 
-                    "(eventbox 
-                      :onclick 'bluetoothctl trust ${device.id}' 
-                      (label 
-                        :text 'Auto' 
-                        :class 'red' 
+                    )" :
+                    "(eventbox
+                      :onclick 'bluetoothctl trust ${device.id}'
+                      (label
+                        :text 'Auto'
+                        :class 'red'
                         :tooltip 'AutoConnect Disabled'
                       )
                     )"
@@ -183,14 +223,14 @@
             :transition "slideleft"
             :reveal "${btHover == device.id ? true : false}"
             :duration "1000ms"
-            (eventbox 
+            (eventbox
               :visible  "${adapter.Powered ? "${device.Trusted ? true : "${device.Paired ? true : false }"}" : false }"
               :class "redBox"
               :onclick `bluetoothctl remove ${device.id}`
               :tooltip "Remove Device"
-              (label 
+              (label
                 :class "large marginright marginleft inactive"
-                :text "X" 
+                :text "X"
               )
             )
           )
@@ -199,4 +239,3 @@
     )
   )
 )
-

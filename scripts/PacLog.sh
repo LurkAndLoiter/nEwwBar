@@ -8,14 +8,7 @@ elif [[ $1 == "year" ]]; then
 elif [[ $1 == "all" ]]; then
     SearchString=""
 else # default value is last week
-    SearchString="$(date +%Y-%m-%d) |\
-$(date -d 'last sunday' +%Y-%m-%d) |\
-$(date -d 'last monday' +%Y-%m-%d) |\
-$(date -d 'last tuesday' +%Y-%m-%d) |\
-$(date -d 'last wednesday' +%Y-%m-%d) |\
-$(date -d 'last thursday' +%Y-%m-%d) |\
-$(date -d 'last friday' +%Y-%m-%d) |\
-$(date -d 'last saturday' +%Y-%m-%d)"
+    SearchString="$(date +%Y-%m-%d)|$(date -d 'last sunday' +%Y-%m-%d)|$(date -d 'last monday' +%Y-%m-%d)|$(date -d 'last tuesday' +%Y-%m-%d)|$(date -d 'last wednesday' +%Y-%m-%d)|$(date -d 'last thursday' +%Y-%m-%d)|$(date -d 'last friday' +%Y-%m-%d)|$(date -d 'last saturday' +%Y-%m-%d)"
 fi
 
 # Get list of installed packages (name only) into a temporary file

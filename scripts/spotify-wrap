@@ -2,20 +2,22 @@
 
 # Function to listen for updates
 listenUpdate() {
-  ## Set Directory.
-  cache_dir="$XDG_RUNTIME_DIR/album_art_cache"
-  ## Create directory if doesn't exist
-  [ -d "$cache_dir" ] || mkdir -p "$cache_dir"
+    ## Set Directory.
+    cache_dir="$XDG_RUNTIME_DIR/album_art_cache"
+    ## Create directory if doesn't exist
+    [ -d "$cache_dir" ] || mkdir -p "$cache_dir"
 
-  playerctl --player=spotify metadata --format "{{mpris:artUrl}}" --follow | while IFS= read -r line; do
-    # echo $line
-    ## extract and set filename
-    file_name=$(basename "$line")
-    ## set filepath
-    file_path="$cache_dir/$file_name"
-    ## If file doesn't exist download file
-    [ -e "$file_path" ] || curl --max-time 10 --output "$file_path" "$line" > /dev/null 2>&1
-  done
+    playerctl --player=spotify metadata --format "{{mpris:artUrl}}" \
+        --follow | while IFS= read -r line; do
+        # echo $line
+        ## extract and set filename
+        file_name=$(basename "$line")
+        ## set filepath
+        file_path="$cache_dir/$file_name"
+        ## If file doesn't exist download file
+        [ -e "$file_path" ] || curl --max-time 10 --output "$file_path" \
+            "$line" > /dev/null 2>&1
+    done
 }
 
 # Start the listenUpdate function in the background
@@ -28,4 +30,3 @@ wait $!
 
 # After Spotify exits, kill the playerctl subprocess
 pkill -f "playerctl --player=spotify metadata --format"
-

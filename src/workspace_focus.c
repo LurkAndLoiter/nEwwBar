@@ -36,7 +36,7 @@
  * "Hey. Listen!" "Do a barrel roll!" "Dear Darla, I hate your stinking guts."
  * "If we listen to each other's hearts. We'll find we're never too far apart."
  * ____________________________________________________________________________
-*/
+ */
 
 #include <ctype.h>
 #include <stdbool.h>
@@ -61,9 +61,9 @@
   } while (0)
 #endif
 
-
 static void initialRun(void) {
-  FILE *fp = popen("hyprctl monitors -j | jq '.[] | select(.focused == true) | .id'", "r");
+  FILE *fp = popen(
+      "hyprctl monitors -j | jq '.[] | select(.focused == true) | .id'", "r");
   if (!fp) {
     DEBUG_MSG("popen failed");
     return;
@@ -71,7 +71,7 @@ static void initialRun(void) {
   char line[16];
   if (fgets(line, sizeof(line), fp)) {
     int id = atoi(line);
-    printf("%i\n",id);
+    printf("%i\n", id);
   }
   pclose(fp);
 }
@@ -100,7 +100,8 @@ int main() {
   addr.sun_family = AF_UNIX;
   strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
 
-  size_t addr_len = offsetof(struct sockaddr_un, sun_path) + strlen(addr.sun_path) + 1;
+  size_t addr_len =
+      offsetof(struct sockaddr_un, sun_path) + strlen(addr.sun_path) + 1;
   if (connect(sock, (struct sockaddr *)&addr, addr_len) < 0) {
     DEBUG_MSG("socket connect failed");
     close(sock);
@@ -137,7 +138,8 @@ int main() {
       }
       if (last_digits) {
         char *end = last_digits;
-        while (isdigit(*end)) end++;
+        while (isdigit(*end))
+          end++;
         fwrite(last_digits, 1, end - last_digits, stdout);
         fputc('\n', stdout);
         fflush(stdout);

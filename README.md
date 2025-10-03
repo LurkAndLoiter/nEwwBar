@@ -23,7 +23,7 @@ Dependencies ():
   - dbus
   - playerctl
   - json-c
- 
+
 If you run into an issue with compiling or setup please write an issue report.
 This is very much currently untested and a "works for me state." I really do
 want it to be seemless for people so let me know if you encounter any issues.
@@ -46,11 +46,11 @@ Have ideas for this side panel? let me know because I'm a bit at a loss with it.
 
 ![20250516_22h09m23s_grim](https://github.com/user-attachments/assets/c6b3b35f-5e08-48d1-9d83-0af6d0a80983)
 
-## Audio/Media 
-### Same functionality you can expect from pavucontrol. 
+## Audio/Media
+### Same functionality you can expect from pavucontrol.
 - Control output's audio
-- control player's audio 
-- switch players output device 
+- control player's audio
+- switch players output device
 - mute/unmute  players and outputs
 - volume control players and outputs
 - set default audio device.
@@ -61,7 +61,7 @@ Have ideas for this side panel? let me know because I'm a bit at a loss with it.
 ### Simple click to scan; click to add/connect/disconnect/remove.
 ![output](https://github.com/user-attachments/assets/4f4294fc-75ef-4a43-9a80-e5a5443a5bb5)
 
-## Pacman widget 
+## Pacman widget
 ### Pretty output of pacman logs. this log can be limited to day,week,month,year, or not at all.
 
 ![20250516_21h28m07s_grim](https://github.com/user-attachments/assets/ee73c9b7-8c00-43d3-bf24-992263f3e8e4)
@@ -74,9 +74,7 @@ Non actionable and just displays information at the moment. you can toggle rfkil
 
 ![20250516_22h00m53s_grim](https://github.com/user-attachments/assets/43764b0b-915c-4f72-bf0f-58726adfef75)
 
-## Mic widget 
+## Mic widget
  shows mute/volume/suspended state of mics and allows you to swap defaults
- 
+
 ![20250516_22h01m16s_grim](https://github.com/user-attachments/assets/9a2784b4-b448-4fd3-972a-97b590b13af6)
-
-

@@ -36,7 +36,7 @@
  * "Hey. Listen!" "Do a barrel roll!" "Dear Darla, I hate your stinking guts."
  * "If we listen to each other's hearts. We'll find we're never too far apart."
  * ____________________________________________________________________________
-*/
+ */
 
 #include <gio/gio.h>
 #include <stdio.h>
@@ -52,7 +52,7 @@ static guint subscription_id = 0;
 static guint strength_subscription_id = 0;
 static char *current_ap_path = NULL;
 static char *device_path = NULL;
-static char last_output[64] = "";  // Buffer for last JSON output
+static char last_output[64] = ""; // Buffer for last JSON output
 
 static char *get_device_path() {
   GError *error = NULL;
@@ -162,7 +162,7 @@ static void print_json(guint state, guint8 strength) {
     printf("%s\n", new_output);
     fflush(stdout);
     strncpy(last_output, new_output, sizeof(last_output) - 1);
-    last_output[sizeof(last_output) - 1] = '\0';  // Ensure null termination
+    last_output[sizeof(last_output) - 1] = '\0'; // Ensure null termination
   }
 }
 

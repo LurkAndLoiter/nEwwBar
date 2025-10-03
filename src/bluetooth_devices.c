@@ -36,7 +36,7 @@
  * "Hey. Listen!" "Do a barrel roll!" "Dear Darla, I hate your stinking guts."
  * "If we listen to each other's hearts. We'll find we're never too far apart."
  * ____________________________________________________________________________
-*/
+ */
 
 #include <dbus/dbus.h>
 #include <stdint.h>
@@ -45,9 +45,14 @@
 #include <string.h>
 
 #ifdef DEBUG
-#define DEBUG_MSG(fmt, ...) do { printf(fmt "\n", ##__VA_ARGS__); } while (0)
+#define DEBUG_MSG(fmt, ...)                                                    \
+  do {                                                                         \
+    printf(fmt "\n", ##__VA_ARGS__);                                           \
+  } while (0)
 #else
-#define DEBUG_MSG(fmt, ...) do { } while (0)
+#define DEBUG_MSG(fmt, ...)                                                    \
+  do {                                                                         \
+  } while (0)
 #endif
 
 #define BLUEZ_SERVICE "org.bluez"
@@ -229,7 +234,7 @@ static Device *get_devices(DBusConnection *conn, int *device_count) {
             const char *properties[] = {"Address",   "Alias",  "Icon",
                                         "Connected", "Paired", "Trusted",
                                         "Percentage"};
-            devices[index].prop_count = 7;  // All properties
+            devices[index].prop_count = 7; // All properties
 
             devices[index].properties =
                 calloc(devices[index].prop_count, sizeof(KeyValuePair));
@@ -237,10 +242,10 @@ static Device *get_devices(DBusConnection *conn, int *device_count) {
             // Get all properties (Device1 and Battery1)
             for (int i = 0; i < devices[index].prop_count; i++) {
               devices[index].properties[i].key = strdup(properties[i]);
-              if (i < 6) {  // Device1 properties
+              if (i < 6) { // Device1 properties
                 devices[index].properties[i].value =
                     get_property(conn, path, DEVICE_INTERFACE, properties[i]);
-              } else {  // Battery1 property
+              } else { // Battery1 property
                 devices[index].properties[i].value =
                     get_property(conn, path, BATTERY_INTERFACE, properties[i]);
               }
@@ -262,11 +267,11 @@ static Device *get_devices(DBusConnection *conn, int *device_count) {
   return devices;
 }
 
-static char *last_output = NULL;  // Store the last printed JSON output
+static char *last_output = NULL; // Store the last printed JSON output
 
 static void print_devices(Device *devices, int device_count) {
   // Build the JSON output into a dynamic buffer
-  size_t buffer_size = 1024;  // Initial buffer size
+  size_t buffer_size = 1024; // Initial buffer size
   char *buffer = malloc(buffer_size);
   if (!buffer) {
     DEBUG_MSG("Failed to allocate buffer for JSON output");
@@ -294,14 +299,15 @@ static void print_devices(Device *devices, int device_count) {
       if (strcmp(devices[i].properties[j].key, "Connected") == 0 ||
           strcmp(devices[i].properties[j].key, "Paired") == 0 ||
           strcmp(devices[i].properties[j].key, "Trusted") == 0) {
-        offset += snprintf(buffer + offset, buffer_size - offset,
-                           "\"%s\": %s", output_keys[j], value[0] ? value : "false");
+        offset += snprintf(buffer + offset, buffer_size - offset, "\"%s\": %s",
+                           output_keys[j], value[0] ? value : "false");
       } else if (strcmp(devices[i].properties[j].key, "Percentage") == 0) {
-        offset += snprintf(buffer + offset, buffer_size - offset,
-                           "\"%s\": %s", output_keys[j], value[0] ? value : "999");
+        offset += snprintf(buffer + offset, buffer_size - offset, "\"%s\": %s",
+                           output_keys[j], value[0] ? value : "999");
       } else {
-        offset += snprintf(buffer + offset, buffer_size - offset,
-                           "\"%s\": \"%s\"", output_keys[j], value[0] ? value : "null");
+        offset +=
+            snprintf(buffer + offset, buffer_size - offset, "\"%s\": \"%s\"",
+                     output_keys[j], value[0] ? value : "null");
       }
 
       // Resize buffer if needed
@@ -325,8 +331,8 @@ static void print_devices(Device *devices, int device_count) {
     // Print and update last_output
     printf("%s\n", buffer);
     fflush(stdout);
-    free(last_output);  // Free previous output
-    last_output = strdup(buffer);  // Store new output
+    free(last_output);            // Free previous output
+    last_output = strdup(buffer); // Store new output
   }
 
   free(buffer);
@@ -378,7 +384,7 @@ int main() {
       free_device(&devices[i]);
     if (devices)
       free(devices);
-    free(last_output);  // Clean up last_output
+    free(last_output); // Clean up last_output
     dbus_connection_unref(conn);
     dbus_error_free(&err);
     return 1;
@@ -424,7 +430,7 @@ int main() {
   }
   if (devices)
     free(devices);
-  free(last_output);  // Clean up last_output
+  free(last_output); // Clean up last_output
   dbus_connection_unref(conn);
   dbus_error_free(&err);
 

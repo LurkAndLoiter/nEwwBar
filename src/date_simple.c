@@ -36,7 +36,7 @@
  * "Hey. Listen!" "Do a barrel roll!" "Dear Darla, I hate your stinking guts."
  * "If we listen to each other's hearts. We'll find we're never too far apart."
  * ____________________________________________________________________________
-*/
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,20 +46,23 @@
 #define JSON_STR_LEN 128 // 83 bytes; set to 128 as buffer safety
 
 #ifdef DEBUG
-#define DEBUG_MSG(std, fmt, ...) do { fprintf(std ,fmt "\n", ##__VA_ARGS__); } while (0)
+#define DEBUG_MSG(file, fmt, ...)                                              \
+  do {                                                                         \
+    fprintf(file, fmt "\n", ##__VA_ARGS__);                                    \
+  } while (0)
 #else
-#define DEBUG_MSG(fmt, ...)
+#define DEBUG_MSG(fmt, ...)                                                    \
+  do {                                                                         \
+  } while (0)
 #endif
-
-static const char *days_of_week[] = {"Sunday",    "Monday",   "Tuesday",
-                                     "Wednesday", "Thursday", "Friday",
-                                     "Saturday"};
-static const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 int main(void) {
   DEBUG_MSG("DEBUG enabled.");
   struct tm prev_time = {0};
+  const char *days_of_week[] = {"Sunday",   "Monday", "Tuesday", "Wednesday",
+                                "Thursday", "Friday", "Saturday"};
+  const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
   while (1) {
     time_t rawtime;
@@ -84,38 +87,13 @@ int main(void) {
       sleep_seconds = 1;
     }
 
-    // Output JSON if time has changed (or on first valid iteration)
-    if (curr_time.tm_min != prev_time.tm_min ||
-        prev_time.tm_year == 0 ||
-        curr_time.tm_hour != prev_time.tm_hour ||
-        curr_time.tm_mday != prev_time.tm_mday ||
-        curr_time.tm_mon != prev_time.tm_mon ||
-        curr_time.tm_year != prev_time.tm_year ||
-        curr_time.tm_wday != prev_time.tm_wday) {
-
-      char json_str[JSON_STR_LEN];
-      int result =
-          snprintf(json_str, sizeof(json_str),
-                   "{\"DayOfWeek\": \"%s\", "
-                   "\"Month\": \"%s\", "
-                   "\"Day\": \"%02d\", "
-                   "\"Year\": \"%d\", "
-                   "\"H\": \"%02d\", "
-                   "\"M\": \"%02d\"}\n",
-                   days_of_week[curr_time.tm_wday], months[curr_time.tm_mon],
-                   curr_time.tm_mday, curr_time.tm_year + 1900,
-                   curr_time.tm_hour, curr_time.tm_min);
-
-      if (result < 0 || result >= (int)sizeof(json_str)) {
-        DEBUG_MSG(stderr, "ERROR: Failed to create JSON string");
-        sleep(1);
-        continue;
-      }
-
-      printf("%s", json_str);
-      fflush(stdout);
-      prev_time = curr_time;
-    }
+    printf("{\"DayOfWeek\":\"%s\",", days_of_week[curr_time.tm_wday]);
+    printf("\"Month\":\"%s\",", months[curr_time.tm_mon]);
+    printf("\"Day\":\"%02d\",", curr_time.tm_mday);
+    printf("\"Year\":\"%04d\",", curr_time.tm_year + 1900);
+    printf("\"H\":\"%02d\",", curr_time.tm_hour);
+    printf("\"M\":\"%02d\"}\n", curr_time.tm_min);
+    fflush(stdout);
 
     // Sleep until the next minute boundary
     DEBUG_MSG(stdout, "DEBUG: Sleeping for %d seconds", sleep_seconds);

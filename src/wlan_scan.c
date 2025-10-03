@@ -36,7 +36,7 @@
  * "Hey. Listen!" "Do a barrel roll!" "Dear Darla, I hate your stinking guts."
  * "If we listen to each other's hearts. We'll find we're never too far apart."
  * ____________________________________________________________________________
-*/
+ */
 
 #include <dbus/dbus.h>
 #include <stdio.h>

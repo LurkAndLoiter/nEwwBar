@@ -36,7 +36,7 @@
  * "Hey. Listen!" "Do a barrel roll!" "Dear Darla, I hate your stinking guts."
  * "If we listen to each other's hearts. We'll find we're never too far apart."
  * ____________________________________________________________________________
-*/
+ */
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -71,7 +71,8 @@ Workspace workspaces[MAX_WORKSPACES] = {0};
 void print_json() {
   printf("[");
   for (int i = 0; i < MAX_WORKSPACES; i++) {
-    if (i) printf(",");
+    if (i)
+      printf(",");
     printf("{\"WorkspaceID\": %i,", workspaces[i].WorkspaceID);
     printf("\"hasWindows\": %s", (workspaces[i].hasWindows ? "true" : "false"));
     printf("}");
@@ -88,7 +89,7 @@ static void update_workspaces(void) {
     return;
   }
 
-  for (int i = 0; i < MAX_WORKSPACES; i++){
+  for (int i = 0; i < MAX_WORKSPACES; i++) {
     workspaces[i].prevhasWindows = workspaces[i].hasWindows;
     workspaces[i].hasWindows = false;
   }
@@ -112,15 +113,16 @@ static void update_workspaces(void) {
   bool outputFlag = false;
   for (int i = 0; i < MAX_WORKSPACES; i++) {
     DEBUG_MSG("ID: %i, hasWindows: %i\n", workspaces[i].WorkspaceID,
-        workspaces[i].hasWindows);
+              workspaces[i].hasWindows);
     if (workspaces[i].hasWindows != workspaces[i].prevhasWindows) {
-        outputFlag = true;
+      outputFlag = true;
     }
   }
 
-  if (outputFlag) { print_json(); }
+  if (outputFlag) {
+    print_json();
+  }
 }
-
 
 int main() {
   DEBUG_MSG("DEBUG enabled.");
@@ -173,8 +175,8 @@ int main() {
     }
     buffer[bytes] = '\0';
     if (strncmp(buffer, "closewindow>", 12) == 0 ||
-               strncmp(buffer, "openwindow>", 11) == 0 ||
-               strncmp(buffer, "movewindow>", 11) == 0) {
+        strncmp(buffer, "openwindow>", 11) == 0 ||
+        strncmp(buffer, "movewindow>", 11) == 0) {
       DEBUG_MSG("CAUGHT:windows %s\n", buffer);
       update_workspaces();
     }

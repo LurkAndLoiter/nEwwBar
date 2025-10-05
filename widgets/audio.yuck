@@ -145,7 +145,7 @@ Left click open/close panel`
               :min 0
               :max 101
               :value "${s.volume}"
-              :onchange "./scripts/set-volume ${s.id} {}"
+              :onchange "pactl set-sink-volume ${s.sink} {}%"
             )
           )
           (eventbox
@@ -188,8 +188,8 @@ Left click open/close panel`
               :show-truncated false
               :text "${p.title}"
             )
-           ; TODO add a call to CanQuit to determine if the player is exitable from playerctl
-           ; Rough in just to include the option to quit from panel some players will not work
+            ; TODO add a call to CanQuit to determine if the player is exitable from playerctl
+            ; Rough in just to include the option to quit from panel some players will not work
             (eventbox
               :onclick "dbus-send --print-reply --dest=${p.longName} /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Quit"
               (label
@@ -251,13 +251,12 @@ Left click open/close panel`
             (playerVolume
               :playerVolume "${p.volume}"
               :playerIsMute "${p.mute}"
-              :wireplumberID "${p.id}"
               :sinkID "${p.sinkID}"
               :pulseAudioID "${p.serial}"
               :playerIsHovered "${p.Name == hoveredPlayer ? true : false}")
             (label
               :class "subtext"
-              :hexpand "${p.id == "" ? true : false}"
+              :hexpand "${p.serial == "" ? true : false}"
               :halign "end"
               :text "${p.Name}"
             )
@@ -340,7 +339,6 @@ Left click open/close panel`
 
 (defwidget playerVolume [playerVolume
                          playerIsMute
-                         wireplumberID
                          sinkID
                          pulseAudioID
                          playerIsHovered]
@@ -348,7 +346,7 @@ Left click open/close panel`
     :hexpand true
     :halign "${playerVolumeIsHovered ? "fill" : "start"}"
     :space-evenly false
-    :visible "${wireplumberID == "" ? false : true}"
+    :visible "${pulseAudioID == "" ? false : true}"
     (box
       :halign "start"
       :valign "center"
@@ -376,7 +374,7 @@ Left click open/close panel`
       (box
         :space-evenly false
         (eventbox
-          :onclick 'wpctl set-mute ${wireplumberID} toggle'
+          :onclick 'pactl set-sink-input-mute ${pulseAudioID} toggle'
           (box :space-evenly false :valign "center"
             (image
               :class "paddingleft paddingright"
@@ -400,7 +398,7 @@ Left click open/close panel`
             :class "low-vis marginright marginleft margintop"
             :width 150
             :value playerVolume
-            :onchange "./scripts/set-volume ${wireplumberID} {}"
+            :onchange "pactl set-sink-input-volume ${pulseAudioID} {}%"
             :max 101
             :min 0
           )

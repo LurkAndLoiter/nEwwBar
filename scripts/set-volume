@@ -1,7 +1,0 @@
-#!/usr/bin/sh
-
-if [ "$2" != 100 ]; then
-    wpctl set-volume "$1" 0."$2";
-else
-    wpctl set-volume "$1" 1.00;
-fi

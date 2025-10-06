@@ -38,9 +38,11 @@
  * ____________________________________________________________________________
  */
 
+#include "../include/hms.h"
+#include "../include/json.h"
+
 #include <glib.h>
 #include <inttypes.h>
-#include <json-glib/json-glib.h>
 #include <playerctl/playerctl.h>
 #include <stdio.h>
 #include <string.h>
@@ -50,6 +52,7 @@
   do {                                                                         \
     printf(fmt "\n", ##__VA_ARGS__);                                           \
   } while (0)
+
 // Helper function to convert playback status to string
 static const char *playback_status_to_string(PlayerctlPlaybackStatus status) {
   switch (status) {
@@ -78,72 +81,41 @@ typedef struct {
   gint64 last_position; // Store last known position
 } PlayerData;
 
-// Store last JSON output for change detection
-static gchar *last_json_output = NULL;
+static guint pending_updates = 0;
+static guint debounce_timeout_id = 0;
 
-// Convert microseconds to HMS (MM:SS or H:MM:SS)
-void to_hms(int64_t us, char *hms, size_t hms_size) {
-  if (us < 0) {
-    snprintf(hms, hms_size, "0:00");
-    return;
-  }
-
-  long hours = us / 3600000000LL;
-  long minutes = (us / 60000000LL) % 60;
-  long seconds = (us / 1000000LL) % 60;
-
-  if (hours > 0) {
-    snprintf(hms, hms_size, "%ld:%02ld:%02ld", hours, minutes, seconds);
-  } else {
-    snprintf(hms, hms_size, "%ld:%02ld", minutes, seconds);
-  }
-}
+static void print_player_list(GList *players);
+static void trigger_print(GList **players);
+static gboolean debounce_print(gpointer user_data);
 
 // Helper function to print the list of players as JSON
 static void print_player_list(GList *players) {
-  JsonBuilder *builder = json_builder_new();
-  json_builder_begin_object(builder);
-
-  // Build JSON object
+  printf("{");
+  gboolean first = TRUE;
   for (GList *iter = players; iter != NULL; iter = iter->next) {
     PlayerData *data = iter->data;
+    if (!first) {
+      printf(",");
+    }
+    first = FALSE;
     // Add microsecond position
     gchar *key = g_strdup_printf("org.mpris.MediaPlayer2.%s", data->instance);
-    json_builder_set_member_name(builder, key);
-    json_builder_add_int_value(builder, data->last_position / 1000000);
+    print_json_str(key);
+    printf(":%" PRId64, data->last_position / 1000000);
     g_free(key);
 
     // Add HMS position
+    printf(",");
     char hms[32];
     to_hms(data->last_position, hms, sizeof(hms));
     key = g_strdup_printf("org.mpris.MediaPlayer2.%sHMS", data->instance);
-    json_builder_set_member_name(builder, key);
-    json_builder_add_string_value(builder, hms);
+    print_json_str(key);
+    printf(":");
+    print_json_str(hms);
     g_free(key);
   }
-
-  json_builder_end_object(builder);
-
-  // Serialize to JSON string
-  JsonNode *root = json_builder_get_root(builder);
-  JsonGenerator *generator = json_generator_new();
-  json_generator_set_root(generator, root);
-  json_generator_set_pretty(generator, FALSE); // Compact output
-  gchar *json_str = json_generator_to_data(generator, NULL);
-
-  // Compare with last JSON output
-  if (last_json_output == NULL || strcmp(json_str, last_json_output) != 0) {
-    g_print("%s\n", json_str); // Always print JSON to stdout
-    // Update last JSON output
-    g_free(last_json_output);
-    last_json_output = g_strdup(json_str);
-  }
-
-  // Clean up
-  g_free(json_str);
-  g_object_unref(generator);
-  json_node_free(root);
-  g_object_unref(builder);
+  printf("}\n");
+  fflush(stdout);
 }
 
 // Callback for the playback-status signal
@@ -179,7 +151,7 @@ static void on_playback_status(PlayerctlPlayer *player,
               data->last_position);
     DEBUG_MSG("Playback status: List pointer %p, length %d", *players,
               g_list_length(*players));
-    print_player_list(*players);
+    trigger_print(players);
   } else {
     DEBUG_MSG("Playback status: Invalid PlayerData (name: %p, instance: %p)",
               data ? data->name : NULL, data ? data->instance : NULL);
@@ -268,7 +240,7 @@ static void on_seeked(PlayerctlPlayer *player, gint64 position,
               data->name, data->instance, data->last_position);
     DEBUG_MSG("Seeked: List pointer %p, length %d", *players,
               g_list_length(*players));
-    print_player_list(*players);
+    trigger_print(players);
   } else {
     DEBUG_MSG("Seeked: Invalid PlayerData (name: %p, instance: %p)",
               data ? data->name : NULL, data ? data->instance : NULL);
@@ -314,7 +286,7 @@ static gboolean check_positions(gpointer user_data) {
     if (playing_count == 0) {
       DEBUG_MSG("  No players are currently playing.");
     }
-    print_player_list(*players); // Output JSON with updated positions
+    trigger_print(players); // Output JSON with updated positions
   }
   return G_SOURCE_CONTINUE; // Keep the timeout running
 }
@@ -335,7 +307,7 @@ static void on_name_appeared(PlayerctlPlayerManager *manager,
       g_signal_connect(data->player, "seeked", G_CALLBACK(on_seeked), players);
     }
     DEBUG_MSG("List after adding %s:", name->instance);
-    print_player_list(*players);
+    trigger_print(players);
   } else {
     DEBUG_MSG("Player %s (instance: %s) already exists, skipping", name->name,
               name->instance);
@@ -354,12 +326,29 @@ static void on_name_vanished(PlayerctlPlayerManager *manager,
     DEBUG_MSG("Player vanished: %s (instance: %s, source: %d)", name->name,
               name->instance, name->source);
     DEBUG_MSG("List after removing %s:", name->instance);
-    print_player_list(*players);
+    trigger_print(players);
     player_data_free(data);
   } else {
     DEBUG_MSG("Player %s (instance: %s) not found in list", name->name,
               name->instance);
   }
+}
+
+static void trigger_print(GList **players) {
+  pending_updates++;
+  if (debounce_timeout_id == 0) {
+    debounce_timeout_id = g_timeout_add(100, debounce_print, players);
+  }
+}
+
+static gboolean debounce_print(gpointer user_data) {
+  GList **players = user_data;
+  if (--pending_updates == 0) {
+    print_player_list(*players);
+    debounce_timeout_id = 0;
+    return G_SOURCE_REMOVE;
+  }
+  return G_SOURCE_CONTINUE;
 }
 
 int main(int argc, char *argv[]) {
@@ -397,7 +386,7 @@ int main(int argc, char *argv[]) {
 
   // Print initial player list
   DEBUG_MSG("Initial player list:");
-  print_player_list(players);
+  trigger_print(&players);
 
   // Connect to the name-appeared signal
   g_signal_connect(manager, "name-appeared", G_CALLBACK(on_name_appeared),
@@ -417,7 +406,6 @@ int main(int argc, char *argv[]) {
 
   // Cleanup (unreachable in this example, but included for completeness)
   g_list_free_full(players, player_data_free);
-  g_free(last_json_output); // Free last JSON output
   g_main_loop_unref(loop);
   g_object_unref(manager);
 

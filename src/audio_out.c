@@ -47,7 +47,7 @@
 
 // Structure to hold sink information
 typedef struct {
-  char *object_id;
+  int index;
   char *name;
   char *description;
   char *icon;
@@ -72,7 +72,7 @@ void free_sinks(AudioSink *sinks, size_t count) {
   if (!sinks)
     return;
   for (size_t i = 0; i < count; ++i) {
-    free(sinks[i].object_id);
+    // free(sinks[i].index);
     free(sinks[i].name);
     free(sinks[i].description);
     free(sinks[i].icon);
@@ -87,14 +87,13 @@ void print_sinks(AppContext *app) {
     AudioSink *sink = &app->sinks[i];
     if (i)
       printf(",");
-    printf("{\"id\":");
-    print_json_str(sink->object_id);
-    printf(",\"mute\":%s", sink->muted ? "true" : "false");
+    printf("{\"index\":%i", sink->index);
+    printf(",\"isMute\":%s", sink->muted ? "true" : "false");
     printf(",\"volume\":%d", sink->volume);
-    printf(",\"default\":%s", sink->is_default ? "true" : "false");
-    printf(",\"sink\":");
-    print_json_str(sink->name);
+    printf(",\"isDefault\":%s", sink->is_default ? "true" : "false");
     printf(",\"name\":");
+    print_json_str(sink->name);
+    printf(",\"description\":");
     print_json_str(sink->description);
     printf(",\"icon\":");
     print_json_str(sink->icon);
@@ -130,9 +129,7 @@ void sink_info_cb(pa_context *c, const pa_sink_info *i, int eol,
   app->sinks = tmp;
   AudioSink *sink = &app->sinks[app->sink_count++];
 
-  const char *obj_id =
-      i->proplist ? pa_proplist_gets(i->proplist, "object.id") : NULL;
-  sink->object_id = obj_id ? strdup(obj_id) : strdup("unknown");
+  sink->index = i->index;
   sink->name = strdup(i->name ? i->name : "");
   sink->description = strdup(i->description ? i->description : "");
   const char *icon =

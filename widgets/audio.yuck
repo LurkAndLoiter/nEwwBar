@@ -40,8 +40,11 @@
 ;; ____________________________________________________________________________
 
 ;; TODO need CanQuit link need forced shuffle/loop check(set;check:mismatch == unsupported)
+;; playbackStatus 0 playing, 1 paused, 2 stopped
+;; Loop -1 unsupported, 0 none, 1 track, 2 playlist 
+;; Shuffle -1 Unsupported, 0 not shuffled, 1 shuffled
 (deflisten audioSources
-  :initial '[{"longName": "UUID","Name": "firefox","canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"PlaybackStatus": "Playing","isShuffle": false, "loop": "disabled", "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","sinkId": "UUIDpointer","index": "117","sink": 3736,"volume": 100,"isMute": false}]'
+  :initial '[{"longName": "UUID","Name": "firefox","canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"playbackStatus": 0,"isShuffle": 0, "loop": 0, "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","sinkId": "UUIDpointer","index": "117","sink": 3736,"volume": 100,"isMute": false, "hasPlayerctl": true}]'
   `$HOME/.config/eww/bin/mpris_fetch`
 )
 
@@ -329,12 +332,13 @@ Left click open/close panel`
           :path "./assets/icons/media/prev.svg"
         )
       )
+      ;; playbackStatus 0 playing, 1 paused, 2 stopped
       (eventbox
         :onclick "playerctl --player=${name} play-pause"
         (image
           :fill-svg "${canPlay ? "#cdd6f4" : "#45475a"}"
           :image-height 18
-          :path "./assets/icons/media/${playing == "Playing" ? "pause" : "play"}.svg"
+          :path "./assets/icons/media/${playing == 0 ? "pause" : "play"}.svg"
         )
       )
       (eventbox
@@ -351,30 +355,32 @@ Left click open/close panel`
       :class "paddingbottom"
       :space-evenly false
       :spacing 10
+      ;; Loop -1 unsupported, 0 none, 1 track, 2 playlist 
+      ;; Shuffle -1 Unsupported, 0 not shuffled, 1 shuffled
       (eventbox
         :onclick "playerctl --player=${name} loop ${
-                        loop == "None" ? "track" :
-                        loop == "Track" ? "playlist" :
+                        loop == 0 ? "track" :
+                        loop == 1 ? "playlist" :
                         "none"
                       }"
         (image
-          :fill-svg "${loop == "Track" ? "#cdd6f4" :
-                       loop == "Playlist" ? "#cdd6f4" : "#45475a"}"
+          :fill-svg "${loop == 1 ? "#cdd6f4" :
+                       loop == 2 ? "#cdd6f4" : "#45475a"}"
           :image-height 24
-          :path "./assets/icons/media/${loop == "Track" ? "loop-track" :
-                            loop == "Playlist" ? "loop" :
-                            loop == "None" ? "loop" :
+          :path "./assets/icons/media/${loop == 1 ? "loop-track" :
+                            loop == 2 ? "loop" :
+                            loop == 0 ? "loop" :
                             "loop-disabled"
                             }.svg"
         )
       )
       (eventbox
-        :onclick "playerctl --player=${name} shuffle ${isShuffle == true ? "off" : "on"}"
+        :onclick "playerctl --player=${name} shuffle ${isShuffle == 1 ? "off" : "on"}"
         (image
-          :fill-svg "${isShuffle == true ? "#cdd6f4" : "#45475a"}"
+          :fill-svg "${isShuffle == 1 ? "#cdd6f4" : "#45475a"}"
           :image-height 24
-          :path "./assets/icons/media/${isShuffle == true ? "shuffle-on" :
-                        isShuffle == false ? "shuffle-off" :
+          :path "./assets/icons/media/${isShuffle == 1 ? "shuffle-on" :
+                        isShuffle == 0 ? "shuffle-off" :
                         "shuffle-disabled"
                        }.svg"
         )
@@ -392,7 +398,6 @@ Left click open/close panel`
     :hexpand true
     :halign "${playerVolumeIsHovered ? "fill" : "start"}"
     :space-evenly false
-    ; :visible "${sinkId == 0 ? false : true}"
     (box
       :halign "start"
       :valign "center"

@@ -41,7 +41,7 @@
 
 ;; TODO need CanQuit link need forced shuffle/loop check(set;check:mismatch == unsupported)
 ;; playbackStatus 0 playing, 1 paused, 2 stopped
-;; Loop -1 unsupported, 0 none, 1 track, 2 playlist 
+;; Loop -1 unsupported, 0 none, 1 track, 2 playlist
 ;; Shuffle -1 Unsupported, 0 not shuffled, 1 shuffled
 (deflisten audioSources
   :initial '[{"longName": "UUID","Name": "firefox","canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"playbackStatus": 0,"isShuffle": 0, "loop": 0, "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","sinkId": "UUIDpointer","index": "117","sink": 3736,"volume": 100,"isMute": false, "hasPlayerctl": true}]'
@@ -355,7 +355,7 @@ Left click open/close panel`
       :class "paddingbottom"
       :space-evenly false
       :spacing 10
-      ;; Loop -1 unsupported, 0 none, 1 track, 2 playlist 
+      ;; Loop -1 unsupported, 0 none, 1 track, 2 playlist
       ;; Shuffle -1 Unsupported, 0 not shuffled, 1 shuffled
       (eventbox
         :onclick "playerctl --player=${name} loop ${

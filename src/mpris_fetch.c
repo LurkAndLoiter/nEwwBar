@@ -371,19 +371,19 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   PlayerctlPlayerName *matched_name = NULL;
   GList *player_names = playerctl_list_players(NULL);
   for (GList *iter = player_names; iter; iter = iter->next) {
-    PlayerctlPlayerName *name = iter->data;
-    if ((app_name && name->name && strcasecmp(app_name, name->name) == 0) ||
-        (app_name && name->instance &&
-         strcasecmp(app_name, name->instance) == 0) ||
-        (binary_name && name->name &&
-         strcasecmp(binary_name, name->name) == 0) ||
-        (media_name && name->name && strstr(media_name, name->name)) ||
-        (app_name && name->name && strcasecmp(app_name, "LibreWolf") == 0 &&
-         strcasecmp(name->name, "Firefox") == 0) ||
-        (binary_name && name->name &&
+    PlayerctlPlayerName *player = iter->data;
+    if ((app_name && player->name && strcasecmp(app_name, player->name) == 0) ||
+        (app_name && player->instance &&
+         strcasecmp(app_name, player->instance) == 0) ||
+        (binary_name && player->name &&
+         strcasecmp(binary_name, player->name) == 0) ||
+        (media_name && player->name && strstr(media_name, player->name)) ||
+        (app_name && player->name && strcasecmp(app_name, "libreWolf") == 0 &&
+         strcasecmp(player->name, "firefox") == 0) ||
+        (binary_name && player->name &&
          strcasecmp(binary_name, "librewolf") == 0 &&
-         strcasecmp(name->name, "Firefox") == 0)) {
-      matched_name = name;
+         strcasecmp(player->name, "firefox") == 0)) {
+      matched_name = player;
       break;
     }
   }
@@ -425,6 +425,7 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
       DEBUG_MSG("Failed to create player for %s: %s", matched_name->name,
                 error->message);
       g_error_free(error);
+      error = NULL;
     } else {
       initialize_player_properties(player_data, pulse);
     }
@@ -639,7 +640,7 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
 
   DEBUG_MSG(
       "Updated metadata for %s: title=%s, album=%s, artist=%s, artUrl=%s, "
-      "url=%s, length=%ld, shuffle=%i, loop=%i",
+      "length=%ld, shuffle=%i, loop=%i",
       data->name, data->title ? data->title : "none",
       data->album ? data->album : "none", data->artist ? data->artist : "none",
       data->art_url ? data->art_url : "none", data->shuffle, data->loop_status);
@@ -656,15 +657,9 @@ static void print_player_list(GList *players) {
     }
     first = FALSE;
     printf("{");
-    printf("\"longName\":");
-    gchar *long_name =
-        data->instance
-            ? g_strdup_printf("org.mpris.MediaPlayer2.%s", data->instance)
-            : g_strdup("");
-    print_json_str(long_name);
-    g_free(long_name);
-    printf(",\"name\":");
-    print_json_str(data->name ? data->name : "");
+    printf("\"longName\":\"org.mpris.MediaPlayer2.%s\"",
+           data->instance ? data->instance : "");
+    printf(",\"name\":\"%s\"", data->name ? data->name : "");
     printf(",\"canControl\":%s", data->can_control ? "true" : "false");
     printf(",\"canGoNext\":%s", data->can_go_next ? "true" : "false");
     printf(",\"canGoPrevious\":%s", data->can_go_previous ? "true" : "false");
@@ -678,8 +673,7 @@ static void print_player_list(GList *players) {
     print_json_str(data->album ? data->album : "");
     printf(",\"artist\":");
     print_json_str(data->artist ? data->artist : "");
-    printf(",\"artUrl\":");
-    print_json_str(data->art_url ? data->art_url : "");
+    printf(",\"artUrl\":\"%s\"", data->art_url ? data->art_url : "");
     printf(",\"length\":%" PRId64, data->length / 1000000);
     printf(",\"lengthHMS\":");
     char hms[32];
@@ -737,9 +731,8 @@ static void on_playback_status(PlayerctlPlayer *player, int status,
     }
   }
   if (data && data->name && data->instance) {
-    DEBUG_MSG("Player %s (instance: %s): Playback status changed to %s",
-              data->name, data->instance,
-              playerctl_player_get_playback_status(player));
+    DEBUG_MSG("Player %s (instance: %s): Playback status changed to %i",
+              data->name, data->instance, data->playback_status);
     update_metadata(data, pulse);
     trigger_print(pulse, FALSE);
   }
@@ -801,8 +794,8 @@ static void on_loop_status(PlayerctlPlayer *player, PlayerctlLoopStatus status,
   }
   if (data && data->name && data->instance) {
     data->loop_status = status;
-    DEBUG_MSG("Player %s (instance: %s): Loop status changed to %s", data->name,
-              data->instance, loop_status_to_string(status));
+    DEBUG_MSG("Player %s (instance: %s): Loop status changed to %d", data->name,
+              data->instance, data->loop_status);
     trigger_print(pulse, FALSE);
   }
 }
@@ -820,6 +813,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
   if (error) {
     DEBUG_MSG("Failed to create player for %s: %s", name->name, error->message);
     g_error_free(error);
+    error = NULL;
   }
   if (data->player) {
     initialize_player_properties(data, pulse);
@@ -885,6 +879,7 @@ static void on_name_appeared(PlayerctlPlayerManager *manager,
         DEBUG_MSG("Failed to create player for %s: %s", name->name,
                   error->message);
         g_error_free(error);
+        error = NULL;
       } else {
         initialize_player_properties(player_data, pulse);
         trigger_print(pulse, FALSE);
@@ -974,12 +969,6 @@ static PulseData *pulse_data_new(GList **players) {
 }
 
 int main(void) {
-  setlocale(LC_ALL, "");
-  if (!g_get_charset(NULL)) {
-    DEBUG_MSG("Non-UTF-8 locale detected. This may cause issues with special "
-              "characters.");
-  }
-
   GMainLoop *loop = g_main_loop_new(NULL, FALSE);
 
   PlayerctlPlayerManager *manager = playerctl_player_manager_new(NULL);

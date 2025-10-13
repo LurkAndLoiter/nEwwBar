@@ -78,8 +78,8 @@ static void initialRun(void) {
 
 int main() {
   DEBUG_MSG("DEBUG enabled.");
-  char *xdg_runtime = getenv("XDG_RUNTIME_DIR");
-  char *hyprland_instance = getenv("HYPRLAND_INSTANCE_SIGNATURE");
+  const char *xdg_runtime = getenv("XDG_RUNTIME_DIR");
+  const char *hyprland_instance = getenv("HYPRLAND_INSTANCE_SIGNATURE");
   if (!xdg_runtime || !hyprland_instance) {
     DEBUG_MSG("Required environment variables not set");
     return 1;
@@ -110,42 +110,49 @@ int main() {
 
   initialRun();
 
-  char buffer[BUFFER_SIZE];
   while (1) {
-    ssize_t bytes = read(sock, buffer, BUFFER_SIZE - 1);
+    char buffer[BUFFER_SIZE];
+    size_t buffer_len = 0;
+
+    if (buffer_len >= BUFFER_SIZE - 1) {
+      DEBUG_MSG("Buffer full, discarding old data");
+      buffer_len = 0;
+    }
+
+    ssize_t bytes =
+        read(sock, buffer + buffer_len, BUFFER_SIZE - buffer_len - 1);
     if (bytes <= 0) {
-      if (bytes == 0) {
+      if (bytes == 0)
         DEBUG_MSG("Socket closed");
-      } else {
-        DEBUG_MSG("socket read failed");
-      }
+      else
+        DEBUG_MSG("socket read failed: %d", errno);
       break;
     }
-    buffer[bytes] = '\0';
-    if (strncmp(buffer, "workspace>", 10) == 0 ||
-        strncmp(buffer, "focusedmon>", 11) == 0) {
-      /* Get last set of digits(workspaceID) in buffer */
-      char *ptr = buffer;
-      char *last_digits = NULL;
-      while (*ptr) {
-        if (isdigit(*ptr)) {
-          last_digits = ptr;
-          while (isdigit(*ptr))
-            ptr++;
-        } else {
-          ptr++;
+    buffer_len += bytes;
+    buffer[buffer_len] = '\0';
+
+    char *line = buffer;
+    char *next_line;
+    while ((next_line = strchr(line, '\n'))) {
+      *next_line = '\0';
+      if (strncmp(line, "workspace>>", 10) == 0 ||
+          strncmp(line, "focusedmon>>", 11) == 0) {
+        char *ptr = strrchr(line, ',');
+        if (!ptr)
+          ptr = strrchr(line, '>');
+        if (ptr) {
+          printf("%s\n", ptr + 1);
+          fflush(stdout);
         }
       }
-      if (last_digits) {
-        char *end = last_digits;
-        while (isdigit(*end))
-          end++;
-        fwrite(last_digits, 1, end - last_digits, stdout);
-        fputc('\n', stdout);
-        fflush(stdout);
-      } else {
-        DEBUG_MSG("No digits found\n");
-      }
+      line = next_line + 1;
+    }
+
+    buffer_len = strlen(line);
+    if (buffer_len > 0) {
+      memmove(buffer, line, buffer_len + 1);
+    } else {
+      buffer_len = 0;
     }
   }
 

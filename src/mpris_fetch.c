@@ -43,7 +43,7 @@
 #include <json-glib/json-glib.h>
 #include <locale.h>
 #include <playerctl/playerctl.h>
-#include <pulse/glib-mainloop.h> // Changed to use pa_glib_mainloop
+#include <pulse/glib-mainloop.h>
 #include <pulse/pulseaudio.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -61,12 +61,6 @@
   do {                                                                         \
   } while (0)
 #endif
-
-// Structure to hold sink cache
-typedef struct {
-  uint32_t index;
-  gchar *name;
-} SinkCache;
 
 // Structure to hold player data
 typedef struct {
@@ -96,6 +90,7 @@ typedef struct {
   guint32 sink;
   guint32 volume;
   gboolean mute;
+  gint hasPlayer;
   // Polling timeout ID for artUrl
   guint art_url_polling_id;
 } PlayerData;
@@ -103,8 +98,7 @@ typedef struct {
 // Structure to hold PulseAudio context and data
 typedef struct {
   pa_context *context;
-  pa_glib_mainloop *mainloop; // Changed to pa_glib_mainloop
-  GList *sink_cache;
+  pa_glib_mainloop *mainloop;
   GList **players;
 } PulseData;
 
@@ -120,10 +114,10 @@ typedef struct {
 typedef struct {
   PlayerData *player_data;
   PulseData *pulse;
-  gchar *art_url; // The file path to check
+  gchar *art_url;
   guint check_count;
   guint max_checks;
-  guint timeout_id; // Store the timeout ID to allow cancellation
+  guint timeout_id;
 } ArtUrlPollingData;
 
 // Store last JSON output for change detection
@@ -234,39 +228,6 @@ static gboolean check_can_properties(gpointer user_data) {
   return G_SOURCE_CONTINUE;
 }
 
-// Free a SinkCache entry
-static void sink_cache_free(gpointer data) {
-  SinkCache *cache = data;
-  g_free(cache->name);
-  g_free(cache);
-}
-
-// PulseAudio sink info callback
-static void sink_info_cb(pa_context *c, const pa_sink_info *i, int eol,
-                         void *userdata) {
-  PulseData *pulse = userdata;
-  if (eol || !i)
-    return;
-
-  // Check if sink exists in cache
-  for (GList *iter = pulse->sink_cache; iter; iter = iter->next) {
-    SinkCache *cache = iter->data;
-    if (cache->index == i->index) {
-      g_free(cache->name);
-      cache->name = g_strdup(i->name);
-      DEBUG_MSG("Updated sink: index=%u, name=%s", i->index, i->name);
-      return;
-    }
-  }
-
-  // Add new sink to cache
-  SinkCache *cache = g_new0(SinkCache, 1);
-  cache->index = i->index;
-  cache->name = g_strdup(i->name);
-  pulse->sink_cache = g_list_append(pulse->sink_cache, cache);
-  DEBUG_MSG("Cached sink: index=%u, name=%s", i->index, i->name);
-}
-
 // PulseAudio sink input info callback
 static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
                                int eol, void *userdata) {
@@ -290,14 +251,13 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   }
 
   // Log sink input details for debugging
-  DEBUG_MSG("Sink input: index=%u, app_name=%s, binary_name=%s, media_name=%s, "
-            "corked=%d",
-            i->index, app_name ? app_name : "null",
+  DEBUG_MSG("Sink input: index=%u, app_name=%s, binary_name=%s, "
+            "media_name=%s, corked=%d",
+            i->index ? i->index : 0, app_name ? app_name : "null",
             binary_name ? binary_name : "null",
-            media_name ? media_name : "null", i->corked);
+            media_name ? media_name : "null", i->corked ? "true" : "false");
 
   // Find matching player
-  // TODO This is not reliable way to match PA to MPRIS need better UUID.
   PlayerData *matched_player = NULL;
   for (GList *iter = *pulse->players; iter; iter = iter->next) {
     PlayerData *player = iter->data;
@@ -333,32 +293,42 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   }
 
   if (!matched_player) {
-    DEBUG_MSG("No player match for app_name=%s, binary_name=%s, media_name=%s",
-              app_name ? app_name : "null", binary_name ? binary_name : "null",
-              media_name ? media_name : "null");
-    return;
-  }
+    // Create default PlayerData
+    PlayerData *default_player = g_new0(PlayerData, 1);
+    default_player->name =
+        g_strdup(app_name ? app_name : (binary_name ? binary_name : "Unknown"));
+    default_player->index = i->index;
+    default_player->sink = i->sink;
+    uint32_t volume = pa_cvolume_avg(&i->volume);
+    default_player->volume =
+        (volume * 100 + PA_VOLUME_NORM / 2) / PA_VOLUME_NORM;
+    default_player->mute = i->mute;
+    default_player->hasPlayer = 0;
 
-  // Look up sink name
-  gchar *sink_name = NULL;
-  for (GList *iter = pulse->sink_cache; iter; iter = iter->next) {
-    SinkCache *cache = iter->data;
-    if (cache->index == i->sink) {
-      sink_name = cache->name;
-      break;
+    *pulse->players = g_list_append(*pulse->players, default_player);
+
+    DEBUG_MSG("Created default player %s: index=%u, sink=%u, volume=%u, "
+              "mute=%u, hasPlayer=%d",
+              default_player->name, default_player->index, default_player->sink,
+              default_player->volume, default_player->mute,
+              default_player->hasPlayer);
+  } else {
+    // Update player fields
+    matched_player->index = i->index;
+    matched_player->sink = i->sink;
+    uint32_t volume = pa_cvolume_avg(&i->volume);
+    matched_player->volume =
+        (volume * 100 + PA_VOLUME_NORM / 2) / PA_VOLUME_NORM;
+    matched_player->mute = i->mute;
+    if (matched_player->hasPlayer) {
+      matched_player->hasPlayer = 1;
     }
+    DEBUG_MSG("Updated player %s: index=%u, sink=%u, volume=%u, mute=%u, "
+              "hasPlayer=%d",
+              matched_player->name, matched_player->index, matched_player->sink,
+              matched_player->volume, matched_player->mute,
+              matched_player->hasPlayer);
   }
-
-  // Update player fields
-  matched_player->index = i->index;
-  matched_player->sink = i->sink;
-  uint32_t volume = pa_cvolume_avg(&i->volume);
-  matched_player->volume = (volume * 100 + PA_VOLUME_NORM / 2) / PA_VOLUME_NORM;
-  matched_player->mute = i->mute;
-
-  DEBUG_MSG("Updated player %s: index=%u, sink=%u, volume=%u, mute=%u",
-            matched_player->name, matched_player->index, matched_player->sink,
-            matched_player->volume, matched_player->mute);
 
   print_player_list(*pulse->players, FALSE);
 }
@@ -374,12 +344,7 @@ static void subscribe_cb(pa_context *c, pa_subscription_event_type_t t,
   if (type != PA_SUBSCRIPTION_EVENT_CHANGE && type != PA_SUBSCRIPTION_EVENT_NEW)
     return;
 
-  if (facility == PA_SUBSCRIPTION_EVENT_SINK) {
-    pa_operation *op =
-        pa_context_get_sink_info_by_index(c, idx, sink_info_cb, pulse);
-    if (op)
-      pa_operation_unref(op);
-  } else if (facility == PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
+  if (facility == PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
     pa_operation *op =
         pa_context_get_sink_input_info(c, idx, sink_input_info_cb, pulse);
     if (op)
@@ -400,10 +365,6 @@ static void context_state_cb(pa_context *c, void *userdata) {
         NULL);
     if (op_sub)
       pa_operation_unref(op_sub);
-    pa_operation *op_sink =
-        pa_context_get_sink_info_list(c, sink_info_cb, pulse);
-    if (op_sink)
-      pa_operation_unref(op_sink);
     pa_operation *op_input =
         pa_context_get_sink_input_info_list(c, sink_input_info_cb, pulse);
     if (op_input)
@@ -453,7 +414,6 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
   data->album = NULL;
   data->artist = NULL;
   data->art_url = NULL;
-  data->length = 0;
 
   if (data->art_url_polling_id != 0) {
     g_source_remove(data->art_url_polling_id);
@@ -595,7 +555,8 @@ static void print_player_list(GList *players, gboolean force_output) {
 
     json_builder_set_member_name(builder, "longName");
     gchar *long_name =
-        g_strdup_printf("org.mpris.MediaPlayer2.%s", data->instance);
+        g_strdup_printf("org.mpris.MediaPlayer2.%s",
+                        data->instance ? data->instance : data->name);
     json_builder_add_string_value(builder, long_name);
     g_free(long_name);
 
@@ -660,6 +621,9 @@ static void print_player_list(GList *players, gboolean force_output) {
 
     json_builder_set_member_name(builder, "isMute");
     json_builder_add_boolean_value(builder, data->mute);
+
+    json_builder_set_member_name(builder, "hasPlayer");
+    json_builder_add_boolean_value(builder, data->hasPlayer);
 
     json_builder_end_object(builder);
   }
@@ -789,6 +753,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
   data->instance = g_strdup(name->instance);
   data->source = name->source;
   data->player = playerctl_player_new_from_name(name, &error);
+  data->hasPlayer = -1;
   if (error != NULL) {
     DEBUG_MSG("Failed to create player for %s: %s", name->name, error->message);
     g_error_free(error);
@@ -858,10 +823,13 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
                        pulse);
     }
   }
-  DEBUG_MSG("Created PlayerData for %s (instance: %s, title: %s, length: "
-            "%ld, sink: %i)",
-            data->name, data->instance, data->title ? data->title : "",
-            data->length, data->shuffle, data->loop_status, data->sink);
+  DEBUG_MSG("Created PlayerData for %s (instance: %s, title: %s, length: %ld, "
+            "sink: %i)",
+            data->name ? data->name : "none",
+            data->instance ? data->instance : 0, data->title ? data->title : "",
+            data->length ? data->length : 0, data->shuffle ? data->shuffle : 0,
+            data->loop_status ? data->loop_status : 0,
+            data->sink ? data->sink : 0);
   return data;
 }
 
@@ -959,7 +927,6 @@ static void pulse_data_free(PulseData *pulse) {
   if (pulse->mainloop) {
     pa_glib_mainloop_free(pulse->mainloop);
   }
-  g_list_free_full(pulse->sink_cache, sink_cache_free);
   g_free(pulse);
 }
 
@@ -967,7 +934,7 @@ static void pulse_data_free(PulseData *pulse) {
 static PulseData *pulse_data_new(GList **players) {
   PulseData *pulse = g_new0(PulseData, 1);
   pulse->players = players;
-  pulse->mainloop = pa_glib_mainloop_new(NULL); // Use GLib main loop
+  pulse->mainloop = pa_glib_mainloop_new(NULL);
   if (!pulse->mainloop) {
     DEBUG_MSG("Failed to create PulseAudio GLib mainloop");
     pulse_data_free(pulse);

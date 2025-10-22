@@ -32,7 +32,7 @@ date_simple: src/date_simple.c
 	$(CC) -o bin/date_simple src/date_simple.c
 
 mpris_fetch: src/mpris_fetch.c
-	$(CC) -o bin/mpris_fetch src/mpris_fetch.c src/json.c src/hms.c `pkg-config --cflags --libs glib-2.0 playerctl libpulse libpulse-mainloop-glib`
+	$(CC) -o bin/mpris_fetch src/mpris_fetch.c src/json.c src/hms.c `pkg-config --cflags json-glib-1.0 --libs glib-2.0 playerctl libpulse libpulse-mainloop-glib`
 
 mpris_position: src/mpris_position.c
 	$(CC) -o bin/mpris_position src/mpris_position.c src/json.c src/hms.c `pkg-config --cflags --libs playerctl`

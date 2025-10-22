@@ -44,7 +44,7 @@
 ;; Loop -1 unsupported, 0 none, 1 track, 2 playlist
 ;; Shuffle -1 Unsupported, 0 not shuffled, 1 shuffled
 (deflisten audioSources
-  :initial '[{"longName": "UUID","Name": "firefox","canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"playbackStatus": 0,"isShuffle": 0, "loop": 0, "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","sinkId": "UUIDpointer","index": "117","sink": 3736,"volume": 100,"isMute": false, "hasPlayerctl": true}]'
+  :initial '[{"longName": "UUID","name": "firefox","canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"playbackStatus": 0,"isShuffle": 0, "loop": 0, "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","sinkId": "UUIDpointer","index": "117","sink": 3736,"volume": 100,"isMute": false}]'
   `$HOME/.config/eww/bin/mpris_fetch`
 )
 
@@ -179,7 +179,6 @@ Left click open/close panel`
     :space-evenly false
     (for p in audioSources
       (eventbox
-        :visible "${! p.hasPlayerctl}"
         :onhover `eww update hoveredPlayer="${p.name}"`
         :onhoverlost `eww update hoveredPlayer""`
         (box
@@ -218,7 +217,6 @@ Left click open/close panel`
     :space-evenly false
     (for p in audioSources
       (eventbox
-        :visible "${p.hasPlayerctl}"
         :onhover `eww update hoveredPlayer="${p.name}"`
         :onhoverlost `eww update hoveredPlayer""`
         (box
@@ -456,69 +454,6 @@ Left click open/close panel`
           )
         )
       )
-    )
-  )
-)
-
-(defwidget nonPlayerVolume [playerVolume
-                            playerIsMute
-                            sinkId
-                            pulseAudioID
-                            playerIsHovered]
-  (box
-    :hexpand true
-    :halign "fill"
-    :space-evenly false
-    (box
-      :halign "start"
-      :valign "center"
-      :visible "${arraylength(audioSinks) > 1 ? true : false}"
-      (for s in audioSinks
-        (eventbox
-          :onclick "pactl move-sink-input ${pulseAudioID} ${s.name}"
-          :tooltip "${s.description}"
-          (image
-            :class "paddingright"
-            :image-height 16
-            :fill-svg "${s.index == sinkId ? "#cdd6f4" : "#45475a"}"
-            :path "${s.icon == "audio-speakers" ?
-              "./assets/icons/media/small-speaker.svg" :
-              s.icon == "audio-headset-bluetooth" ?
-              "./assets/icons/media/small-earbuds.svg" :
-              "./assets/icons/missing.svg"}"
-          )
-        )
-      )
-    )
-    (box
-      :space-evenly false
-      :hexpand true
-      (eventbox
-        :onclick 'pactl set-sink-input-mute ${pulseAudioID} toggle'
-        (box :space-evenly false :valign "center"
-          (image
-            :class "paddingleft paddingright"
-            :image-height 16
-            :valign "center"
-            :halign "center"
-            :path "./assets/icons/media/volume-${playerIsMute ? "mute" : "high"}.svg"
-            :fill-svg "${playerIsMute ? "#f38ba8" : "#a6e3a1"}"
-          )
-          (label
-            :class "${playerIsMute ? "red" : "green"}"
-            :text playerVolume
-          )
-        )
-      )
-        (scale
-          :class "low-vis marginright marginleft margintop"
-          :hexpand true
-          :value playerVolume
-          :onchange "pactl set-sink-input-volume ${pulseAudioID} {}%"
-          :max 101
-          :min 0
-        )
-
     )
   )
 )

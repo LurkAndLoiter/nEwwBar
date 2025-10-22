@@ -39,13 +39,10 @@
  */
 
 #include <glib.h>
-#include <inttypes.h>
 #include <json-glib/json-glib.h>
-#include <locale.h>
 #include <playerctl/playerctl.h>
 #include <pulse/glib-mainloop.h>
 #include <pulse/pulseaudio.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -255,7 +252,7 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
             "media_name=%s, corked=%d",
             i->index ? i->index : 0, app_name ? app_name : "null",
             binary_name ? binary_name : "null",
-            media_name ? media_name : "null", i->corked ? "true" : "false");
+            media_name ? media_name : "null", i->corked ? TRUE : FALSE);
 
   // Find matching player
   PlayerData *matched_player = NULL;
@@ -299,7 +296,7 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
         g_strdup(app_name ? app_name : (binary_name ? binary_name : "Unknown"));
     default_player->index = i->index;
     default_player->sink = i->sink;
-    uint32_t volume = pa_cvolume_avg(&i->volume);
+    guint32 volume = pa_cvolume_avg(&i->volume);
     default_player->volume =
         (volume * 100 + PA_VOLUME_NORM / 2) / PA_VOLUME_NORM;
     default_player->mute = i->mute;
@@ -316,7 +313,7 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
     // Update player fields
     matched_player->index = i->index;
     matched_player->sink = i->sink;
-    uint32_t volume = pa_cvolume_avg(&i->volume);
+    guint32 volume = pa_cvolume_avg(&i->volume);
     matched_player->volume =
         (volume * 100 + PA_VOLUME_NORM / 2) / PA_VOLUME_NORM;
     matched_player->mute = i->mute;
@@ -335,7 +332,7 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
 
 // PulseAudio subscription callback
 static void subscribe_cb(pa_context *c, pa_subscription_event_type_t t,
-                         uint32_t idx, void *userdata) {
+                         guint32 idx, void *userdata) {
   PulseData *pulse = userdata;
   pa_subscription_event_type_t facility =
       t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
@@ -386,23 +383,6 @@ static void context_state_cb(pa_context *c, void *userdata) {
   }
 }
 
-// Function to sanitize a string, ensuring it's valid UTF-8
-static gchar *sanitize_utf8_string(const gchar *input) {
-  if (!input)
-    return NULL;
-
-  // Validate the input string
-  if (g_utf8_validate(input, -1, NULL)) {
-    return g_strdup(input); // String is already valid UTF-8
-  }
-
-  // If invalid, replace invalid sequences with U+FFFD (�)
-  DEBUG_MSG("Invalid UTF-8 in string: %s", input);
-  gchar *sanitized = g_utf8_make_valid(input, -1);
-  DEBUG_MSG("Sanitized to: %s", sanitized);
-  return sanitized;
-}
-
 // Helper function to update metadata and properties
 static void update_metadata(PlayerData *data, PulseData *pulse) {
   // Free existing metadata
@@ -428,30 +408,21 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
 
   GError *error = NULL;
 
-  // Title
-  gchar *raw_title = playerctl_player_get_title(data->player, &error);
-  data->title = sanitize_utf8_string(raw_title);
-  g_free(raw_title);
+  data->title = playerctl_player_get_title(data->player, &error);
   if (error != NULL) {
     DEBUG_MSG("Failed to get title for %s: %s", data->name, error->message);
     g_error_free(error);
     error = NULL;
   }
 
-  // Album
-  gchar *raw_album = playerctl_player_get_album(data->player, &error);
-  data->album = sanitize_utf8_string(raw_album);
-  g_free(raw_album);
+  data->album = playerctl_player_get_album(data->player, &error);
   if (error != NULL) {
     DEBUG_MSG("Failed to get album for %s: %s", data->name, error->message);
     g_error_free(error);
     error = NULL;
   }
 
-  // Artist
-  gchar *raw_artist = playerctl_player_get_artist(data->player, &error);
-  data->artist = sanitize_utf8_string(raw_artist);
-  g_free(raw_artist);
+  data->artist = playerctl_player_get_artist(data->player, &error);
   if (error != NULL) {
     DEBUG_MSG("Failed to get artist for %s: %s", data->name, error->message);
     g_error_free(error);
@@ -559,6 +530,7 @@ static void print_player_list(GList *players, gboolean force_output) {
                         data->instance ? data->instance : data->name);
     json_builder_add_string_value(builder, long_name);
     g_free(long_name);
+    long_name = NULL;
 
     json_builder_set_member_name(builder, "name");
     json_builder_add_string_value(builder, data->name ? data->name : "");
@@ -824,7 +796,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
     }
   }
   DEBUG_MSG("Created PlayerData for %s (instance: %s, title: %s, length: %ld, "
-            "sink: %i)",
+            "shuffle:%d loop: %d sink: %u)",
             data->name ? data->name : "none",
             data->instance ? data->instance : 0, data->title ? data->title : "",
             data->length ? data->length : 0, data->shuffle ? data->shuffle : 0,
@@ -957,14 +929,7 @@ static PulseData *pulse_data_new(GList **players) {
   return pulse;
 }
 
-int main(int argc, char *argv[]) {
-  // Set UTF-8 locale
-  setlocale(LC_ALL, "");
-  if (!g_get_charset(NULL)) {
-    DEBUG_MSG("Non-UTF-8 locale detected. This may cause issues with special "
-              "characters.");
-  }
-
+int main(void) {
   GError *error = NULL;
 
   // Initialize GLib main loop

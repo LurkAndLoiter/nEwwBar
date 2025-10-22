@@ -53,53 +53,66 @@
   do {                                                                         \
     printf(fmt "\n", ##__VA_ARGS__);                                           \
   } while (0)
+static const gchar *safe_str(const gchar *s) { return s ? s : ""; }
 #else
 #define DEBUG_MSG(fmt, ...)                                                    \
   do {                                                                         \
   } while (0)
 #endif
 
-// Structure to hold player data
+/* Constants to make behavior easier to tweak */
+#define ART_POLL_INTERVAL_SEC 1
+#define ART_POLL_MAX_CHECKS 10
+#define CAN_CHECK_INTERVAL_SEC 1
+#define CAN_CHECK_MAX_ATTEMPTS 2
+
+/* Small helpers */
+static unsigned int pa_volume_to_percent(const pa_cvolume *v) {
+  guint32 avg = pa_cvolume_avg(v);
+  return (avg * 100 + PA_VOLUME_NORM / 2) / PA_VOLUME_NORM;
+}
+
+/* Structure to hold player data */
 typedef struct {
   gchar *name;
   gchar *instance;
   gint source;
   PlayerctlPlayer *player;
-  // Cached player properties
+  /* Cached player properties */
   gboolean can_control;
   gboolean can_go_next;
   gboolean can_go_previous;
   gboolean can_pause;
   gboolean can_play;
   gboolean can_seek;
-  // Cached metadata
+  /* Cached metadata */
   gchar *title;
   gchar *album;
   gchar *artist;
   gchar *art_url;
-  int64_t length;
-  // Shuffle and loop
+  gint64 length;
+  /* Shuffle and loop */
   gint shuffle;
   gint loop_status;
   gint playback_status;
-  // PulseAudio fields
+  /* PulseAudio fields */
   guint32 index;
   guint32 sink;
   guint32 volume;
   gboolean mute;
   gint hasPlayer;
-  // Polling timeout ID for artUrl
+  /* Polling timeout ID for artUrl */
   guint art_url_polling_id;
 } PlayerData;
 
-// Structure to hold PulseAudio context and data
+/* Structure to hold PulseAudio context and data */
 typedef struct {
   pa_context *context;
   pa_glib_mainloop *mainloop;
   GList **players;
 } PulseData;
 
-// Structure to hold new player can_* check timeout data
+/* Structure to hold new player can_* check timeout data */
 typedef struct {
   PlayerData *player_data;
   PulseData *pulse;
@@ -107,59 +120,59 @@ typedef struct {
   guint max_checks;
 } TimeoutData;
 
-// Structure to hold artUrl polling data
+/* Structure to hold artUrl polling data */
 typedef struct {
   PlayerData *player_data;
   PulseData *pulse;
   gchar *art_url;
   guint check_count;
   guint max_checks;
-  guint timeout_id;
 } ArtUrlPollingData;
 
-// Store last JSON output for change detection
+/* Store last JSON output for change detection */
 static gchar *last_json_output = NULL;
 
-// Forward declaration of print_player_list
+/* Forward declarations */
 static void print_player_list(GList *players, gboolean force_output);
+static void update_metadata(PlayerData *data, PulseData *pulse);
 
-// Polling callback to check if artUrl file exists
+/* Polling callback to check if artUrl file exists */
 static gboolean check_art_url_file(gpointer user_data) {
   ArtUrlPollingData *polling_data = user_data;
+  if (!polling_data) {
+    return G_SOURCE_REMOVE;
+  }
   PlayerData *data = polling_data->player_data;
   PulseData *pulse = polling_data->pulse;
 
-  if (!data || !polling_data->art_url) {
-    DEBUG_MSG("Player %s: Invalid polling data or artUrl, stopping polling",
-              data->name);
+  if (!polling_data->art_url || !data) {
+    DEBUG_MSG("check_art_url_file: invalid polling data (art_url=%p, data=%p)",
+              (void *)polling_data->art_url, (void *)data);
     g_free(polling_data->art_url);
     g_free(polling_data);
     return G_SOURCE_REMOVE;
   }
 
-  // Check if the file exists
   gboolean file_exists = g_file_test(polling_data->art_url, G_FILE_TEST_EXISTS);
   DEBUG_MSG("Player %s: Checking artUrl %s, exists=%d, attempt=%u/%u",
-            data->name, polling_data->art_url, file_exists,
+            safe_str(data->name), polling_data->art_url, file_exists,
             polling_data->check_count + 1, polling_data->max_checks);
 
   if (file_exists) {
-    // File exists, update the JSON output and stop polling
-    DEBUG_MSG("Player %s: artUrl file %s now exists, updating JSON", data->name,
-              polling_data->art_url);
+    DEBUG_MSG("Player %s: artUrl file %s now exists, updating JSON",
+              safe_str(data->name), polling_data->art_url);
+    /* Force update so UI picks up the new file immediately */
     print_player_list(*pulse->players, TRUE);
     g_free(polling_data->art_url);
     g_free(polling_data);
     return G_SOURCE_REMOVE;
   }
 
-  // Increment check count
   polling_data->check_count++;
-
-  // Stop polling after max_checks
   if (polling_data->check_count >= polling_data->max_checks) {
     DEBUG_MSG("Player %s: Stopping artUrl polling for %s after %u attempts",
-              data->name, polling_data->art_url, polling_data->check_count);
+              safe_str(data->name), polling_data->art_url,
+              polling_data->check_count);
     g_free(polling_data->art_url);
     g_free(polling_data);
     return G_SOURCE_REMOVE;
@@ -168,19 +181,29 @@ static gboolean check_art_url_file(gpointer user_data) {
   return G_SOURCE_CONTINUE;
 }
 
-// Timeout callback to check can_* properties
+/* Timeout callback to check can_* properties */
 static gboolean check_can_properties(gpointer user_data) {
   TimeoutData *timeout_data = user_data;
+  if (!timeout_data) {
+    return G_SOURCE_REMOVE;
+  }
   PlayerData *data = timeout_data->player_data;
   PulseData *pulse = timeout_data->pulse;
 
-  if (!data->player) {
-    DEBUG_MSG("Player %s: No player object, stopping timeout", data->name);
+  if (!data) {
+    DEBUG_MSG("check_can_properties: missing PlayerData, stopping");
     g_free(timeout_data);
     return G_SOURCE_REMOVE;
   }
 
-  // Store old values
+  if (!data->player) {
+    DEBUG_MSG("Player %s: No player object available, stopping timeout",
+              safe_str(data->name));
+    g_free(timeout_data);
+    return G_SOURCE_REMOVE;
+  }
+
+  /* Store old values */
   gboolean old_can_control = data->can_control;
   gboolean old_can_go_next = data->can_go_next;
   gboolean old_can_go_previous = data->can_go_previous;
@@ -188,13 +211,12 @@ static gboolean check_can_properties(gpointer user_data) {
   gboolean old_can_play = data->can_play;
   gboolean old_can_seek = data->can_seek;
 
-  // Update can_* properties
+  /* Update can_* properties */
   g_object_get(data->player, "can-control", &data->can_control, "can-go-next",
                &data->can_go_next, "can-go-previous", &data->can_go_previous,
                "can-pause", &data->can_pause, "can-play", &data->can_play,
                "can-seek", &data->can_seek, NULL);
 
-  // Check if any properties changed
   gboolean changed =
       (old_can_control != data->can_control ||
        old_can_go_next != data->can_go_next ||
@@ -205,19 +227,16 @@ static gboolean check_can_properties(gpointer user_data) {
   if (changed) {
     DEBUG_MSG("Player %s: can_* properties updated (control=%d, next=%d, "
               "prev=%d, pause=%d, play=%d, seek=%d)",
-              data->name, data->can_control, data->can_go_next,
+              safe_str(data->name), data->can_control, data->can_go_next,
               data->can_go_previous, data->can_pause, data->can_play,
               data->can_seek);
     print_player_list(*pulse->players, FALSE);
   }
 
-  // Increment check count
   timeout_data->check_count++;
-
-  // Stop polling after max_checks
   if (timeout_data->check_count >= timeout_data->max_checks) {
     DEBUG_MSG("Player %s: Stopping can_* property checks after %u attempts",
-              data->name, timeout_data->check_count);
+              safe_str(data->name), timeout_data->check_count);
     g_free(timeout_data);
     return G_SOURCE_REMOVE;
   }
@@ -225,11 +244,11 @@ static gboolean check_can_properties(gpointer user_data) {
   return G_SOURCE_CONTINUE;
 }
 
-// PulseAudio sink input info callback
+/* PulseAudio sink input info callback */
 static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
                                int eol, void *userdata) {
   PulseData *pulse = userdata;
-  if (eol || !i)
+  if (eol || !i || !pulse)
     return;
 
   if (i->corked) {
@@ -241,34 +260,36 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   const char *media_name = pa_proplist_gets(i->proplist, "media.name");
   const char *binary_name =
       pa_proplist_gets(i->proplist, "application.process.binary");
+
   if (!app_name && !binary_name) {
     DEBUG_MSG("Skipping sink input with no app_name or binary_name: index=%u",
               i->index);
     return;
   }
 
-  // Log sink input details for debugging
-  DEBUG_MSG("Sink input: index=%u, app_name=%s, binary_name=%s, "
-            "media_name=%s, corked=%d",
-            i->index ? i->index : 0, app_name ? app_name : "null",
-            binary_name ? binary_name : "null",
-            media_name ? media_name : "null", i->corked ? TRUE : FALSE);
+  DEBUG_MSG("Sink input: index=%u, app_name=%s, binary_name=%s, media_name=%s",
+            i->index, safe_str(app_name), safe_str(binary_name),
+            safe_str(media_name));
 
-  // Find matching player
+  /* Find matching player */
   PlayerData *matched_player = NULL;
   for (GList *iter = *pulse->players; iter; iter = iter->next) {
     PlayerData *player = iter->data;
-    if (app_name && player->name && strcasecmp(app_name, player->name) == 0) {
+    if (!player)
+      continue;
+
+    if (app_name && player->name &&
+        g_ascii_strcasecmp(app_name, player->name) == 0) {
       matched_player = player;
       break;
     }
     if (app_name && player->instance &&
-        strcasecmp(app_name, player->instance) == 0) {
+        g_ascii_strcasecmp(app_name, player->instance) == 0) {
       matched_player = player;
       break;
     }
     if (binary_name && player->name &&
-        strcasecmp(binary_name, player->name) == 0) {
+        g_ascii_strcasecmp(binary_name, player->name) == 0) {
       matched_player = player;
       break;
     }
@@ -276,29 +297,29 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
       matched_player = player;
       break;
     }
-    if (app_name && player->name && strcasecmp(app_name, "LibreWolf") == 0 &&
-        strcasecmp(player->name, "Firefox") == 0) {
+    /* Special casing for LibreWolf -> Firefox mapping */
+    if (app_name && player->name &&
+        g_ascii_strcasecmp(app_name, "LibreWolf") == 0 &&
+        g_ascii_strcasecmp(player->name, "Firefox") == 0) {
       matched_player = player;
       break;
     }
     if (binary_name && player->name &&
-        strcasecmp(binary_name, "librewolf") == 0 &&
-        strcasecmp(player->name, "Firefox") == 0) {
+        g_ascii_strcasecmp(binary_name, "librewolf") == 0 &&
+        g_ascii_strcasecmp(player->name, "Firefox") == 0) {
       matched_player = player;
       break;
     }
   }
 
   if (!matched_player) {
-    // Create default PlayerData
+    /* Create default PlayerData for unrecognized sink input */
     PlayerData *default_player = g_new0(PlayerData, 1);
     default_player->name =
         g_strdup(app_name ? app_name : (binary_name ? binary_name : "Unknown"));
     default_player->index = i->index;
     default_player->sink = i->sink;
-    guint32 volume = pa_cvolume_avg(&i->volume);
-    default_player->volume =
-        (volume * 100 + PA_VOLUME_NORM / 2) / PA_VOLUME_NORM;
+    default_player->volume = pa_volume_to_percent(&i->volume);
     default_player->mute = i->mute;
     default_player->hasPlayer = 0;
 
@@ -306,31 +327,29 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
 
     DEBUG_MSG("Created default player %s: index=%u, sink=%u, volume=%u, "
               "mute=%u, hasPlayer=%d",
-              default_player->name, default_player->index, default_player->sink,
-              default_player->volume, default_player->mute,
-              default_player->hasPlayer);
+              safe_str(default_player->name), default_player->index,
+              default_player->sink, default_player->volume,
+              default_player->mute, default_player->hasPlayer);
   } else {
-    // Update player fields
+    /* Update existing player with sink input info */
     matched_player->index = i->index;
     matched_player->sink = i->sink;
-    guint32 volume = pa_cvolume_avg(&i->volume);
-    matched_player->volume =
-        (volume * 100 + PA_VOLUME_NORM / 2) / PA_VOLUME_NORM;
+    matched_player->volume = pa_volume_to_percent(&i->volume);
     matched_player->mute = i->mute;
-    if (matched_player->hasPlayer) {
-      matched_player->hasPlayer = 1;
-    }
+    matched_player->hasPlayer =
+        matched_player->hasPlayer ? matched_player->hasPlayer : 1;
+
     DEBUG_MSG("Updated player %s: index=%u, sink=%u, volume=%u, mute=%u, "
               "hasPlayer=%d",
-              matched_player->name, matched_player->index, matched_player->sink,
-              matched_player->volume, matched_player->mute,
-              matched_player->hasPlayer);
+              safe_str(matched_player->name), matched_player->index,
+              matched_player->sink, matched_player->volume,
+              matched_player->mute, matched_player->hasPlayer);
   }
 
   print_player_list(*pulse->players, FALSE);
 }
 
-// PulseAudio subscription callback
+/* PulseAudio subscription callback */
 static void subscribe_cb(pa_context *c, pa_subscription_event_type_t t,
                          guint32 idx, void *userdata) {
   PulseData *pulse = userdata;
@@ -349,7 +368,7 @@ static void subscribe_cb(pa_context *c, pa_subscription_event_type_t t,
   }
 }
 
-// PulseAudio context state callback
+/* PulseAudio context state callback */
 static void context_state_cb(pa_context *c, void *userdata) {
   PulseData *pulse = userdata;
   pa_context_state_t state = pa_context_get_state(c);
@@ -357,15 +376,19 @@ static void context_state_cb(pa_context *c, void *userdata) {
   case PA_CONTEXT_READY:
     DEBUG_MSG("PulseAudio context ready");
     pa_context_set_subscribe_callback(c, subscribe_cb, pulse);
-    pa_operation *op_sub = pa_context_subscribe(
-        c, PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SINK_INPUT, NULL,
-        NULL);
-    if (op_sub)
-      pa_operation_unref(op_sub);
-    pa_operation *op_input =
-        pa_context_get_sink_input_info_list(c, sink_input_info_cb, pulse);
-    if (op_input)
-      pa_operation_unref(op_input);
+    {
+      pa_operation *op_sub = pa_context_subscribe(
+          c, PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SINK_INPUT, NULL,
+          NULL);
+      if (op_sub)
+        pa_operation_unref(op_sub);
+    }
+    {
+      pa_operation *op_input =
+          pa_context_get_sink_input_info_list(c, sink_input_info_cb, pulse);
+      if (op_input)
+        pa_operation_unref(op_input);
+    }
     break;
   case PA_CONTEXT_FAILED:
   case PA_CONTEXT_TERMINATED:
@@ -383,119 +406,127 @@ static void context_state_cb(pa_context *c, void *userdata) {
   }
 }
 
-// Helper function to update metadata and properties
+/* Helper function to update metadata and properties */
 static void update_metadata(PlayerData *data, PulseData *pulse) {
-  // Free existing metadata
+  if (!data)
+    return;
+
+  /* Free existing metadata */
   g_free(data->title);
   g_free(data->album);
   g_free(data->artist);
   g_free(data->art_url);
-  data->title = NULL;
-  data->album = NULL;
-  data->artist = NULL;
-  data->art_url = NULL;
+  data->title = data->album = data->artist = data->art_url = NULL;
 
   if (data->art_url_polling_id != 0) {
     g_source_remove(data->art_url_polling_id);
     data->art_url_polling_id = 0;
-    DEBUG_MSG("Player %s: Cancelled existing artUrl polling", data->name);
+    DEBUG_MSG("Player %s: Cancelled existing artUrl polling",
+              safe_str(data->name));
   }
 
   if (!data->player) {
-    DEBUG_MSG("No player for %s", data->name);
+    DEBUG_MSG("No player for %s", safe_str(data->name));
     return;
   }
 
   GError *error = NULL;
 
   data->title = playerctl_player_get_title(data->player, &error);
-  if (error != NULL) {
-    DEBUG_MSG("Failed to get title for %s: %s", data->name, error->message);
+  if (error) {
+    DEBUG_MSG("Failed to get title for %s: %s", safe_str(data->name),
+              error->message);
     g_error_free(error);
     error = NULL;
   }
 
   data->album = playerctl_player_get_album(data->player, &error);
-  if (error != NULL) {
-    DEBUG_MSG("Failed to get album for %s: %s", data->name, error->message);
+  if (error) {
+    DEBUG_MSG("Failed to get album for %s: %s", safe_str(data->name),
+              error->message);
     g_error_free(error);
     error = NULL;
   }
 
   data->artist = playerctl_player_get_artist(data->player, &error);
-  if (error != NULL) {
-    DEBUG_MSG("Failed to get artist for %s: %s", data->name, error->message);
+  if (error) {
+    DEBUG_MSG("Failed to get artist for %s: %s", safe_str(data->name),
+              error->message);
     g_error_free(error);
     error = NULL;
   }
 
-  // Art URL
+  /* Art URL */
   gchar *raw_art_url = playerctl_player_print_metadata_prop(
       data->player, "mpris:artUrl", &error);
-  if (error != NULL) {
-    DEBUG_MSG("Failed to get artUrl for %s: %s", data->name, error->message);
+  if (error) {
+    DEBUG_MSG("Failed to get artUrl for %s: %s", safe_str(data->name),
+              error->message);
     g_error_free(error);
     error = NULL;
   } else if (raw_art_url) {
     if (g_str_has_prefix(raw_art_url, "file:///")) {
-      data->art_url = g_strdup(raw_art_url + 7); // Skip "file://"
+      data->art_url = g_strdup(raw_art_url + 7); /* "file://" */
     } else if (g_str_has_prefix(raw_art_url, "https://i.scdn.co/image/")) {
+      /* Map common Spotify CDN to local cache path */
       data->art_url =
           g_strconcat("/run/user/1000/album_art_cache", raw_art_url + 23, NULL);
     } else {
       data->art_url = g_strdup(raw_art_url);
     }
     g_free(raw_art_url);
+    raw_art_url = NULL;
 
-    // Check if artUrl file exists
     if (data->art_url && !g_file_test(data->art_url, G_FILE_TEST_EXISTS)) {
       DEBUG_MSG("Player %s: artUrl file %s does not exist, starting polling",
-                data->name, data->art_url);
-      // Start polling for the file
+                safe_str(data->name), data->art_url);
       ArtUrlPollingData *polling_data = g_new0(ArtUrlPollingData, 1);
       polling_data->player_data = data;
       polling_data->pulse = pulse;
       polling_data->art_url = g_strdup(data->art_url);
       polling_data->check_count = 0;
-      polling_data->max_checks = 10; // Poll for 10 seconds
-      data->art_url_polling_id =
-          g_timeout_add_seconds(1, check_art_url_file, polling_data);
+      polling_data->max_checks = ART_POLL_MAX_CHECKS;
+      data->art_url_polling_id = g_timeout_add_seconds(
+          ART_POLL_INTERVAL_SEC, check_art_url_file, polling_data);
       DEBUG_MSG("Player %s: Started polling for artUrl %s, timeout_id=%u",
-                data->name, polling_data->art_url, data->art_url_polling_id);
+                safe_str(data->name), polling_data->art_url,
+                data->art_url_polling_id);
     }
   }
 
-  // Length
+  /* Length */
   gchar *length_str = playerctl_player_print_metadata_prop(
       data->player, "mpris:length", &error);
-  if (error != NULL) {
-    DEBUG_MSG("Failed to get length for %s: %s", data->name, error->message);
+  if (error) {
+    DEBUG_MSG("Failed to get length for %s: %s", safe_str(data->name),
+              error->message);
     g_error_free(error);
     error = NULL;
   } else if (length_str) {
-    char *endptr;
+    char *endptr = NULL;
     data->length = g_ascii_strtoll(length_str, &endptr, 10);
     if (endptr == length_str || *endptr != '\0') {
-      DEBUG_MSG("Failed to parse length for %s: %s", data->name, length_str);
+      DEBUG_MSG("Failed to parse length for %s: %s", safe_str(data->name),
+                length_str);
       data->length = 0;
     }
     g_free(length_str);
   }
 
-  // Shuffle (only if supported)
+  /* Shuffle (only if supported) */
   if (data->shuffle != -1) {
     g_object_get(data->player, "shuffle", &data->shuffle, NULL);
   }
 
-  // Loop Status (only if supported)
+  /* Loop Status (only if supported) */
   if (data->loop_status != -1) {
     g_object_get(data->player, "loop-status", &data->loop_status, NULL);
   }
 
   g_object_get(data->player, "playback-status", &data->playback_status, NULL);
 
-  // PulseAudio update
-  if (pulse->context &&
+  /* PulseAudio update */
+  if (pulse && pulse->context &&
       pa_context_get_state(pulse->context) == PA_CONTEXT_READY) {
     pa_operation *op = pa_context_get_sink_input_info_list(
         pulse->context, sink_input_info_cb, pulse);
@@ -503,19 +534,14 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
       pa_operation_unref(op);
   }
 
-  DEBUG_MSG(
-      "Updated metadata for %s: title=%s, album=%s, artist=%s, artUrl=%s, "
-      "length=%ld, shuffle=%i, loop=%i, playback=%i, index= %i sink=%i",
-      data->name, data->title ? data->title : "none",
-      data->album ? data->album : "none", data->artist ? data->artist : "none",
-      data->art_url ? data->art_url : "none", data->length ? data->length : 0,
-      data->shuffle ? data->shuffle : 0,
-      data->loop_status ? data->loop_status : 0,
-      data->playback_status ? data->playback_status : 0,
-      data->index ? data->index : 0, data->sink ? data->sink : 0);
+  DEBUG_MSG("Updated metadata for %s: title=%s, album=%s, artist=%s, "
+            "artUrl=%s, length=%ld",
+            safe_str(data->name), safe_str(data->title), safe_str(data->album),
+            safe_str(data->artist), safe_str(data->art_url),
+            (long)data->length);
 }
 
-// Helper function to print the list of players as JSON
+/* Helper function to print the list of players as JSON */
 static void print_player_list(GList *players, gboolean force_output) {
   JsonBuilder *builder = json_builder_new();
   json_builder_begin_array(builder);
@@ -527,10 +553,10 @@ static void print_player_list(GList *players, gboolean force_output) {
     json_builder_set_member_name(builder, "longName");
     gchar *long_name =
         g_strdup_printf("org.mpris.MediaPlayer2.%s",
-                        data->instance ? data->instance : data->name);
+                        data->instance ? data->instance
+                                       : (data->name ? data->name : "Unknown"));
     json_builder_add_string_value(builder, long_name);
     g_free(long_name);
-    long_name = NULL;
 
     json_builder_set_member_name(builder, "name");
     json_builder_add_string_value(builder, data->name ? data->name : "");
@@ -569,10 +595,10 @@ static void print_player_list(GList *players, gboolean force_output) {
     json_builder_add_string_value(builder, data->art_url ? data->art_url : "");
 
     json_builder_set_member_name(builder, "length");
-    json_builder_add_int_value(builder, data->length / 1000000);
+    json_builder_add_int_value(builder, (gint)(data->length / 1000000));
 
     json_builder_set_member_name(builder, "lengthHMS");
-    char hms[32];
+    char hms[32] = "";
     to_hms(data->length, hms, sizeof(hms));
     json_builder_add_string_value(builder, hms);
 
@@ -621,122 +647,143 @@ static void print_player_list(GList *players, gboolean force_output) {
   g_object_unref(builder);
 }
 
-// Callback for the playback-status signal
+/* Callback for the playback-status signal */
 static void on_playback_status(PlayerctlPlayer *player,
                                PlayerctlPlaybackStatus status,
                                gpointer user_data) {
   PulseData *pulse = user_data;
+  if (!pulse)
+    return;
+
   PlayerData *data = NULL;
   for (GList *iter = *pulse->players; iter != NULL; iter = iter->next) {
     PlayerData *d = iter->data;
-    if (d->player == player) {
+    if (d && d->player == player) {
       data = d;
       break;
     }
   }
-  if (data && data->name && data->instance) {
+
+  if (data) {
     DEBUG_MSG("Player %s (instance: %s): Playback status changed to %i",
-              data->name, data->instance, data->playback_status);
+              safe_str(data->name), safe_str(data->instance), status);
     update_metadata(data, pulse);
     print_player_list(*pulse->players, FALSE);
   } else {
-    DEBUG_MSG("Playback status: Invalid PlayerData (name: %p, instance: %p)",
-              data ? data->name : NULL, data ? data->instance : NULL);
+    DEBUG_MSG("Playback status: PlayerData not found for player object");
   }
 }
 
-// Callback for the metadata signal
+/* Callback for the metadata signal */
 static void on_metadata(PlayerctlPlayer *player, GVariant *metadata,
                         gpointer user_data) {
   PulseData *pulse = user_data;
+  if (!pulse)
+    return;
+
   PlayerData *data = NULL;
   for (GList *iter = *pulse->players; iter != NULL; iter = iter->next) {
     PlayerData *d = iter->data;
-    if (d->player == player) {
+    if (d && d->player == player) {
       data = d;
       break;
     }
   }
-  if (data && data->name && data->instance) {
+
+  if (data) {
     update_metadata(data, pulse);
     DEBUG_MSG("Player %s (instance: %s): Metadata signal fired (title: %s, "
               "length: %ld)",
-              data->name, data->instance, data->title ? data->title : "none",
-              data->length);
+              safe_str(data->name), safe_str(data->instance),
+              safe_str(data->title), (long)data->length);
     print_player_list(*pulse->players, FALSE);
   } else {
-    DEBUG_MSG("Metadata: Invalid PlayerData (name: %p, instance: %p)",
-              data ? data->name : NULL, data ? data->instance : NULL);
+    DEBUG_MSG("Metadata: PlayerData not found for player object");
   }
 }
 
-// Callback for the shuffle signal
+/* Callback for the shuffle signal */
 static void on_shuffle(PlayerctlPlayer *player, gboolean shuffle,
                        gpointer user_data) {
   PulseData *pulse = user_data;
+  if (!pulse)
+    return;
+
   PlayerData *data = NULL;
   for (GList *iter = *pulse->players; iter != NULL; iter = iter->next) {
     PlayerData *d = iter->data;
-    if (d->player == player) {
+    if (d && d->player == player) {
       data = d;
       break;
     }
   }
-  if (data && data->name && data->instance) {
+
+  if (data) {
     data->shuffle = shuffle;
-    DEBUG_MSG("Player %s (instance: %s): Shuffle changed to %s", data->name,
-              data->instance, shuffle ? "true" : "false");
+    DEBUG_MSG("Player %s (instance: %s): Shuffle changed to %s",
+              safe_str(data->name), safe_str(data->instance),
+              shuffle ? "true" : "false");
     print_player_list(*pulse->players, FALSE);
   } else {
-    DEBUG_MSG("Shuffle: Invalid PlayerData (name: %p, instance: %p)",
-              data ? data->name : NULL, data ? data->instance : NULL);
+    DEBUG_MSG("Shuffle: PlayerData not found for player object");
   }
 }
 
-// Callback for the loop-status signal
+/* Callback for the loop-status signal */
 static void on_loop_status(PlayerctlPlayer *player, PlayerctlLoopStatus status,
                            gpointer user_data) {
   PulseData *pulse = user_data;
+  if (!pulse)
+    return;
+
   PlayerData *data = NULL;
   for (GList *iter = *pulse->players; iter != NULL; iter = iter->next) {
     PlayerData *d = iter->data;
-    if (d->player == player) {
+    if (d && d->player == player) {
       data = d;
       break;
     }
   }
-  if (data && data->name && data->instance) {
+
+  if (data) {
     data->loop_status = status;
-    DEBUG_MSG("Player %s (instance: %s): Loop status changed to %i", data->name,
-              data->instance, data->loop_status);
+    DEBUG_MSG("Player %s (instance: %s): Loop status changed to %i",
+              safe_str(data->name), safe_str(data->instance),
+              data->loop_status);
     print_player_list(*pulse->players, FALSE);
   } else {
-    DEBUG_MSG("Loop status: Invalid PlayerData (name: %p, instance: %p)",
-              data ? data->name : NULL, data ? data->instance : NULL);
+    DEBUG_MSG("Loop status: PlayerData not found for player object");
   }
 }
 
-// Helper function to create PlayerData from PlayerctlPlayerName
+/* Helper function to create PlayerData from PlayerctlPlayerName */
 static PlayerData *player_data_new(PlayerctlPlayerName *name,
                                    PulseData *pulse) {
+  if (!name)
+    return NULL;
+
   GError *error = NULL;
   PlayerData *data = g_new0(PlayerData, 1);
-  data->name = g_strdup(name->name);
-  data->instance = g_strdup(name->instance);
+  data->name = g_strdup(name->name ? name->name : "Unknown");
+  data->instance = g_strdup(name->instance ? name->instance : "");
   data->source = name->source;
   data->player = playerctl_player_new_from_name(name, &error);
   data->hasPlayer = -1;
-  if (error != NULL) {
-    DEBUG_MSG("Failed to create player for %s: %s", name->name, error->message);
+
+  if (error) {
+    DEBUG_MSG("Failed to create player for %s: %s", safe_str(name->name),
+              error->message);
     g_error_free(error);
+    error = NULL;
   }
+
   if (data->player) {
     g_object_get(data->player, "can-control", &data->can_control, "can-go-next",
                  &data->can_go_next, "can-go-previous", &data->can_go_previous,
                  "can-pause", &data->can_pause, "can-play", &data->can_play,
                  "can-seek", &data->can_seek, NULL);
 
-    // Initialize shuffle
+    /* Initialize shuffle */
     gboolean shuffle_value = FALSE;
     g_object_get(data->player, "shuffle", &shuffle_value, NULL);
     data->shuffle = shuffle_value ? 1 : 0;
@@ -744,9 +791,8 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
       playerctl_player_set_shuffle(data->player, TRUE, &error);
       if (error) {
         data->shuffle = -1;
-        DEBUG_MSG("Error setting shuffle for %s: %s", data->name,
+        DEBUG_MSG("Error setting shuffle for %s: %s", safe_str(data->name),
                   error->message);
-        shuffle_value = -1;
         g_error_free(error);
         error = NULL;
       } else {
@@ -759,7 +805,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
       }
     }
 
-    // Initialize loop status
+    /* Initialize loop status */
     int loop_status = 0;
     g_object_get(data->player, "loop-status", &loop_status, NULL);
     data->loop_status = loop_status;
@@ -767,9 +813,8 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
       playerctl_player_set_loop_status(data->player, 1, &error);
       if (error) {
         data->loop_status = -1;
-        DEBUG_MSG("Error setting loop status for %s: %s", data->name,
+        DEBUG_MSG("Error setting loop status for %s: %s", safe_str(data->name),
                   error->message);
-        loop_status = -1;
         g_error_free(error);
         error = NULL;
       } else {
@@ -795,28 +840,29 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
                        pulse);
     }
   }
-  DEBUG_MSG("Created PlayerData for %s (instance: %s, title: %s, length: %ld, "
-            "shuffle:%d loop: %d sink: %u)",
-            data->name ? data->name : "none",
-            data->instance ? data->instance : 0, data->title ? data->title : "",
-            data->length ? data->length : 0, data->shuffle ? data->shuffle : 0,
-            data->loop_status ? data->loop_status : 0,
-            data->sink ? data->sink : 0);
+
+  DEBUG_MSG("Created PlayerData for %s (instance: %s)", safe_str(data->name),
+            safe_str(data->instance));
   return data;
 }
 
-// Helper function to free PlayerData
+/* Helper function to free PlayerData */
 static void player_data_free(gpointer data) {
   PlayerData *player_data = data;
-  // Cancel any active artUrl polling
+  if (!player_data)
+    return;
+
+  /* Cancel any active artUrl polling */
   if (player_data->art_url_polling_id != 0) {
     g_source_remove(player_data->art_url_polling_id);
     player_data->art_url_polling_id = 0;
     DEBUG_MSG("Player %s: Cancelled artUrl polling during free",
-              player_data->name);
+              safe_str(player_data->name));
   }
+
   if (player_data->player) {
     g_object_unref(player_data->player);
+    player_data->player = NULL;
   }
   g_free(player_data->name);
   g_free(player_data->instance);
@@ -827,82 +873,96 @@ static void player_data_free(gpointer data) {
   g_free(player_data);
 }
 
-// Helper function to find a player by instance
+/* Helper function to find a player by instance */
 static GList *find_player_by_instance(GList *players, const gchar *instance) {
+  if (!instance)
+    return NULL;
   for (GList *iter = players; iter != NULL; iter = iter->next) {
     PlayerData *data = iter->data;
-    if (data->instance && instance && strcmp(data->instance, instance) == 0) {
+    if (data && data->instance && strcmp(data->instance, instance) == 0) {
       return iter;
     }
   }
   return NULL;
 }
 
-// Callback for the name-appeared signal
+/* Callback for the name-appeared signal */
 static void on_name_appeared(PlayerctlPlayerManager *manager,
                              PlayerctlPlayerName *name, gpointer user_data) {
   PulseData *pulse = user_data;
-  DEBUG_MSG("Received name-appeared for %s (instance: %s)", name->name,
-            name->instance);
+  if (!pulse || !name)
+    return;
+
+  DEBUG_MSG("Received name-appeared for %s (instance: %s)",
+            safe_str(name->name), safe_str(name->instance));
   if (find_player_by_instance(*pulse->players, name->instance) == NULL) {
     PlayerData *data = player_data_new(name, pulse);
     *pulse->players = g_list_append(*pulse->players, data);
-    DEBUG_MSG("Player appeared: %s (instance: %s, source: %d)", name->name,
-              name->instance, name->source);
+    DEBUG_MSG("Player appeared: %s (instance: %s, source: %d)",
+              safe_str(name->name), safe_str(name->instance), name->source);
 
-    // Schedule timeout to check can_* properties
+    /* Schedule timeout to check can_* properties */
     TimeoutData *timeout_data = g_new0(TimeoutData, 1);
     timeout_data->player_data = data;
     timeout_data->pulse = pulse;
     timeout_data->check_count = 0;
-    timeout_data->max_checks = 2; // Check 2 times (2 seconds total)
-    g_timeout_add_seconds(1, check_can_properties, timeout_data);
+    timeout_data->max_checks = CAN_CHECK_MAX_ATTEMPTS;
+    g_timeout_add_seconds(CAN_CHECK_INTERVAL_SEC, check_can_properties,
+                          timeout_data);
 
+    /* Update all players metadata once new player appears */
     for (GList *iter = *pulse->players; iter != NULL; iter = iter->next) {
       PlayerData *d = iter->data;
-      if (d->player)
+      if (d && d->player)
         update_metadata(d, pulse);
     }
     print_player_list(*pulse->players, FALSE);
   } else {
-    DEBUG_MSG("Player %s (instance: %s) already exists, skipping", name->name,
-              name->instance);
+    DEBUG_MSG("Player %s (instance: %s) already exists, skipping",
+              safe_str(name->name), safe_str(name->instance));
   }
 }
 
-// Callback for the name-vanished signal
+/* Callback for the name-vanished signal */
 static void on_name_vanished(PlayerctlPlayerManager *manager,
                              PlayerctlPlayerName *name, gpointer user_data) {
   PulseData *pulse = user_data;
-  DEBUG_MSG("Received name-vanished for %s (instance: %s)", name->name,
-            name->instance);
+  if (!pulse || !name)
+    return;
+
+  DEBUG_MSG("Received name-vanished for %s (instance: %s)",
+            safe_str(name->name), safe_str(name->instance));
   GList *node = find_player_by_instance(*pulse->players, name->instance);
   if (node != NULL) {
     PlayerData *data = node->data;
     *pulse->players = g_list_delete_link(*pulse->players, node);
-    DEBUG_MSG("Player vanished: %s (instance: %s, source: %d)", data->name,
-              data->instance, data->source);
+    DEBUG_MSG("Player vanished: %s (instance: %s, source: %d)",
+              safe_str(data->name), safe_str(data->instance), data->source);
     print_player_list(*pulse->players, FALSE);
     player_data_free(data);
   } else {
-    DEBUG_MSG("Player %s (instance: %s) not found in list", name->name,
-              name->instance);
+    DEBUG_MSG("Player %s (instance: %s) not found in list",
+              safe_str(name->name), safe_str(name->instance));
   }
 }
 
-// Free PulseData
+/* Free PulseData */
 static void pulse_data_free(PulseData *pulse) {
+  if (!pulse)
+    return;
   if (pulse->context) {
     pa_context_disconnect(pulse->context);
     pa_context_unref(pulse->context);
+    pulse->context = NULL;
   }
   if (pulse->mainloop) {
     pa_glib_mainloop_free(pulse->mainloop);
+    pulse->mainloop = NULL;
   }
   g_free(pulse);
 }
 
-// Initialize PulseAudio
+/* Initialize PulseAudio */
 static PulseData *pulse_data_new(GList **players) {
   PulseData *pulse = g_new0(PulseData, 1);
   pulse->players = players;
@@ -932,10 +992,10 @@ static PulseData *pulse_data_new(GList **players) {
 int main(void) {
   GError *error = NULL;
 
-  // Initialize GLib main loop
+  /* Initialize GLib main loop */
   GMainLoop *loop = g_main_loop_new(NULL, FALSE);
 
-  // Initialize playerctl
+  /* Initialize playerctl manager */
   PlayerctlPlayerManager *manager = playerctl_player_manager_new(&error);
   if (error != NULL) {
     DEBUG_MSG("Failed to create player manager: %s", error->message);
@@ -944,10 +1004,10 @@ int main(void) {
     return 1;
   }
 
-  // Initialize players list
+  /* Initialize players list */
   GList *players = NULL;
 
-  // Initialize PulseAudio
+  /* Initialize PulseAudio */
   PulseData *pulse = pulse_data_new(&players);
   if (!pulse) {
     DEBUG_MSG("Failed to initialize PulseAudio");
@@ -956,11 +1016,12 @@ int main(void) {
     return 1;
   }
 
-  // Load initial players
+  /* Load initial players */
   GList *current_players = playerctl_list_players(&error);
   if (error != NULL) {
     DEBUG_MSG("Failed to list initial players: %s", error->message);
     g_error_free(error);
+    error = NULL;
   } else {
     DEBUG_MSG("Found %d initial players", g_list_length(current_players));
     for (GList *iter = current_players; iter != NULL; iter = iter->next) {
@@ -972,10 +1033,10 @@ int main(void) {
                      (GDestroyNotify)playerctl_player_name_free);
   }
 
-  // Print initial player list
+  /* Print initial player list */
   print_player_list(players, FALSE);
 
-  // Connect playerctl signals
+  /* Connect playerctl signals */
   g_signal_connect(manager, "name-appeared", G_CALLBACK(on_name_appeared),
                    pulse);
   g_signal_connect(manager, "name-vanished", G_CALLBACK(on_name_vanished),
@@ -983,10 +1044,10 @@ int main(void) {
 
   DEBUG_MSG("Listening for player and PulseAudio events...");
 
-  // Run the main loop
+  /* Run the main loop */
   g_main_loop_run(loop);
 
-  // Cleanup
+  /* Cleanup */
   g_list_free_full(players, player_data_free);
   g_free(last_json_output);
   g_main_loop_unref(loop);

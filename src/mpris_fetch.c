@@ -432,24 +432,6 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
 
   GError *error = NULL;
 
-  /*TODO remove if fixed upstream workaround for youtube forces a page update */
-  gint64 position = playerctl_player_get_position(data->player, &error);
-  if (error) {
-    DEBUG_MSG("Failed to get position for %s: %s", safe_str(data->name),
-              error->message);
-    g_error_free(error);
-    error = NULL;
-  }
-  if (position < 100000) {
-    playerctl_player_set_position(data->player, position, &error);
-    if (error) {
-      DEBUG_MSG("Failed to set position for %s: %s", safe_str(data->name),
-                error->message);
-      g_error_free(error);
-      error = NULL;
-    }
-  }
-
   data->title = playerctl_player_get_title(data->player, &error);
   if (error) {
     DEBUG_MSG("Failed to get title for %s: %s", safe_str(data->name),

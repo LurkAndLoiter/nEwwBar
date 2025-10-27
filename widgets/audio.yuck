@@ -44,7 +44,7 @@
 ;; Loop -1 unsupported, 0 none, 1 track, 2 playlist
 ;; Shuffle -1 Unsupported, 0 not shuffled, 1 shuffled
 (deflisten audioSources
-  :initial '[{"longName": "UUID","name": "firefox","canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"playbackStatus": 0,"isShuffle": 0, "loop": 0, "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","index": "117","sinkId": 3736,"volume": 100,"isMute": false, "hasPlayer": 0}]'
+  :initial '[{"longName": "UUID","name": "firefox","canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"playbackStatus": 0,"isShuffle": 0, "loop": 0, "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","index": "117","sinkId": 3736,"volume": 100,"isMute": false, "hasPlayer": false}]'
   `$HOME/.config/eww/bin/mpris_fetch`
 )
 
@@ -181,7 +181,7 @@ Left click open/close panel`
       (eventbox
         :visible "${! p.hasPlayer}"
         :onhover `eww update hoveredPlayer="${p.name}"`
-        :onhoverlost `eww update hoveredPlayer""`
+        :onhoverlost `eww update hoveredPlayer=""`
         (box
           :class "panel"
           :visible "${p.PlaybackStatus == "Stopped" ? false : true}"
@@ -220,7 +220,7 @@ Left click open/close panel`
       (eventbox
         :visible "${p.hasPlayer}"
         :onhover `eww update hoveredPlayer="${p.name}"`
-        :onhoverlost `eww update hoveredPlayer""`
+        :onhoverlost `eww update hoveredPlayer=""`
         (box
           :class "panel"
           :visible "${p.PlaybackStatus == "Stopped" ? false : true}"
@@ -282,7 +282,8 @@ Left click open/close panel`
                 ; :value "${jq(audioPosition, '."${p.longName}"', 'r')}"
                 :max 101
                 :onchange "playerctl --player=${p.name} position $(({} * ${p.length} / 100))"
-                :value "${100 * jq(audioPosition, '."${p.longName}"', 'r') / p.length}"
+                ; live check stops unseen gtk redraws every second
+                :value "${p.lengthHMS == "live" ? 0 : 100 * jq(audioPosition, '."${p.longName}"', 'r') / p.length}"
               )
               (label
                 :xalign 1

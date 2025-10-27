@@ -39,10 +39,12 @@
 ;; "If we listen to each other's hearts. We'll find we're never too far apart."
 ;; ____________________________________________________________________________
 
-(deflisten workspaces :initial '[{"WorkspaceID": 1, "hasWindows": 0}]'
+(deflisten workspaces 
+  :initial '[{"WorkspaceID": 1, "hasWindows": 0}]'
   "~/.config/eww/bin/workspace_list")
 
-(deflisten focusedID :initial 1
+(deflisten focusedID 
+  :initial 1
   "~/.config/eww/bin/workspace_focus")
 
 (defwidget workspaces []

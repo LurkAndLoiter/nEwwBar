@@ -39,23 +39,23 @@
 ;; "If we listen to each other's hearts. We'll find we're never too far apart."
 ;; ____________________________________________________________________________
 
+(deflisten audioPosition ; Seperated from audioSources to limit the GTK redraw
+  :initial '{"UUID":90, "UUIDHMS":"1:30"}'
+  `$HOME/.config/eww/bin/mpris_position`
+)
+
 ;; TODO need CanQuit link need forced shuffle/loop check(set;check:mismatch == unsupported)
 ;; playbackStatus 0 playing, 1 paused, 2 stopped
 ;; Loop -1 unsupported, 0 none, 1 track, 2 playlist
 ;; Shuffle -1 Unsupported, 0 not shuffled, 1 shuffled
 (deflisten audioSources
-  :initial '[{"longName": "UUID","name": "firefox","canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"playbackStatus": 0,"isShuffle": 0, "loop": 0, "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","index": "117","sinkId": 3736,"volume": 100,"isMute": false, "hasPlayer": false}]'
+  :initial '[{"longName": "UUID","name": "firefox","canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"playbackStatus": 0, "shuffle": 0, "loop": 0, "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","index": "117","sinkId": 3736,"volume": 100,"isMute": false, "hasPlayer": false}]'
   `$HOME/.config/eww/bin/mpris_fetch`
 )
 
 (deflisten audioSinks
   :initial '[{"index": "1", "isMute": true, "volume": 0, "isDefault": true, "name": "UUIDname", "description": "description", "icon": "audio-speakers"}]'
   `$HOME/.config/eww/bin/audio_out`
-)
-
-(deflisten audioPosition ; Seperated from audioSources to limit the GTK redraw
-  :initial '{"UUID":90, "UUIDHMS":"1:30"}'
-  `$HOME/.config/eww/bin/mpris_position`
 )
 
 (defvar playerVolumeIsHovered false)
@@ -77,7 +77,8 @@ Left click open/close panel`
             :image-width 24
             :fill-svg "#f38ba8"
           )':
-          '(image :path "./assets/icons/media/volume-high.svg"
+          '(image
+            :path "./assets/icons/media/volume-high.svg"
             :image-width 24
             :fill-svg "#a6e3a1"
           )'
@@ -271,7 +272,7 @@ Left click open/close panel`
                 :playing "${p.playbackStatus}"
                 :name "${p.name}"
                 :loop "${p.loop}"
-                :isShuffle "${p.isShuffle}"
+                :shuffle "${p.shuffle}"
               )
               (scale
                 :class "${p.canSeek == false ? "inactive" :
@@ -319,7 +320,7 @@ Left click open/close panel`
 
 
 (defwidget mediaButtons [canGoPrevious canGoNext canPlay
-                         playing name loop isShuffle]
+                         playing name loop shuffle]
   (box
     (box
       :halign "start"
@@ -376,12 +377,12 @@ Left click open/close panel`
         )
       )
       (eventbox
-        :onclick "playerctl --player=${name} shuffle ${isShuffle == 1 ? "off" : "on"}"
+        :onclick "playerctl --player=${name} shuffle ${shuffle == 1 ? "off" : "on"}"
         (image
-          :fill-svg "${isShuffle == 1 ? "#cdd6f4" : "#45475a"}"
+          :fill-svg "${shuffle == 1 ? "#cdd6f4" : "#45475a"}"
           :image-height 24
-          :path "./assets/icons/media/${isShuffle == 1 ? "shuffle-on" :
-                        isShuffle == 0 ? "shuffle-off" :
+          :path "./assets/icons/media/${shuffle == 1 ? "shuffle-on" :
+                        shuffle == 0 ? "shuffle-off" :
                         "shuffle-disabled"
                        }.svg"
         )

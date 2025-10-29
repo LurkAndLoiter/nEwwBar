@@ -529,7 +529,7 @@ static void print_player_list(GList *players, gboolean force_output) {
     to_hms(data->length, hms, sizeof(hms));
     json_builder_add_string_value(builder, hms);
 
-    json_builder_set_member_name(builder, "isShuffle");
+    json_builder_set_member_name(builder, "shuffle");
     json_builder_add_int_value(builder, data->shuffle);
 
     json_builder_set_member_name(builder, "loop");

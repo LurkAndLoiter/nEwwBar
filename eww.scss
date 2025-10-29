@@ -68,6 +68,18 @@ $Crust: #11111b;
 $inactive: $Surface1;
 $highlight: $Red;
 
+@keyframes flashColors {
+  0% {
+    color: $Text;
+    background-image: linear-gradient(0deg, $Text 5%, transparent 15%);
+  }
+
+  100% {
+    color: $Green;
+    background-image: linear-gradient(0deg, $Green 5%, transparent 15%);
+  }
+}
+
 /* General */
 * {
   all: unset;
@@ -220,14 +232,14 @@ tooltip {
 
   &.enabled {
     &:hover {
-      background-image: linear-gradient(135deg, $Mauve 2.5%, transparent 7.5%);
+      background-image: linear-gradient(0deg, $Green 5%, transparent 15%);
     }
 
     &.active {
       background-image: linear-gradient(0deg, $Mauve 5%, transparent 15%);
 
       &:hover {
-        background-image: linear-gradient(135deg, $Red 2.5%, transparent 7.5%);
+        background-image: linear-gradient(0deg, $Red 5%, transparent 15%);
       }
     }
   }
@@ -238,6 +250,10 @@ tooltip {
     &:hover {
       background-image: linear-gradient(0deg, $Green 5%, transparent 15%);
     }
+  }
+
+  &.connecting {
+    animation: flashColors 1s infinite alternate;
   }
 }
 
@@ -253,11 +269,11 @@ button {
 
   &.active {
     color: rgba($Red, 1);
-    background-image: linear-gradient(0deg, $Mauve 5%, transparent 15%);
+    background-image: linear-gradient(0deg, $Mauve 3%, transparent 15%);
 
     &:hover {
       color: $Text;
-      background-image: linear-gradient(135deg, $Red 10%, transparent 30%);
+      background-image: linear-gradient(0deg, $Red 3%, transparent 15%);
     }
   }
 
@@ -266,7 +282,7 @@ button {
 
     &:hover {
       color: $Red;
-      background-image: linear-gradient(135deg, $Mauve 10%, transparent 30%);
+      background-image: linear-gradient(0deg, $Mauve 3%, transparent 15%);
     }
     &.power {
       color: $Red;

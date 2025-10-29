@@ -39,11 +39,11 @@
 ;; "If we listen to each other's hearts. We'll find we're never too far apart."
 ;; ____________________________________________________________________________
 
-(deflisten wifiScan 
+(deflisten wifiScan
   :initial '[{"SSID": "Catalyst", "Frequency": 5180, "Strength": 63, "connected": true}]'
   `~/.config/eww/bin/wlan_scan`)
 
-(deflisten wlan-monitor 
+(deflisten wlan-monitor
   :initial '{"state": 100, "strength": 62}'
   `~/.config/eww/bin/wlan_monitor`)
 

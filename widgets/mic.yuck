@@ -39,7 +39,7 @@
 ;; "If we listen to each other's hearts. We'll find we're never too far apart."
 ;; ____________________________________________________________________________
 
-(deflisten audioMonitors 
+(deflisten audioMonitors
   :initial '[{"id": 1, "mute": true, "volume": 0, "default": true, "source": "pointer", "name": "Name", "icon": "audio-card-analog", "state": "suspended"}]'
   `~/.config/eww/bin/audio_in`)
 

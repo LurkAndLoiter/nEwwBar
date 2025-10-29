@@ -39,7 +39,7 @@
 ;; "If we listen to each other's hearts. We'll find we're never too far apart."
 ;; ____________________________________________________________________________
 
-(deflisten devices 
+(deflisten devices
    :initial '[{"id": "UUID","Name": "Name","Icon": "audio-headset","Connected": false,"Paired": false,"Trusted": false,"Battery": "999"}]'
   `~/.config/eww/bin/bluetooth_devices 2> /dev/null`
 )
@@ -51,6 +51,7 @@
 
 
 (defvar btHover "")
+(defvar btConnecting "")
 
 (defwidget bluetoothButton []
   (eventbox
@@ -109,12 +110,12 @@
         :halign "end"
         ; makes device visible to external bluetooth devices for 15 seconds
         ; scans for bluetooth devices for 5 seconds
-        ; you can make this longer but I've noticed bluetoothctl really only 
+        ; you can make this longer but I've noticed bluetoothctl really only
         ; picks up devices in the first few seconds of a scan.
-        ; for this reason it may be more advisable to add sleep and recalls 
+        ; for this reason it may be more advisable to add sleep and recalls
         ; instead of simply increasing the scan duration.
         :onclick 'bluetoothctl discoverable-timeout 15 &&
-                  bluetoothctl discoverable on && 
+                  bluetoothctl discoverable on &&
                   bluetoothctl --timeout 5 -- scan on &'
         (image
           :image-height 42
@@ -136,7 +137,7 @@
         :visible "${substring(device.id,0,2) != substring(device.Name,0,2) ? true : false}"
         :onhover 'eww update btHover="${device.id}"'
         :onhoverlost 'eww update btHover=""'
-        :class "btns-bar${adapter.Powered ? " enabled" : " disabled"}${device.Connected ? " active" : ""}${device.Paired ? "" : " newdevice"}"
+        :class "btns-bar${adapter.Powered ? " enabled" : " disabled"}${device.Connected ? " active" : ""}${device.Paired ? "" : " newdevice"}${btConnecting == device.id ? " connecting" : ""}"
         (box
           :space-evenly false
           (eventbox
@@ -149,12 +150,17 @@
             ; why custom connect? auth agents and bluetooth 5 device support.
             ; bluetoothctl fails to pair with bt5 devices.
             ; auth agents: I clicked the button connect the device. Don't ask for a code or some other BS.
-            :onclick "${device.Connected ? "bluetoothctl disconnect ${device.id}" :
-                      "${device.Paired ? device.Trusted ? "bluetoothctl connect ${device.id}" : 
-                      "bluetoothctl trust ${device.id} && 
-                       bluetoothctl connect ${device.id} && 
-                       bluetoothctl untrust ${device.id} &" :
-                      "./bin/bluetooth_connect ${device.id} &"}"}"
+            :onclick '${device.Connected ? 'bluetoothctl disconnect ${device.id}' :
+                      '${device.Paired ? device.Trusted ?
+                      'eww update btConnecting="${device.id}" &&
+                       bluetoothctl connect ${device.id} &&
+                       eww update btConnecting="" &' :
+                      'eww update btConnecting="${device.id}" &&
+                       bluetoothctl trust ${device.id} &&
+                       bluetoothctl connect ${device.id} &&
+                       bluetoothctl untrust ${device.id} &&
+                       eww update btConnecting="" &' :
+                      './bin/bluetooth_connect ${device.id} &'}'}'
             (box
               :space-evenly false
               :spacing 10

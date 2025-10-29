@@ -118,12 +118,12 @@ static void print_player_list(GList *players) {
     PlayerData *data = iter->data;
     if (!first) printf(",");
     first = FALSE;
-    
+
     gchar *key = g_strdup_printf("org.mpris.MediaPlayer2.%s", data->instance);
     print_json_str(key);
     printf(":%" PRId64, data->local_seconds);
     g_free(key);
-    
+
     printf(",");
     char hms[32];
     print_hms(data, hms, sizeof(hms));
@@ -161,7 +161,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name, GList **players) {
     } else {
       data->local_seconds = micros / 1000000;
     }
-    
+
     update_time_components(data);
     data->update_counter = data->seconds;
     g_object_get(data->player, "playback-status", &data->playback_status, NULL);
@@ -170,7 +170,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name, GList **players) {
   }
 
   DEBUG_MSG("Created PlayerData for %s (instance: %s, player: %p, initial position: %ld, status: %s)",
-            data->name, data->instance, data->player, data->local_seconds, 
+            data->name, data->instance, data->player, data->local_seconds,
             playback_status_to_string(data->playback_status));
   return data;
 }
@@ -188,7 +188,7 @@ static void update_player_position(PlayerData *data, gint64 curr_sec, GList **pl
   data->local_seconds = curr_sec;
   update_time_components(data);
   data->update_counter = data->seconds;
-  
+
   if (curr_sec != last_sec) {
     print_player_list(*players);
   }
@@ -203,7 +203,7 @@ static void adjust_global_timer(GList **players) {
       break;
     }
   }
-  
+
   if (any_playing && global_position_timeout_id == 0) {
     global_position_timeout_id = g_timeout_add(1000, on_position_check, players);
   } else if (!any_playing && global_position_timeout_id != 0) {
@@ -225,7 +225,7 @@ static void on_playback_status(PlayerctlPlayer *player, PlayerctlPlaybackStatus 
     g_error_free(error);
     pos_micros = data->local_seconds * 1000000;
   }
-  
+
   update_player_position(data, pos_micros / 1000000, players);
   DEBUG_MSG("Player %s (instance: %s): Playback status changed to %s (position: %ld)",
             data->name, data->instance, playback_status_to_string(status), data->local_seconds);
@@ -263,7 +263,7 @@ static gboolean on_position_check(gpointer user_data) {
         data->hours += 1;
       }
     }
-    
+
     data->update_counter = (data->update_counter + 1) % 60;
     if (data->update_counter == 0) {
       GError *error = NULL;
@@ -276,7 +276,7 @@ static gboolean on_position_check(gpointer user_data) {
         update_time_components(data);
       }
     }
-    
+
     if (data->local_seconds != old_seconds) any_changed = TRUE;
   }
 
@@ -289,7 +289,7 @@ static void on_name_appeared(PlayerctlPlayerManager *manager, PlayerctlPlayerNam
   (void)manager;
   GList **players = user_data;
   DEBUG_MSG("Received name-appeared for %s (instance: %s)", name->name, name->instance);
-  
+
   if (!find_player_by_instance(*players, name->instance)) {
     PlayerData *data = player_data_new(name, players);
     *players = g_list_append(*players, data);
@@ -305,7 +305,7 @@ static void on_name_vanished(PlayerctlPlayerManager *manager, PlayerctlPlayerNam
   (void)manager;
   GList **players = user_data;
   DEBUG_MSG("Received name-vanished for %s (instance: %s)", name->name, name->instance);
-  
+
   GList *node = find_player_by_instance(*players, name->instance);
   if (node) {
     PlayerData *data = node->data;

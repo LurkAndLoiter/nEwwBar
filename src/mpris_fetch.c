@@ -356,14 +356,14 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
                &data->playback_status, NULL);
 
   /* Shuffle (only if supported) */
-  if (data->shuffle != -1) {
+  if (data->shuffle >= 0) {
     g_object_get(data->player, "shuffle", &data->shuffle, NULL);
   } else {
     check_can_shuffle(data, pulse);
   }
 
   /* Loop Status (only if supported) */
-  if (data->loop_status != -1) {
+  if (data->loop_status >= 0) {
     g_object_get(data->player, "loop-status", &data->loop_status, NULL);
   } else {
     check_can_loop(data, pulse);
@@ -645,7 +645,7 @@ static void check_can_shuffle(PlayerData *data, PulseData *pulse) {
     }
     g_object_get(data->player, "shuffle", &shuffle_value, NULL);
     if (!shuffle_value) {
-      data->shuffle = -1;
+      data->shuffle = -2;
     } else {
       playerctl_player_set_shuffle(data->player, FALSE, NULL);
     }
@@ -669,7 +669,7 @@ static void check_can_loop(PlayerData *data, PulseData *pulse) {
     }
     g_object_get(data->player, "loop-status", &loop_status, NULL);
     if (!loop_status) {
-      data->loop_status = -1;
+      data->loop_status = -2;
     } else {
       playerctl_player_set_loop_status(data->player, 0, NULL);
     }

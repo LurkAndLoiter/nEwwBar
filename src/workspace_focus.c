@@ -48,7 +48,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 1024
 
 #ifdef DEBUG
 #define DEBUG_MSG(fmt, ...)                                                    \

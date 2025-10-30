@@ -46,8 +46,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../include/hms.h"
-
 #ifdef DEBUG
 #define DEBUG_MSG(fmt, ...)                                                    \
   do {                                                                         \
@@ -173,6 +171,26 @@ static gboolean check_art_url_file(gpointer user_data) {
   }
 
   return G_SOURCE_CONTINUE;
+}
+
+// Convert seconds to HMS (MM:SS or H:MM:SS), or "live" for specified max
+void to_hms(int64_t s, char *hms, size_t hms_size) {
+  if (s >= 9223372036854LL) {
+    snprintf(hms, hms_size, "live");
+    return;
+  }
+  if (s <= 0) {
+    snprintf(hms, hms_size, "0:00");
+    return;
+  }
+  long hours = s / 3600;
+  long minutes = (s / 60) % 60;
+  long seconds = s % 60;
+  if (hours > 0) {
+    snprintf(hms, hms_size, "%ld:%02ld:%02ld", hours, minutes, seconds);
+  } else {
+    snprintf(hms, hms_size, "%ld:%02ld", minutes, seconds);
+  }
 }
 
 /* PulseAudio sink input info callback */
@@ -443,7 +461,8 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
     error = NULL;
   } else if (length_str) {
     char *endptr = NULL;
-    data->length = g_ascii_strtoll(length_str, &endptr, 10);
+    /* microseconds to ceiling second */
+    data->length = ((g_ascii_strtoll(length_str, &endptr, 10) + 999999) / 1000000);
     if (endptr == length_str || *endptr != '\0') {
       DEBUG_MSG("Failed to parse length for %s: %s", safe_str(data->name),
                 length_str);
@@ -522,7 +541,7 @@ static void print_player_list(GList *players, gboolean force_output) {
     json_builder_add_string_value(builder, data->art_url ? data->art_url : "");
 
     json_builder_set_member_name(builder, "length");
-    json_builder_add_int_value(builder, (gint)(data->length / 1000000));
+    json_builder_add_int_value(builder, data->length);
 
     json_builder_set_member_name(builder, "lengthHMS");
     char hms[32] = "";

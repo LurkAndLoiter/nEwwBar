@@ -175,11 +175,11 @@ static gboolean check_art_url_file(gpointer user_data) {
 
 // Convert seconds to HMS (MM:SS or H:MM:SS), or "live" for specified max
 void to_hms(int64_t s, char *hms, size_t hms_size) {
-  if (s >= 9223372036854LL) {
+  if (s < 0) {
     snprintf(hms, hms_size, "live");
     return;
   }
-  if (s <= 0) {
+  if (s == 0) {
     snprintf(hms, hms_size, "0:00");
     return;
   }
@@ -197,75 +197,68 @@ void to_hms(int64_t s, char *hms, size_t hms_size) {
 static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
                                int eol, void *userdata) {
   PulseData *pulse = userdata;
-  if (eol || !i || !pulse)
+  if (eol || !i || !pulse) {
     return;
+  }
 
   if (i->corked) {
     DEBUG_MSG("Skipping corked sink input: index=%u", i->index);
     return;
   }
 
-  const char *app_name = pa_proplist_gets(i->proplist, "application.name");
-  const char *media_name = pa_proplist_gets(i->proplist, "media.name");
-  const char *binary_name =
-      pa_proplist_gets(i->proplist, "application.process.binary");
+  const char *binary_name = pa_proplist_gets(i->proplist, "application.process.binary");
 
-  if (!app_name && !binary_name) {
+  if (!binary_name) {
     DEBUG_MSG("Skipping sink input with no app_name or binary_name: index=%u",
               i->index);
     return;
   }
 
-  DEBUG_MSG("Sink input: index=%u, app_name=%s, binary_name=%s, media_name=%s",
-            i->index, safe_str(app_name), safe_str(binary_name),
-            safe_str(media_name));
+  DEBUG_MSG("Sink input: index=%u, binary_name=%s",
+            i->index, safe_str(binary_name));
 
   /* Find matching player */
   PlayerData *matched_player = NULL;
   for (GList *iter = *pulse->players; iter; iter = iter->next) {
     PlayerData *player = iter->data;
-    if (!player)
+    if (!player || !player->name) {
       continue;
+    }
+    if (g_ascii_strcasecmp(binary_name, player->name) == 0) {
+      matched_player = player;
+      break;
+    }
+  }
 
-    if (app_name && player->name &&
-        g_ascii_strcasecmp(app_name, player->name) == 0) {
-      matched_player = player;
-      break;
+  /* Browser remap table */
+  if (!matched_player) {
+    const char *mapped = binary_name;
+    if (g_ascii_strcasecmp(binary_name, "chrome") == 0 ||
+        g_ascii_strcasecmp(binary_name, "opera") == 0) {
+        mapped = "chromium";
+    } else if (g_ascii_strcasecmp(binary_name, "librewolf") == 0 ||
+                 g_ascii_strcasecmp(binary_name, "zen-bin") == 0) {
+        mapped = "firefox";
+    } else if (g_ascii_strcasecmp(binary_name, "msedge") == 0) {
+        mapped = "edge";
     }
-    if (app_name && player->instance &&
-        g_ascii_strcasecmp(app_name, player->instance) == 0) {
-      matched_player = player;
-      break;
-    }
-    if (binary_name && player->name &&
-        g_ascii_strcasecmp(binary_name, player->name) == 0) {
-      matched_player = player;
-      break;
-    }
-    if (media_name && player->name && strstr(media_name, player->name)) {
-      matched_player = player;
-      break;
-    }
-    /* Special casing for LibreWolf -> Firefox mapping */
-    if (app_name && player->name &&
-        g_ascii_strcasecmp(app_name, "LibreWolf") == 0 &&
-        g_ascii_strcasecmp(player->name, "Firefox") == 0) {
-      matched_player = player;
-      break;
-    }
-    if (binary_name && player->name &&
-        g_ascii_strcasecmp(binary_name, "librewolf") == 0 &&
-        g_ascii_strcasecmp(player->name, "Firefox") == 0) {
-      matched_player = player;
-      break;
+
+    for (GList *iter = *pulse->players; iter; iter = iter->next) {
+      PlayerData *player = iter->data;
+      if (!player || !player->name) {
+        continue;
+      }
+      if (g_ascii_strcasecmp(mapped, player->name) == 0) {
+        matched_player = player;
+        break;
+      }
     }
   }
 
   if (!matched_player) {
     /* Create default PlayerData for unrecognized sink input */
     PlayerData *default_player = g_new0(PlayerData, 1);
-    default_player->name =
-        g_strdup(app_name ? app_name : (binary_name ? binary_name : "Unknown"));
+    default_player->name = g_strdup(binary_name ? binary_name : "Unknown");
     default_player->index = i->index;
     default_player->sink = i->sink;
     default_player->volume = pa_volume_to_percent(&i->volume);
@@ -294,14 +287,16 @@ static void subscribe_cb(pa_context *c, pa_subscription_event_type_t t,
       t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
   pa_subscription_event_type_t type = t & PA_SUBSCRIPTION_EVENT_TYPE_MASK;
 
-  if (type != PA_SUBSCRIPTION_EVENT_CHANGE && type != PA_SUBSCRIPTION_EVENT_NEW)
+  if (type != PA_SUBSCRIPTION_EVENT_CHANGE && type != PA_SUBSCRIPTION_EVENT_NEW) {
     return;
+  }
 
   if (facility == PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
     pa_operation *op =
         pa_context_get_sink_input_info(c, idx, sink_input_info_cb, pulse);
-    if (op)
+    if (op) {
       pa_operation_unref(op);
+    }
   }
 }
 
@@ -317,14 +312,16 @@ static void context_state_cb(pa_context *c, void *userdata) {
       pa_operation *op_sub = pa_context_subscribe(
           c, PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SINK_INPUT, NULL,
           NULL);
-      if (op_sub)
+      if (op_sub) {
         pa_operation_unref(op_sub);
+      }
     }
     {
       pa_operation *op_input =
           pa_context_get_sink_input_info_list(c, sink_input_info_cb, pulse);
-      if (op_input)
+      if (op_input) {
         pa_operation_unref(op_input);
+      }
     }
     break;
   case PA_CONTEXT_FAILED:
@@ -345,8 +342,9 @@ static void context_state_cb(pa_context *c, void *userdata) {
 
 /* Helper function to update metadata and properties */
 static void update_metadata(PlayerData *data, PulseData *pulse) {
-  if (!data)
+  if (!data) {
     return;
+  }
 
   /* Free existing metadata */
   g_free(data->title);
@@ -476,8 +474,9 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
       pa_context_get_state(pulse->context) == PA_CONTEXT_READY) {
     pa_operation *op = pa_context_get_sink_input_info_list(
         pulse->context, sink_input_info_cb, pulse);
-    if (op)
+    if (op) {
       pa_operation_unref(op);
+    }
   }
 
   DEBUG_MSG("Updated metadata for %s: title=%s, album=%s, artist=%s, "
@@ -594,8 +593,9 @@ static void print_player_list(GList *players, gboolean force_output) {
 }
 
 static PlayerData *find_player_data(PulseData *pulse, PlayerctlPlayer *player) {
-  if (!pulse)
+  if (!pulse) {
     return NULL;
+  }
   for (GList *iter = *pulse->players; iter != NULL; iter = iter->next) {
     PlayerData *d = iter->data;
     if (d && d->player == player) {
@@ -701,8 +701,9 @@ static void check_can_loop(PlayerData *data, PulseData *pulse) {
 /* Helper function to create PlayerData from PlayerctlPlayerName */
 static PlayerData *player_data_new(PlayerctlPlayerName *name,
                                    PulseData *pulse) {
-  if (!name)
+  if (!name) {
     return NULL;
+  }
 
   GError *error = NULL;
   PlayerData *data = g_new0(PlayerData, 1);
@@ -737,8 +738,9 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
 /* Helper function to free PlayerData */
 static void player_data_free(gpointer data) {
   PlayerData *player_data = data;
-  if (!player_data)
+  if (!player_data) {
     return;
+  }
 
   /* Cancel any active artUrl polling */
   if (player_data->art_url_polling_id != 0) {
@@ -763,8 +765,9 @@ static void player_data_free(gpointer data) {
 
 /* Helper function to find a player by instance */
 static GList *find_player_by_instance(GList *players, const gchar *instance) {
-  if (!instance)
+  if (!instance) {
     return NULL;
+  }
   for (GList *iter = players; iter != NULL; iter = iter->next) {
     PlayerData *data = iter->data;
     if (data && data->instance && strcmp(data->instance, instance) == 0) {
@@ -778,8 +781,9 @@ static GList *find_player_by_instance(GList *players, const gchar *instance) {
 static void on_name_appeared(PlayerctlPlayerManager *manager,
                              PlayerctlPlayerName *name, gpointer user_data) {
   PulseData *pulse = user_data;
-  if (!pulse || !name)
+  if (!pulse || !name) {
     return;
+  }
 
   DEBUG_MSG("Received name-appeared for %s (instance: %s)",
             safe_str(name->name), safe_str(name->instance));
@@ -792,8 +796,9 @@ static void on_name_appeared(PlayerctlPlayerManager *manager,
     /* Update all players metadata once new player appears */
     for (GList *iter = *pulse->players; iter != NULL; iter = iter->next) {
       PlayerData *d = iter->data;
-      if (d && d->player)
+      if (d && d->player) {
         update_metadata(d, pulse);
+      }
     }
     print_player_list(*pulse->players, FALSE);
   } else {
@@ -806,8 +811,9 @@ static void on_name_appeared(PlayerctlPlayerManager *manager,
 static void on_name_vanished(PlayerctlPlayerManager *manager,
                              PlayerctlPlayerName *name, gpointer user_data) {
   PulseData *pulse = user_data;
-  if (!pulse || !name)
+  if (!pulse || !name) {
     return;
+  }
 
   DEBUG_MSG("Received name-vanished for %s (instance: %s)",
             safe_str(name->name), safe_str(name->instance));
@@ -827,8 +833,9 @@ static void on_name_vanished(PlayerctlPlayerManager *manager,
 
 /* Free PulseData */
 static void pulse_data_free(PulseData *pulse) {
-  if (!pulse)
+  if (!pulse) {
     return;
+  }
   if (pulse->context) {
     pa_context_disconnect(pulse->context);
     pa_context_unref(pulse->context);

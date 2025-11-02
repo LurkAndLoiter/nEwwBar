@@ -153,11 +153,11 @@
             :onclick '${device.Connected ? 'bluetoothctl disconnect ${device.id}' :
                       '${device.Paired ? device.Trusted ?
                       'eww update btConnecting="${device.id}" &&
-                       bluetoothctl connect ${device.id} &&
+                       bluetoothctl --timeout 3 -- connect ${device.id} &&
                        eww update btConnecting="" &' :
                       'eww update btConnecting="${device.id}" &&
                        bluetoothctl trust ${device.id} &&
-                       bluetoothctl connect ${device.id} &&
+                       bluetoothctl --timeout 3 -- connect ${device.id} &&
                        bluetoothctl untrust ${device.id} &&
                        eww update btConnecting="" &' :
                       './bin/bluetooth_connect ${device.id} &'}'}'

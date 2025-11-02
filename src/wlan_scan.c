@@ -75,8 +75,9 @@ char *byte_array_to_string(DBusMessageIter *iter) {
   }
 
   char *str = malloc(len + 1);
-  if (!str)
+  if (!str) {
     return strdup("");
+  }
 
   int i = 0;
   while (dbus_message_iter_get_arg_type(&array_iter) != DBUS_TYPE_INVALID) {
@@ -258,8 +259,9 @@ void print_access_points(DBusConnection *conn, const char *device_path) {
               dbus_message_iter_next(&dict_iter);
             }
 
-            if (!first)
+            if (!first) {
               printf(",");
+            }
             first = 0;
 
             printf("{\"SSID\": \"%s\", \"Frequency\": %u, \"Strength\": %u, "
@@ -267,8 +269,9 @@ void print_access_points(DBusConnection *conn, const char *device_path) {
                    ssid ? ssid : "", freq, strength,
                    is_connected ? "true" : "false");
 
-            if (ssid)
+            if (ssid) {
               free(ssid);
+            }
           }
           dbus_message_unref(prop_reply);
         }

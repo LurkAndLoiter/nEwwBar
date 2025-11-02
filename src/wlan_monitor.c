@@ -201,8 +201,9 @@ static void on_state_changed(GDBusConnection *conn, const gchar *sender_name,
   guint8 strength = 0;
 
   if (state == 100) {
-    if (current_ap_path)
+    if (current_ap_path) {
       g_free(current_ap_path);
+    }
     current_ap_path = get_active_access_point(device_path);
 
     if (current_ap_path) {
@@ -278,12 +279,15 @@ int main() {
   g_main_loop_run(loop);
 
   // Cleanup
-  if (subscription_id)
+  if (subscription_id) {
     g_dbus_connection_signal_unsubscribe(connection, subscription_id);
-  if (strength_subscription_id)
+  }
+  if (strength_subscription_id) {
     g_dbus_connection_signal_unsubscribe(connection, strength_subscription_id);
-  if (current_ap_path)
+  }
+  if (current_ap_path) {
     g_free(current_ap_path);
+  }
   g_free(device_path);
   g_object_unref(connection);
   g_main_loop_unref(loop);

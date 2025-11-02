@@ -122,8 +122,9 @@ int main() {
     ssize_t bytes =
         read(sock, buffer + buffer_len, BUFFER_SIZE - buffer_len - 1);
     if (bytes <= 0) {
-      if (bytes == 0)
+      if (bytes == 0) {
         DEBUG_MSG("Socket closed");
+      }
       else
         DEBUG_MSG("socket read failed: %d", errno);
       break;
@@ -138,8 +139,9 @@ int main() {
       if (strncmp(line, "workspace>>", 10) == 0 ||
           strncmp(line, "focusedmon>>", 11) == 0) {
         char *ptr = strrchr(line, ',');
-        if (!ptr)
+        if (!ptr) {
           ptr = strrchr(line, '>');
+        }
         if (ptr) {
           printf("%s\n", ptr + 1);
           fflush(stdout);

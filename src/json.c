@@ -40,10 +40,11 @@ void print_json_str(const char *str) {
       putchar('/');
       break;
     default:
-      if (*c < 0x20) // control characters
+      if (*c < 0x20) {
         printf("\\u%04x", *c);
-      else
+      } else {
         putchar(*c);
+      }
     }
   }
   putchar('"');

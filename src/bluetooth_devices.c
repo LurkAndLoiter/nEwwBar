@@ -73,16 +73,20 @@ typedef struct {
 } Device;
 
 static void free_device(Device *device) {
-  if (device->path)
+  if (device->path) {
     free(device->path);
-  for (int i = 0; i < device->prop_count; i++) {
-    if (device->properties[i].key)
-      free(device->properties[i].key);
-    if (device->properties[i].value)
-      free(device->properties[i].value);
   }
-  if (device->properties)
+  for (int i = 0; i < device->prop_count; i++) {
+    if (device->properties[i].key) {
+      free(device->properties[i].key);
+    }
+    if (device->properties[i].value) {
+      free(device->properties[i].value);
+    }
+  }
+  if (device->properties) {
     free(device->properties);
+  }
 }
 
 static char *get_property(DBusConnection *conn, const char *path,
@@ -382,8 +386,9 @@ int main() {
     DEBUG_MSG("Failed to add match rules");
     for (int i = 0; i < device_count; i++)
       free_device(&devices[i]);
-    if (devices)
+    if (devices) {
       free(devices);
+    }
     free(last_output); // Clean up last_output
     dbus_connection_unref(conn);
     dbus_error_free(&err);
@@ -404,8 +409,9 @@ int main() {
         for (int i = 0; i < device_count; i++) {
           free_device(&devices[i]);
         }
-        if (devices)
+        if (devices) {
           free(devices);
+        }
 
         devices = get_devices(conn, &device_count);
         if (device_count > 0) {
@@ -428,8 +434,9 @@ int main() {
   for (int i = 0; i < device_count; i++) {
     free_device(&devices[i]);
   }
-  if (devices)
+  if (devices) {
     free(devices);
+  }
   free(last_output); // Clean up last_output
   dbus_connection_unref(conn);
   dbus_error_free(&err);

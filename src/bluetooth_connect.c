@@ -69,15 +69,18 @@ dbus_bool_t get_property(DBusConnection *conn, const char *path,
                          DBusMessageIter *iter) {
   DBusMessage *msg = send_dbus_method_call(
       conn, BLUEZ_SERVICE, path, "org.freedesktop.DBus.Properties", "Get");
-  if (!msg)
+  if (!msg) {
     return FALSE;
+  }
 
   DBusMessageIter args;
   dbus_message_iter_init_append(msg, &args);
-  if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &interface))
+  if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &interface)) {
     goto fail;
-  if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &property))
+  }
+  if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &property)) {
     goto fail;
+  }
 
   DBusError err;
   dbus_error_init(&err);
@@ -112,23 +115,29 @@ dbus_bool_t set_property(DBusConnection *conn, const char *path,
                          void *value) {
   DBusMessage *msg = send_dbus_method_call(
       conn, BLUEZ_SERVICE, path, "org.freedesktop.DBus.Properties", "Set");
-  if (!msg)
+  if (!msg) {
     return FALSE;
+  }
 
   DBusMessageIter args, variant;
   dbus_message_iter_init_append(msg, &args);
-  if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &interface))
+  if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &interface)) {
     goto fail;
-  if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &property))
+  }
+  if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &property)) {
     goto fail;
+  }
   if (!dbus_message_iter_open_container(&args, DBUS_TYPE_VARIANT,
                                         type == DBUS_TYPE_BOOLEAN ? "b" : "s",
-                                        &variant))
+                                        &variant)) {
     goto fail;
-  if (!dbus_message_iter_append_basic(&variant, type, value))
+  }
+  if (!dbus_message_iter_append_basic(&variant, type, value)) {
     goto fail;
-  if (!dbus_message_iter_close_container(&args, &variant))
+  }
+  if (!dbus_message_iter_close_container(&args, &variant)) {
     goto fail;
+  }
 
   DBusError err;
   dbus_error_init(&err);
@@ -211,8 +220,9 @@ DBusHandlerResult agent_message_handler(DBusConnection *conn, DBusMessage *msg,
   const char *interface = dbus_message_get_interface(msg);
   const char *member = dbus_message_get_member(msg);
 
-  if (strcmp(interface, "org.bluez.AgentManager1") != 0)
+  if (strcmp(interface, "org.bluez.AgentManager1") != 0) {
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+  }
 
   DBusMessage *reply = NULL;
   if (strcmp(member, "RequestPinCode") == 0) {
@@ -349,8 +359,9 @@ int pair_and_connect(DBusConnection *conn, const char *device_addr) {
   printf("Pairing with device %s...\n", device_addr);
   DBusMessage *msg = send_dbus_method_call(conn, BLUEZ_SERVICE, device_path,
                                            "org.bluez.Device1", "Pair");
-  if (!msg)
+  if (!msg) {
     return -1;
+  }
 
   DBusError err;
   dbus_error_init(&err);
@@ -368,8 +379,9 @@ int pair_and_connect(DBusConnection *conn, const char *device_addr) {
   printf("Connecting to device %s...\n", device_addr);
   msg = send_dbus_method_call(conn, BLUEZ_SERVICE, device_path,
                               "org.bluez.Device1", "Connect");
-  if (!msg)
+  if (!msg) {
     return -1;
+  }
 
   reply = dbus_connection_send_with_reply_and_block(conn, msg, TIMEOUT, &err);
   dbus_message_unref(msg);
@@ -394,8 +406,9 @@ int main(int argc, char *argv[]) {
   char device_addr[18];
   strncpy(device_addr, argv[1], sizeof(device_addr));
   for (int i = 0; device_addr[i]; i++) {
-    if (device_addr[i] == ':')
+    if (device_addr[i] == ':') {
       device_addr[i] = '_';
+    }
   }
 
   DBusError err;

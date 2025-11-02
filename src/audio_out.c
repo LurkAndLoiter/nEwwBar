@@ -69,8 +69,9 @@ typedef struct {
 
 // --- Memory management for AudioSink array ---
 void free_sinks(AudioSink *sinks, size_t count) {
-  if (!sinks)
+  if (!sinks) {
     return;
+  }
   for (size_t i = 0; i < count; ++i) {
     // free(sinks[i].index);
     free(sinks[i].name);
@@ -85,8 +86,9 @@ void print_sinks(AppContext *app) {
   printf("[");
   for (size_t i = 0; i < app->sink_count; ++i) {
     AudioSink *sink = &app->sinks[i];
-    if (i)
+    if (i) {
       printf(",");
+    }
     printf("{\"index\":%i", sink->index);
     printf(",\"isMute\":%s", sink->muted ? "true" : "false");
     printf(",\"volume\":%d", sink->volume);
@@ -148,8 +150,9 @@ void sink_info_cb(pa_context *c, const pa_sink_info *i, int eol,
 void server_info_cb(pa_context *c, const pa_server_info *i, void *userdata) {
   (void)c; // suppress unused paramater warning
   AppContext *app = (AppContext *)userdata;
-  if (app->default_sink)
+  if (app->default_sink) {
     free(app->default_sink);
+  }
   app->default_sink = strdup(i->default_sink_name ? i->default_sink_name : "");
   app->got_server_info = true;
   if (app->got_sink_info) {
@@ -163,10 +166,12 @@ void refresh_info(pa_context *c, AppContext *app) {
   app->got_server_info = app->got_sink_info = false;
   pa_operation *op1 = pa_context_get_server_info(c, server_info_cb, app);
   pa_operation *op2 = pa_context_get_sink_info_list(c, sink_info_cb, app);
-  if (op1)
+  if (op1) {
     pa_operation_unref(op1);
-  if (op2)
+  }
+  if (op2) {
     pa_operation_unref(op2);
+  }
 }
 
 // --- Subscription callback: handle all relevant events ---
@@ -189,8 +194,9 @@ void pa_state_cb(pa_context *c, void *userdata) {
     pa_context_set_subscribe_callback(c, subscription_cb, app);
     pa_operation *op = pa_context_subscribe(
         c, PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SERVER, NULL, NULL);
-    if (op)
+    if (op) {
       pa_operation_unref(op);
+    }
     refresh_info(c, app);
     break;
   }
@@ -235,9 +241,11 @@ int main(void) {
 cleanup:
   free_sinks(app.sinks, app.sink_count);
   free(app.default_sink);
-  if (app.pa_context)
+  if (app.pa_context) {
     pa_context_unref(app.pa_context);
-  if (app.pa_mainloop)
+  }
+  if (app.pa_mainloop) {
     pa_mainloop_free(app.pa_mainloop);
+  }
   return ret;
 }

@@ -71,8 +71,9 @@ Workspace workspaces[MAX_WORKSPACES] = {0};
 void print_json() {
   printf("[");
   for (int i = 0; i < MAX_WORKSPACES; i++) {
-    if (i)
+    if (i) {
       printf(",");
+    }
     printf("{\"WorkspaceID\": %i,", workspaces[i].WorkspaceID);
     printf("\"hasWindows\": %s", (workspaces[i].hasWindows ? "true" : "false"));
     printf("}");

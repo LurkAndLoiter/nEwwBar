@@ -87,8 +87,9 @@ const char *state_to_string(pa_source_state_t state) {
 
 // --- Memory management for AudioSource array ---
 void free_sources(AudioSource *sources, size_t count) {
-  if (!sources)
+  if (!sources) {
     return;
+  }
   for (size_t i = 0; i < count; ++i) {
     free(sources[i].name);
     free(sources[i].description);
@@ -102,8 +103,9 @@ void print_sources(AppContext *app) {
   printf("[");
   for (size_t i = 0; i < app->source_count; ++i) {
     AudioSource *src = &app->sources[i];
-    if (i)
+    if (i) {
       printf(",");
+    }
     printf("{\"id\":%u,", src->index);
     printf("\"mute\":%s,", src->muted ? "true" : "false");
     printf("\"volume\":%d,", src->volume);
@@ -171,8 +173,9 @@ void source_info_cb(pa_context *c, const pa_source_info *i, int eol,
 void server_info_cb(pa_context *c, const pa_server_info *i, void *userdata) {
   (void)c; // suppress unused paramater warning
   AppContext *app = (AppContext *)userdata;
-  if (app->default_source)
+  if (app->default_source) {
     free(app->default_source);
+  }
   app->default_source =
       strdup(i->default_source_name ? i->default_source_name : "");
   app->got_server_info = true;
@@ -189,10 +192,12 @@ void refresh_info(pa_context *c, AppContext *app) {
   app->got_server_info = app->got_source_info = false;
   pa_operation *op1 = pa_context_get_server_info(c, server_info_cb, app);
   pa_operation *op2 = pa_context_get_source_info_list(c, source_info_cb, app);
-  if (op1)
+  if (op1) {
     pa_operation_unref(op1);
-  if (op2)
+  }
+  if (op2) {
     pa_operation_unref(op2);
+  }
 }
 
 // --- Subscription callback: handle all relevant events ---
@@ -216,8 +221,9 @@ void pa_state_cb(pa_context *c, void *userdata) {
     pa_operation *op = pa_context_subscribe(
         c, PA_SUBSCRIPTION_MASK_SOURCE | PA_SUBSCRIPTION_MASK_SERVER, NULL,
         NULL);
-    if (op)
+    if (op) {
       pa_operation_unref(op);
+    }
     refresh_info(c, app);
     break;
   }
@@ -263,9 +269,11 @@ int main(void) {
 cleanup:
   free_sources(app.sources, app.source_count);
   free(app.default_source);
-  if (app.pa_context)
+  if (app.pa_context) {
     pa_context_unref(app.pa_context);
-  if (app.pa_mainloop)
+  }
+  if (app.pa_mainloop) {
     pa_mainloop_free(app.pa_mainloop);
+  }
   return ret;
 }

@@ -88,7 +88,9 @@ static void update_time_components(PlayerData *data) {
 static PlayerData *find_player_data(GList **players, PlayerctlPlayer *player) {
   for (GList *iter = *players; iter; iter = iter->next) {
     PlayerData *d = iter->data;
-    if (d->player == player) return d;
+    if (d->player == player) {
+      return d;
+    }
   }
   return NULL;
 }
@@ -116,7 +118,9 @@ static void print_player_list(GList *players) {
   gboolean first = TRUE;
   for (GList *iter = players; iter; iter = iter->next) {
     PlayerData *data = iter->data;
-    if (!first) printf(",");
+    if (!first) {
+      printf(",");
+    }
     first = FALSE;
 
     gchar *key = g_strdup_printf("org.mpris.MediaPlayer2.%s", data->instance);
@@ -177,7 +181,9 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name, GList **players) {
 
 static void player_data_free(gpointer data) {
   PlayerData *player_data = data;
-  if (player_data->player) g_object_unref(player_data->player);
+  if (player_data->player) {
+    g_object_unref(player_data->player);
+  }
   g_free(player_data->name);
   g_free(player_data->instance);
   g_free(player_data);
@@ -215,7 +221,9 @@ static void adjust_global_timer(GList **players) {
 static void on_playback_status(PlayerctlPlayer *player, PlayerctlPlaybackStatus status, gpointer user_data) {
   GList **players = user_data;
   PlayerData *data = find_player_data(players, player);
-  if (!data || !data->name || !data->instance) return;
+  if (!data || !data->name || !data->instance) {
+    return;
+  }
 
   data->playback_status = status;
   GError *error = NULL;
@@ -235,7 +243,9 @@ static void on_playback_status(PlayerctlPlayer *player, PlayerctlPlaybackStatus 
 static void on_seeked(PlayerctlPlayer *player, gint64 position, gpointer user_data) {
   GList **players = user_data;
   PlayerData *data = find_player_data(players, player);
-  if (!data || !data->name || !data->instance) return;
+  if (!data || !data->name || !data->instance) {
+    return;
+  }
 
   update_player_position(data, position / 1000000, players);
   DEBUG_MSG("Player %s (instance: %s): Seeked to %ld seconds",
@@ -250,7 +260,9 @@ static gboolean on_position_check(gpointer user_data) {
 
   for (GList *iter = *players; iter; iter = iter->next) {
     PlayerData *data = iter->data;
-    if (!data->player || data->playback_status != PLAYERCTL_PLAYBACK_STATUS_PLAYING) continue;
+    if (!data->player || data->playback_status != PLAYERCTL_PLAYBACK_STATUS_PLAYING) {
+      continue;
+    }
 
     gint64 old_seconds = data->local_seconds;
     data->local_seconds += 1;
@@ -277,10 +289,14 @@ static gboolean on_position_check(gpointer user_data) {
       }
     }
 
-    if (data->local_seconds != old_seconds) any_changed = TRUE;
+    if (data->local_seconds != old_seconds) {
+      any_changed = TRUE;
+    }
   }
 
-  if (any_changed) print_player_list(*players);
+  if (any_changed) {
+    print_player_list(*players);
+  }
   adjust_global_timer(players);
   return FALSE;
 }

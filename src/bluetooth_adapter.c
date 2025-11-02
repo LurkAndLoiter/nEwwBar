@@ -204,8 +204,9 @@ int main(void) {
   if (!check_adapter_exists(conn, &error)) {
     DEBUG_MSG("Adapter %s not found: %s\n", ADAPTER_OBJECT_PATH,
               error ? error->message : "Unknown error");
-    if (error)
+    if (error) {
       g_error_free(error);
+    }
     g_object_unref(conn);
     return 1;
   }

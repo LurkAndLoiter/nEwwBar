@@ -128,6 +128,7 @@ void print_sources(AppContext *app) {
 // --- Source info callback: collects AudioSource array ---
 void source_info_cb(pa_context *c, const pa_source_info *i, int eol,
                     void *userdata) {
+  (void)c; // suppress unused paramater warning
   AppContext *app = (AppContext *)userdata;
 
   if (eol) {
@@ -168,6 +169,7 @@ void source_info_cb(pa_context *c, const pa_source_info *i, int eol,
 
 // --- Server info callback: gets default source name ---
 void server_info_cb(pa_context *c, const pa_server_info *i, void *userdata) {
+  (void)c; // suppress unused paramater warning
   AppContext *app = (AppContext *)userdata;
   if (app->default_source)
     free(app->default_source);
@@ -196,6 +198,7 @@ void refresh_info(pa_context *c, AppContext *app) {
 // --- Subscription callback: handle all relevant events ---
 void subscription_cb(pa_context *c, pa_subscription_event_type_t t,
                      uint32_t idx, void *userdata) {
+  (void)idx; // suppress unused paramater warning
   AppContext *app = (AppContext *)userdata;
   pa_subscription_event_type_t fac = t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
   if (fac == PA_SUBSCRIPTION_EVENT_SOURCE ||

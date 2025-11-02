@@ -53,6 +53,7 @@ static const char *AGENT_PATH = "/org/example/agent";
 DBusMessage *send_dbus_method_call(DBusConnection *conn, const char *dest,
                                    const char *path, const char *interface,
                                    const char *method) {
+  (void)conn; // suppress unused paramater warning
   DBusMessage *msg =
       dbus_message_new_method_call(dest, path, interface, method);
   if (!msg) {
@@ -206,6 +207,7 @@ int configure_adapter(DBusConnection *conn) {
 // Agent signal handler for auto-accepting pairing requests
 DBusHandlerResult agent_message_handler(DBusConnection *conn, DBusMessage *msg,
                                         void *data) {
+  (void)data; // suppress unused paramater warning
   const char *interface = dbus_message_get_interface(msg);
   const char *member = dbus_message_get_member(msg);
 

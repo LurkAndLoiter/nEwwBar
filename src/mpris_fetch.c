@@ -196,6 +196,7 @@ void to_hms(int64_t s, char *hms, size_t hms_size) {
 /* PulseAudio sink input info callback */
 static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
                                int eol, void *userdata) {
+  (void)c; // suppress unused paramater warning
   PulseData *pulse = userdata;
   if (eol || !i || !pulse) {
     return;
@@ -620,6 +621,7 @@ static void on_playback_status(PlayerctlPlayer *player,
 /* Callback for the metadata signal */
 static void on_metadata(PlayerctlPlayer *player, GVariant *metadata,
                         gpointer user_data) {
+  (void)metadata; // suppress unused paramater warning
   PulseData *pulse = user_data;
   PlayerData *data = find_player_data(pulse, player);
   if (data) {
@@ -780,6 +782,7 @@ static GList *find_player_by_instance(GList *players, const gchar *instance) {
 /* Callback for the name-appeared signal */
 static void on_name_appeared(PlayerctlPlayerManager *manager,
                              PlayerctlPlayerName *name, gpointer user_data) {
+  (void)manager; // suppress unused paramater warning
   PulseData *pulse = user_data;
   if (!pulse || !name) {
     return;
@@ -810,6 +813,7 @@ static void on_name_appeared(PlayerctlPlayerManager *manager,
 /* Callback for the name-vanished signal */
 static void on_name_vanished(PlayerctlPlayerManager *manager,
                              PlayerctlPlayerName *name, gpointer user_data) {
+  (void)manager; // suppress unused paramater warning
   PulseData *pulse = user_data;
   if (!pulse || !name) {
     return;

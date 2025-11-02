@@ -106,6 +106,7 @@ void print_sinks(AppContext *app) {
 // --- Sink info callback: collects AudioSink array ---
 void sink_info_cb(pa_context *c, const pa_sink_info *i, int eol,
                   void *userdata) {
+  (void)c; // suppress unused paramater warning
   AppContext *app = (AppContext *)userdata;
 
   if (eol) {
@@ -145,6 +146,7 @@ void sink_info_cb(pa_context *c, const pa_sink_info *i, int eol,
 
 // --- Server info callback for default sink ---
 void server_info_cb(pa_context *c, const pa_server_info *i, void *userdata) {
+  (void)c; // suppress unused paramater warning
   AppContext *app = (AppContext *)userdata;
   if (app->default_sink)
     free(app->default_sink);
@@ -170,6 +172,7 @@ void refresh_info(pa_context *c, AppContext *app) {
 // --- Subscription callback: handle all relevant events ---
 void subscription_cb(pa_context *c, pa_subscription_event_type_t t,
                      uint32_t idx, void *userdata) {
+  (void)idx; // suppress unused paramater warning
   AppContext *app = (AppContext *)userdata;
   pa_subscription_event_type_t fac = t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
   if (fac == PA_SUBSCRIPTION_EVENT_SINK ||

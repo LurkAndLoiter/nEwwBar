@@ -136,6 +136,11 @@ static void on_properties_changed(GDBusConnection *connection,
                                   const gchar *interface_name,
                                   const gchar *signal_name,
                                   GVariant *parameters, gpointer user_data) {
+  (void)connection; // suppress unused paramater warning
+  (void)sender_name; // suppress unused paramater warning
+  (void)object_path; // suppress unused paramater warning
+  (void)interface_name; // suppress unused paramater warning
+  (void)signal_name; // suppress unused paramater warning
   GDBusProxy *proxy = G_DBUS_PROXY(user_data);
   const gchar *interface;
   GVariantIter *changed_properties;

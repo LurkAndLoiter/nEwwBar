@@ -171,6 +171,13 @@ static void on_strength_changed(GDBusConnection *conn, const gchar *sender_name,
                                 const gchar *interface_name,
                                 const gchar *signal_name, GVariant *parameters,
                                 gpointer user_data) {
+  (void)conn; // suppress unused paramater warning
+  (void)sender_name; // suppress unused paramater warning
+  (void)object_path; // suppress unused paramater warning
+  (void)interface_name; // suppress unused paramater warning
+  (void)signal_name; // suppress unused paramater warning
+  (void)parameters; // suppress unused paramater warning
+  (void)user_data; // suppress unused paramater warning
   guint state = get_state(device_path);
   if (state == 100) {
     guint8 strength = get_strength(current_ap_path);
@@ -183,6 +190,13 @@ static void on_state_changed(GDBusConnection *conn, const gchar *sender_name,
                              const gchar *interface_name,
                              const gchar *signal_name, GVariant *parameters,
                              gpointer user_data) {
+  (void)conn; // suppress unused paramater warning
+  (void)sender_name; // suppress unused paramater warning
+  (void)object_path; // suppress unused paramater warning
+  (void)interface_name; // suppress unused paramater warning
+  (void)signal_name; // suppress unused paramater warning
+  (void)parameters; // suppress unused paramater warning
+  (void)user_data; // suppress unused paramater warning
   guint state = get_state(device_path);
   guint8 strength = 0;
 

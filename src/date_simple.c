@@ -58,7 +58,6 @@
 
 int main(void) {
   DEBUG_MSG("DEBUG enabled.");
-  struct tm prev_time = {0};
   const char *days_of_week[] = {"Sunday",   "Monday", "Tuesday", "Wednesday",
                                 "Thursday", "Friday", "Saturday"};
   const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -87,13 +86,22 @@ int main(void) {
       sleep_seconds = 1;
     }
 
-    printf("{\"DayOfWeek\":\"%s\",", days_of_week[curr_time.tm_wday]);
-    printf("\"Month\":\"%s\",", months[curr_time.tm_mon]);
-    printf("\"Day\":\"%02d\",", curr_time.tm_mday);
-    printf("\"Year\":\"%04d\",", curr_time.tm_year + 1900);
-    printf("\"H\":\"%02d\",", curr_time.tm_hour);
-    printf("\"M\":\"%02d\"}\n", curr_time.tm_min);
+    printf("{"
+            "\"DayOfWeek\":\"%s\", "
+            "\"Month\":\"%s\", "
+            "\"Day\":\"%02d\", "
+            "\"Year\":\"%04d\", "
+            "\"H\":\"%02d\", "
+            "\"M\":\"%02d\""
+           "}\n",
+       days_of_week[curr_time.tm_wday],
+       months[curr_time.tm_mon],
+       curr_time.tm_mday,
+       curr_time.tm_year + 1900,
+       curr_time.tm_hour,
+       curr_time.tm_min);
     fflush(stdout);
+
 
     // Sleep until the next minute boundary
     DEBUG_MSG(stdout, "DEBUG: Sleeping for %d seconds", sleep_seconds);

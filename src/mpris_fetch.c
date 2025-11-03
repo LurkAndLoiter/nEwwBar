@@ -193,6 +193,21 @@ void to_hms(int64_t s, char *hms, size_t hms_size) {
   }
 }
 
+static gboolean match_player(PulseData *pulse, const char *name, PlayerData **out_player)
+{
+  if (!name || !out_player) return FALSE;
+  *out_player = NULL;
+
+  for (GList *iter = *pulse->players; iter; iter = iter->next) {
+    PlayerData *player = iter->data;
+    if (player && player->name && g_ascii_strcasecmp(name, player->name) == 0) {
+      *out_player = player;
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
 /* PulseAudio sink input info callback */
 static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
                                int eol, void *userdata) {
@@ -208,28 +223,21 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   }
 
   const char *binary_name = pa_proplist_gets(i->proplist, "application.process.binary");
+  const char *fallback_name = pa_proplist_gets(i->proplist, "application.name");
 
-  if (!binary_name) {
-    DEBUG_MSG("Skipping sink input with no app_name or binary_name: index=%u",
+  if (!binary_name && !fallback_name) {
+    DEBUG_MSG("Skipping sink input with no binary_name or fallback_name: index=%u",
               i->index);
     return;
   }
 
-  DEBUG_MSG("Sink input: index=%u, binary_name=%s",
-            i->index, safe_str(binary_name));
+  DEBUG_MSG("Sink input: index=%u, binary_name=%s, fallback_name=%s",
+            i->index, safe_str(binary_name), safe_str(fallback_name));
 
   /* Find matching player */
   PlayerData *matched_player = NULL;
-  for (GList *iter = *pulse->players; iter; iter = iter->next) {
-    PlayerData *player = iter->data;
-    if (!player || !player->name) {
-      continue;
-    }
-    if (g_ascii_strcasecmp(binary_name, player->name) == 0) {
-      matched_player = player;
-      break;
-    }
-  }
+
+  match_player(pulse, binary_name ? binary_name : fallback_name, &matched_player);
 
   /* Browser remap table */
   if (!matched_player) {
@@ -244,15 +252,8 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
         mapped = "edge";
     }
 
-    for (GList *iter = *pulse->players; iter; iter = iter->next) {
-      PlayerData *player = iter->data;
-      if (!player || !player->name) {
-        continue;
-      }
-      if (g_ascii_strcasecmp(mapped, player->name) == 0) {
-        matched_player = player;
-        break;
-      }
+    if (mapped) {
+        match_player(pulse, mapped, &matched_player);
     }
   }
 

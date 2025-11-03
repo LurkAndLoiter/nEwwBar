@@ -182,7 +182,7 @@ for key in "${!desktop_entries[@]}"; do
     IFS='|' read -r name exec comment icon <<< "${desktop_entries[$key]}"
     row+="{\"Name\":\"$name\",\"Exec\":\"$exec\",\"Tooltip\":\"$comment\",\
         \"Icon\":\"$icon\"}"
-    $((count++))
+    _=$((count++))
 
     if [ $count -eq 5 ]; then
         row+="]"

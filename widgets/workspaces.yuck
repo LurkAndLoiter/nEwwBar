@@ -63,17 +63,14 @@
             w.WorkspaceID == focusedID ?
               '(image
                 :image-height 24
-                :path "./assets/circle_fill.svg"
-                :fill-svg "#f38ba8")' :
+                :path "./assets/circle_active.svg")' :
               w.hasWindows ?
                 '(image
                   :image-height 24
-                  :path "./assets/circle_open.svg"
-                  :fill-svg "#cdd6f4")' :
+                  :path "./assets/circle_inactive.svg")' :
                 '(image
                   :image-height 24
-                  :path "./assets/circle_open.svg"
-                  :fill-svg "#45475a")'
+                  :path "./assets/circle_none.svg")'
           }
         )
       )

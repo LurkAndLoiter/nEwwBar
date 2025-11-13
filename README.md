@@ -5,14 +5,16 @@
 
 A low resource eww bar that intends to implement all the basics one might need from a tray bar. why doesn't my tray bar have all the functionality pavucontrol does? &lt;- This is our goal. what do you open often? why? let us know. We want to implement it.
 
->[!CAUTION]
->Setup: run `make` in [src/](https://github.com/LurkAndLoiter/nEwwBar/tree/main/src) this will compile the C into [bin/](https://github.com/LurkAndLoiter/nEwwBar/tree/main/bin)
+### Intall
+
+- run `make` in cloned directory.
+  - compiles C from src/  into bin/
+  - generates svg assets with scripts/svgBuilder.sh
 
 Dependencies ():
 - Arch _pacman widget_
 - Hyprland _workspaces widget_
 - playerctl _audio widget_
-- pipewire _audio, mic widget_
 - wireplumber _audio, mic widget_
 - bluez _bluetooth widget_
 - NetworkManager _wifi widget_
@@ -22,7 +24,6 @@ Dependencies ():
   - json-glib
   - dbus
   - playerctl
-  - json-c
 
 If you run into an issue with compiling or setup please write an issue report.
 This is very much currently untested and a "works for me state." I really do

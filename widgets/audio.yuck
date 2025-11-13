@@ -276,7 +276,8 @@ Left click open/close panel`
               )
               (scale
                 :class "${p.canSeek == false ? "inactive" :
-                       "${matches(p.title, "Twitch$")}" ? "inactive" : ""}"
+                          p.lengthHMS == "live" ? "inactive" :
+                          ""}"
                 ; Slow GTK draw if length is large. Compress to max length 100.
                 ; :max "${p.length}"
                 ; :onchange "playerctl --player=${p.Name} position {}"
@@ -290,7 +291,7 @@ Left click open/close panel`
                 :xalign 1
                 :class "${p.lengthHMS == "live" ? "red" : ""}"
                 :text "${p.lengthHMS == "live" ? " live" :
-                         p.length == "" ? "--/--" :
+                         p.length == 0 ? "--/--" :
                         "${jq(audioPosition, '."${p.longName}HMS"', "r")}/${p.lengthHMS}"
                         }"
               )
@@ -357,8 +358,8 @@ Left click open/close panel`
       :class "paddingbottom"
       :space-evenly false
       :spacing 10
-      ;; Loop -1 unsupported, 0 none, 1 track, 2 playlist
-      ;; Shuffle -1 Unsupported, 0 not shuffled, 1 shuffled
+      ;; Loop <0 unsupported, 0 none, 1 track, 2 playlist
+      ;; Shuffle <0 Unsupported, 0 not shuffled, 1 shuffled
       (eventbox
         :onclick "playerctl --player=${name} loop ${
                         loop == 0 ? "track" :

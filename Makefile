@@ -8,7 +8,7 @@ endif
 
 CC=gcc $(CFLAGS)
 
-all: audio_in audio_out bluetooth_adapter bluetooth_connect bluetooth_devices date_simple mpris_fetch mpris_position wlan_monitor wlan_scan workspace_focus workspace_list
+all: audio_in audio_out bluetooth_adapter bluetooth_connect bluetooth_devices date_simple mpris_fetch mpris_position wlan_monitor wlan_scan workspace_focus workspace_list run
 
 audio_in: src/audio_in.c
 	$(CC) -o bin/audio_in src/audio_in.c src/json.c `pkg-config --libs libpulse`
@@ -45,6 +45,9 @@ workspace_focus: src/workspace_focus.c
 
 workspace_list: src/workspace_list.c
 	$(CC) -o bin/workspace_list src/workspace_list.c
+
+run:
+	./scripts/svgBuilder.sh
 
 clean:
 	[ -f bin/audio_in ] && rm bin/audio_in || true

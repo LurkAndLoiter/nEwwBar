@@ -39,7 +39,7 @@ Everything is event driven if you wanted to grab [some code](https://github.com/
 
 
 >[!WARNING]
->You need to be on git release as the yuck utilizes properties (fill-svg, jq -r) not available on the 0.6.0 release.
+>You need to be on git release as the yuck utilizes image property fill-svg not available on the 0.6.0 release.
 
 ## App Launcher
 ### Simply displays all apps and will launch them onclick. Currently supports user/system/flatpak desktop entries.

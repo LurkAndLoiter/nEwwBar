@@ -284,7 +284,8 @@ static gboolean on_position_check(gpointer user_data) {
         DEBUG_MSG("Failed to get position for %s: %s", data->name, error->message);
         g_error_free(error);
       } else {
-        data->local_seconds = micros / 1000000;
+        /* Rounds to nearest second */
+        data->local_seconds = (micros + 500000) / 1000000;
         update_time_components(data);
       }
     }

@@ -278,22 +278,24 @@ Left click open/close panel`
                 :class "${p.canSeek == false ? "inactive" :
                           p.lengthHMS == "live" ? "inactive" :
                           ""}"
-                ; Slow GTK draw if length is large. Compress to max length 100.
-                ; :max "${p.length}"
-                ; :onchange "playerctl --player=${p.Name} position {}"
-                ; :value "${jq(audioPosition, '."${p.longName}"', 'r')}"
                 :max 101
-                :onchange "playerctl --player=${p.name} position $(({} * ${p.length} / 100))"
-                ; live check stops unseen gtk redraws every second
-                :value "${p.lengthHMS == "live" ? 0 : 100 * jq(audioPosition, '."${p.longName}"', 'r') / p.length}"
+                :onchange "${p.canSeek && p.lengthHMS != 'live' ? `playerctl --player=${p.name} position $(({} * ${p.length} / 100))` : ''}"
+                :value "${100 * audioPosition["${p.longName}"]/p.length}"
               )
-              (label
-                :xalign 1
-                :class "${p.lengthHMS == "live" ? "red" : ""}"
-                :text "${p.lengthHMS == "live" ? " live" :
-                         p.length == 0 ? "--/--" :
-                        "${jq(audioPosition, '."${p.longName}HMS"', "r")}/${p.lengthHMS}"
-                        }"
+              (box
+                :hexpand true
+                :space-evenly false
+                :halign "end"
+                (label
+                  :visible "${p.lengthHMS == "live"}"
+                  :class "red"
+                  :text "⬤"
+                )
+                (label
+                  :text "${p.lengthHMS == "live" ? "LIVE" :
+                           p.length == 0 ? "--/--" :
+                           "${audioPosition["${p.longName}HMS"]}/${p.lengthHMS}"}"
+                )
               )
             )
           )

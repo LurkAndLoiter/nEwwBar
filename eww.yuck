@@ -78,6 +78,12 @@
   )
 )
 
+;(defwidget dateStyled []
+;  (box :space-evenly false
+;    (label :text "${Date.DayOfWeek} ${Date.H}:${Date.M}")
+;  )
+;)
+
 (defwindow barMin
   :monitor '["<primary>", "1", "0"]'
   :stacking "fg"
@@ -110,16 +116,18 @@
         :space-evenly false
         :spacing 5
         (eventbox :class "large" :onclick "eww open --toggle leftPanel" "󰍜")
-        (systray :spacing 2)
+        ; (workspaces)
       )
       (box
         :halign "center"
         (workspaces)
+        ; (dateStyled)
       )
       (box
         :halign "end"
         :spacing 5
         :space-evenly false
+        (systray :spacing 2)
         (pacmanButton)
         (audioButton)
         (micButton)
@@ -129,7 +137,7 @@
           :onclick "eww open --toggle rightPanel"
           (dateStyled)
         )
-        (powerButton)
+        (powerRevealer)
       )
     )
   )
@@ -202,7 +210,6 @@
             (wifi)
           )
         )
-        (power)
       )
     )
   )

@@ -39,6 +39,7 @@
  */
 
 #include <glib.h>
+#include <dbus/dbus.h>
 #include <json-glib/json-glib.h>
 #include <playerctl/playerctl.h>
 #include <pulse/glib-mainloop.h>
@@ -76,6 +77,8 @@ typedef struct {
   gchar *instance;
   gint source;
   PlayerctlPlayer *player;
+  /* Cached MediaPlayer2 properties */
+  gboolean can_quit;
   /* Cached player properties */
   gboolean can_control;
   gboolean can_go_next;
@@ -542,6 +545,9 @@ static void print_player_list(GList *players, gboolean force_output) {
     json_builder_set_member_name(builder, "name");
     json_builder_add_string_value(builder, data->name ? data->name : "");
 
+    json_builder_set_member_name(builder, "canQuit");
+    json_builder_add_boolean_value(builder, data->can_quit);
+
     json_builder_set_member_name(builder, "canControl");
     json_builder_add_boolean_value(builder, data->can_control);
 
@@ -758,6 +764,37 @@ static void check_can_loop(PlayerData *data, PulseData *pulse) {
                      pulse);
   }
 }
+
+dbus_bool_t get_can_quit(const char *interface) {
+    static const char *interface_str = "org.mpris.MediaPlayer2";
+    static const char *property_str = "CanQuit";
+
+    char dest[256];
+    snprintf(dest, sizeof(dest), "org.mpris.MediaPlayer2.%s", interface);
+
+    DBusConnection *conn = dbus_bus_get(DBUS_BUS_SESSION, NULL);
+    DBusMessage *msg = dbus_message_new_method_call(
+        dest, "/org/mpris/MediaPlayer2",
+        "org.freedesktop.DBus.Properties", "Get");
+    dbus_message_append_args(msg,
+        DBUS_TYPE_STRING, &interface_str,
+        DBUS_TYPE_STRING, &property_str, DBUS_TYPE_INVALID);
+
+    DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg, -1, NULL);
+    dbus_message_unref(msg);
+
+    dbus_bool_t value = FALSE;
+    if (reply) {
+        DBusMessageIter iter, sub;
+        dbus_message_iter_init(reply, &iter);
+        dbus_message_iter_recurse(&iter, &sub);
+        dbus_message_iter_get_basic(&sub, &value);
+        dbus_message_unref(reply);
+    }
+    dbus_connection_unref(conn);
+    return value;
+}
+
 /* Helper function to create PlayerData from PlayerctlPlayerName */
 static PlayerData *player_data_new(PlayerctlPlayerName *name,
                                    PulseData *pulse, gboolean *is_new) {
@@ -779,12 +816,14 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
     *is_new = FALSE;
     g_free(data->instance);
     data->instance = g_strdup(name->instance ? name->instance : "");
+    data->can_quit = get_can_quit(data->instance);
     data->source = name->source;
     data->has_player = 1;
   } else {
     data = g_new0(PlayerData, 1);
     data->name = g_strdup(name->name ? name->name : "Unknown");
     data->instance = g_strdup(name->instance ? name->instance : "");
+    data->can_quit = get_can_quit(data->instance);
     data->source = name->source;
     data->has_player = 1;
   }

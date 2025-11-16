@@ -299,7 +299,7 @@ Left click open/close panel`
                 :shuffle "${p.shuffle}"
               )
               (scale
-                :class "${p.canSeek == false ? "inactive" :
+                :class "${! p.canSeek ? "inactive" :
                   p.lengthHMS == "live" ? "inactive" :
                   ""}"
                 :max 101
@@ -432,7 +432,7 @@ Left click open/close panel`
     (box
       :halign "start"
       :valign "center"
-      :visible "${arraylength(audioSinks) > 1 ? true : false}"
+      :visible "${arraylength(audioSinks) > 1 && sinkId != 0}"
       (for s in audioSinks
         (eventbox
           :onclick "pactl move-sink-input ${pulseAudioID} ${s.name}"
@@ -453,7 +453,7 @@ Left click open/close panel`
     (eventbox
       :onhover 'eww update playerVolumeIsHovered=true'
       :onhoverlost 'eww update playerVolumeIsHovered=false'
-      :visible "${sinkId == 0 ? false : true}"
+      :visible "${sinkId != 0}"
       (box
         :space-evenly false
         (eventbox

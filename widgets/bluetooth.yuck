@@ -153,11 +153,11 @@
             :onclick '${device.Connected ? 'bluetoothctl disconnect ${device.id}' :
                       '${device.Paired ? device.Trusted ?
                       'eww update btConnecting="${device.id}" &&
-                       bluetoothctl --timeout 3 -- connect ${device.id} &&
+                       bluetoothctl --timeout 5 -- connect ${device.id} &&
                        eww update btConnecting="" &' :
                       'eww update btConnecting="${device.id}" &&
                        bluetoothctl trust ${device.id} &&
-                       bluetoothctl --timeout 3 -- connect ${device.id} &&
+                       bluetoothctl --timeout 5 -- connect ${device.id} &&
                        bluetoothctl untrust ${device.id} &&
                        eww update btConnecting="" &' :
                       './bin/bluetooth_connect ${device.id} &'}'}'
@@ -190,11 +190,11 @@
                   :halign "start"
                   :image-height 36
                   :path "./assets/icons/battery/${
-                   device.Battery == "" ? "missing" :
-                   device.Battery > 79 ? "full" :
-                   device.Battery > 59 ? "good" :
-                   device.Battery > 39 ? "low" :
-                   device.Battery > 19 ? "caution" : "empty"}.svg"
+                    device.Battery == "" ? "missing" :
+                    device.Battery > 79 ? "full" :
+                    device.Battery > 59 ? "good" :
+                    device.Battery > 39 ? "low" :
+                    device.Battery > 19 ? "caution" : "empty"}.svg"
                 )
               )
             )

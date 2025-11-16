@@ -84,7 +84,7 @@
       (eventbox
         ; Do not display Virtual 'Monitors' of sources.
         :visible "${matches(source.name, "^Monitor") ? false : true}"
-        :class 'btns-bar${source.state == "suspended" ? " disabled" : " enabled"} ${source.default == true ? " active": ""}'
+        :class 'btns-bar${source.state == "suspended" ? " disabled" : " enabled"}${source.default ? " active": ""}'
         (box :hexpand true :space-evenly false
           (image
             :class "marginleft"

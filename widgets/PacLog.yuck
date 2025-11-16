@@ -55,7 +55,7 @@
       ; (image :path "./assets/pacman.gif")
       (image
         :image-height 18
-        :path "./assets/pacman${hoverPacman == false ? ".svg" : ".gif"}"
+        :path "./assets/pacman${! hoverPacman ? ".svg" : ".gif"}"
       )
       ; (image :image-height 18 :path "./assets/pacmanWide.svg")
       (revealer

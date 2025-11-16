@@ -144,7 +144,7 @@
     (for w in wifiScan
       (eventbox
         :hexpand true
-        :class "btns-bar ${w.connected == true ? "active enabled" : "enabled"}"
+        :class "btns-bar ${w.connected ? "active enabled" : "enabled"}"
         (box
           :space-evenly false
           :class "marginleft marginright"
@@ -184,11 +184,11 @@
             :yalign 1
             :class "marginright small bold"
             :text "${
-                    w.Frequency > 5000 ? "5G" :
-                    w.Frequency > 4000 ? "4G" :
-                    w.Frequency > 3000 ? "3G" :
-                    "2G"
-                    }"
+              w.Frequency > 5000 ? "5G" :
+              w.Frequency > 4000 ? "4G" :
+              w.Frequency > 3000 ? "3G" :
+              "2G"
+            }"
           )
           (label
             :halign "end"
@@ -220,6 +220,7 @@
       wlan-monitor.state == 110 ? "Disconnecting from Network" :
       wlan-monitor.state == 120 ? "Connection to Network Failed!" :
       wlan-monitor.state == 0 ? "Returned in error. D-Bus Failure!" :
-      "Unknown State!"}"
+      "Unknown State!"
+    }"
   )
 )

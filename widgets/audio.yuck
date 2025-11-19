@@ -116,8 +116,9 @@ Left click open/close panel`
     (box
       :orientation "v"
       :space-evenly false
-      (nonPlayers)
+      :spacing 10
       (players)
+      (nonPlayers)
     )
   )
 )
@@ -182,9 +183,10 @@ Left click open/close panel`
   (box
     :orientation "v"
     :space-evenly false
+    :spacing 10
     (for p in audioSources
       (box
-        :visible "${!(p.hasPlayer)}"
+        :visible "${!(p.canControl)}"
         (box
           :class "panel"
           :space-evenly false
@@ -220,7 +222,7 @@ Left click open/close panel`
     :spacing 10
     (for p in audioSources
       (eventbox
-        :visible "${p.hasPlayer}"
+        :visible "${p.canControl}"
         :onhover `eww update hoveredPlayer="${p.name}"`
         (box
           :class "panel"

@@ -88,7 +88,7 @@
             )
           )
           (eventbox
-            :onclick `hyprctl reload`
+            :onclick `hyprlock &`
             :tooltip "Lock Screen"
             (image
               :path "assets/lock.svg"

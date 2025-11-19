@@ -41,12 +41,12 @@
 
 (deflisten devices
    :initial '[{"id": "UUID","Name": "Name","Icon": "audio-headset","Connected": false,"Paired": false,"Trusted": false,"Battery": "999"}]'
-  `~/.config/eww/bin/bluetooth_devices 2> /dev/null`
+  `bin/bluetooth_devices 2> /dev/null`
 )
 
 (deflisten adapter
   :initial '{"Powered": false, "Pairable": false, "Discovering": false, "Discoverable": false}'
-  `~/.config/eww/bin/bluetooth_adapter`
+  `bin/bluetooth_adapter`
 )
 
 
@@ -58,7 +58,7 @@
     :onclick `eww open --toggle bluetoothPanel`
     :onrightclick "bluetoothctl power ${adapter.Powered ? "off" : "on"}"
     (image
-      :path "./assets/icons/bluetooth.svg"
+      :path "assets/icons/bluetooth.svg"
       :image-height 24
       :fill-svg "${adapter.Powered ? "#89b4fa" : "#45475a"}"
     )
@@ -72,8 +72,8 @@
               :width 500
               :anchor "top right")
   (eventbox
-    :onhover 'eww update hover_state="bluetoothPanel"'
-    :onhoverlost './scripts/check_hover.sh bluetoothPanel &'
+    :onhover `eww update hover_state="bluetoothPanel"`
+    :onhoverlost `scripts/check_hover.sh bluetoothPanel &`
     (box
       :class "window"
       :orientation "v"
@@ -95,11 +95,11 @@
         :halign "start"
         :width 75
         :height 75
-        :onclick "bluetoothctl power ${adapter.Powered ? "off" : "on" }"
+        :onclick `bluetoothctl power ${adapter.Powered ? "off" : "on" }`
         :class "${adapter.Powered ? "active" : "inactive"}"
         (image
           :image-height 42
-          :path "./assets/icons/bluetooth-pill.svg"
+          :path "assets/icons/bluetooth-pill.svg"
           :fill-svg "${adapter.Powered ? "#89b4fa" : "#45475a"}"
         )
       )
@@ -114,13 +114,14 @@
         ; picks up devices in the first few seconds of a scan.
         ; for this reason it may be more advisable to add sleep and recalls
         ; instead of simply increasing the scan duration.
-        :onclick 'bluetoothctl discoverable-timeout 15 &&
+        :onclick `bluetoothctl discoverable-timeout 15 &&
                   bluetoothctl discoverable on &&
-                  bluetoothctl --timeout 5 -- scan on &'
+                  bluetoothctl --timeout 5 -- scan on &`
         (image
           :image-height 42
-          :path "./assets/icons/wifi/${adapter.Discovering ? 'scan-large' : 'scan-off'}.gif")
-       )
+          :path "assets/icons/wifi/${adapter.Discovering ? 'scan-large' : 'scan-off'}.gif"
+        )
+      )
     )
     (bluetoothDevices)
   )
@@ -134,9 +135,9 @@
     (for device in devices
       (eventbox
         ;supress nondescript devices ie <dev> 00:00:00:00 with name 00-00-00-00.
-        :visible "${substring(device.id,0,2) != substring(device.Name,0,2) ? true : false}"
-        :onhover 'eww update btHover="${device.id}"'
-        :onhoverlost 'eww update btHover=""'
+        :visible "${substring(device.id,0,2) != substring(device.Name,0,2)}"
+        :onhover `eww update btHover="${device.id}"`
+        :onhoverlost `eww update btHover=""`
         :class "btns-bar${adapter.Powered ? " enabled" : " disabled"}${device.Connected ? " active" : ""}${device.Paired ? "" : " newdevice"}${btConnecting == device.id ? " connecting" : ""}"
         (box
           :space-evenly false
@@ -150,17 +151,21 @@
             ; why custom connect? auth agents and bluetooth 5 device support.
             ; bluetoothctl fails to pair with bt5 devices.
             ; auth agents: I clicked the button connect the device. Don't ask for a code or some other BS.
-            :onclick '${device.Connected ? 'bluetoothctl disconnect ${device.id}' :
-                      '${device.Paired ? device.Trusted ?
-                      'eww update btConnecting="${device.id}" &&
-                       bluetoothctl --timeout 5 -- connect ${device.id} &&
-                       eww update btConnecting="" &' :
-                      'eww update btConnecting="${device.id}" &&
-                       bluetoothctl trust ${device.id} &&
-                       bluetoothctl --timeout 5 -- connect ${device.id} &&
-                       bluetoothctl untrust ${device.id} &&
-                       eww update btConnecting="" &' :
-                      './bin/bluetooth_connect ${device.id} &'}'}'
+            :onclick `${
+              device.Connected ? 'bluetoothctl disconnect ${device.id}' :
+              '${
+                device.Paired ? device.Trusted ?
+                'eww update btConnecting="${device.id}" &&
+                  bluetoothctl --timeout 5 -- connect ${device.id} &&
+                  eww update btConnecting="" &' :
+                'eww update btConnecting="${device.id}" &&
+                  bluetoothctl trust ${device.id} &&
+                  bluetoothctl --timeout 5 -- connect ${device.id} &&
+                  bluetoothctl untrust ${device.id} &&
+                  eww update btConnecting="" &' :
+                'bin/bluetooth_connect ${device.id} &'
+              }'
+            }`
             (box
               :space-evenly false
               :spacing 10
@@ -168,7 +173,7 @@
                 :icon-size "dialog"
                 :icon "${device.Icon}"
                 ; :image-height 42
-                ; :path "./assets/icons/devices/${device.Icon}.svg"
+                ; :path "assets/icons/devices/${device.Icon}.svg"
               )
               (label
                 :halign "start"
@@ -178,7 +183,7 @@
               (box ; Battery Box
                 :orientation "h"
                 :space-evenly false
-                :visible "${device.Battery == "999" ? false : true}"
+                :visible "${!(device.Battery == "999")}"
                 (label
                   :valign "center"
                   :angle 90
@@ -189,12 +194,14 @@
                   :valign "center"
                   :halign "start"
                   :image-height 36
-                  :path "./assets/icons/battery/${
+                  :path "assets/icons/battery/${
                     device.Battery == "" ? "missing" :
                     device.Battery > 79 ? "full" :
                     device.Battery > 59 ? "good" :
                     device.Battery > 39 ? "low" :
-                    device.Battery > 19 ? "caution" : "empty"}.svg"
+                    device.Battery > 19 ? "caution" :
+                    "empty"
+                  }.svg"
                 )
               )
             )
@@ -207,7 +214,7 @@
                 {
                   device.Paired ?
                     "(eventbox
-                      :onclick 'bluetoothctl pairable on && bluetoothctl pair ${device.id} &'
+                      :onclick `bluetoothctl pairable on && bluetoothctl pair ${device.id} &`
                       (label
                         :text 'Pair'
                         :class 'green'
@@ -226,7 +233,7 @@
                 {
                   device.Trusted ?
                     "(eventbox
-                      :onclick 'bluetoothctl untrust ${device.id}'
+                      :onclick `bluetoothctl untrust ${device.id}`
                       (label
                         :text 'Auto'
                         :class 'green'
@@ -234,7 +241,7 @@
                       )
                     )" :
                     "(eventbox
-                      :onclick 'bluetoothctl trust ${device.id}'
+                      :onclick `bluetoothctl trust ${device.id}`
                       (label
                         :text 'Auto'
                         :class 'red'
@@ -246,7 +253,7 @@
           )
           (revealer
             :transition "slideleft"
-            :reveal "${btHover == device.id ? true : false}"
+            :reveal "${btHover == device.id}"
             :duration "1000ms"
             (eventbox
               :visible "${adapter.Powered && (device.Trusted || device.Paired)}"

@@ -41,60 +41,60 @@
 
 (deflisten wifiScan
   :initial '[{"SSID": "Catalyst", "Frequency": 5180, "Strength": 63, "connected": true}]'
-  `~/.config/eww/bin/wlan_scan`)
+  `bin/wlan_scan`)
 
 (deflisten wlan-monitor
   :initial '{"state": 100, "strength": 62}'
-  `~/.config/eww/bin/wlan_monitor`)
+  `bin/wlan_monitor`)
 
 (defwidget wifiButton []
   (eventbox
-    :onclick "eww open --toggle wifiPanel"
-    :onrightclick "rfkill toggle wlan"
+    :onclick `eww open --toggle wifiPanel`
+    :onrightclick `rfkill toggle wlan`
     (literal
       :valign "center"
       :halign "center"
       :content {
         wlan-monitor.state == 20 ?
-          "(image
+          '(image
             :image-width 24
-            :path './assets/icons/wifi/disabled.svg'
-            :fill-svg '#45475a')":
+            :path "assets/icons/wifi/disabled.svg"
+            :fill-svg "#45475a")':
         wlan-monitor.state == 10 ?
-          "(label
-            :text ''
-            :class 'marginright large red')" :
+          '(label
+            :text ""
+            :class "marginright large red")' :
         wlan-monitor.state == 60 ?
-          "(label
-            :text '󰤬'
-            :class 'marginright large red')" :
+          '(label
+            :text "󰤬"
+            :class "marginright large red")' :
         wlan-monitor.state != 100 ?
-          "(image
-            :path './assets/icons/wifi/scan-small.gif')" :
+          '(image
+            :path "assets/icons/wifi/scan-small.gif")' :
         wlan-monitor.strength > 70 ?
-          "(image
+          '(image
             :image-width 24
-            :path './assets/icons/wifi/full.svg'
-            :fill-svg '#89b4f1')" :
+            :path "assets/icons/wifi/full.svg"
+            :fill-svg "#89b4f1")' :
         wlan-monitor.strength > 50 ?
-          "(image
+          '(image
             :image-width 24
-            :path './assets/icons/wifi/high.svg'
-            :fill-svg '#a6e3a1')" :
+            :path "assets/icons/wifi/high.svg"
+            :fill-svg "#a6e3a1")' :
         wlan-monitor.strength > 35 ?
-          "(image
+          '(image
             :image-width 24
-            :path './assets/icons/wifi/mid.svg'
-            :fill-svg '#f9e2af')" :
+            :path "assets/icons/wifi/mid.svg"
+            :fill-svg "#f9e2af")' :
         wlan-monitor.strength > 20 ?
-          "(image
+          '(image
             :image-width 24
-            :path './assets/icons/wifi/low.svg'
-            :fill-svg '#fab387')" :
-          "(image
+            :path "assets/icons/wifi/low.svg"
+            :fill-svg "#fab387")' :
+          '(image
             :image-width 24
-            :path './assets/icons/wifi/none.svg'
-            :fill-svg '#f38ba8')"
+            :path "assets/icons/wifi/none.svg"
+            :fill-svg "#f38ba8")'
       }
     )
   )
@@ -107,8 +107,8 @@
               :width 500
               :anchor "top right")
   (eventbox
-    :onhover 'eww update hover_state="wifiPanel"'
-    :onhoverlost './scripts/check_hover.sh wifiPanel &'
+    :onhover `eww update hover_state="wifiPanel"`
+    :onhoverlost `scripts/check_hover.sh wifiPanel &`
     (box
       :class "window"
       :orientation "v"
@@ -133,10 +133,10 @@
           :width 75
           :height 75
           :class "inactive"
-          :onclick "nmcli device wifi rescan ifname wlan0"
+          :onclick `nmcli device wifi rescan ifname wlan0`
           (image
             :image-height 42
-            :path "./assets/icons/wifi/scan-off.gif"
+            :path "assets/icons/wifi/scan-off.gif"
           )
         )
       )
@@ -155,29 +155,29 @@
             :content
             {
               w.Strength > 70 ?
-                "(image
+                '(image
                   :image-width 42
-                  :path './assets/icons/wifi/full.svg'
-                  :fill-svg '#89b4f1')" :
+                  :path "assets/icons/wifi/full.svg"
+                  :fill-svg "#89b4f1")' :
               w.Strength > 50 ?
-                "(image
+                '(image
                   :image-width 42
-                  :path './assets/icons/wifi/high.svg'
-                  :fill-svg '#a6e3a1')" :
+                  :path "assets/icons/wifi/high.svg"
+                  :fill-svg "#a6e3a1")' :
               w.Strength > 35 ?
-                "(image
+                '(image
                   :image-width 42
-                  :path './assets/icons/wifi/mid.svg'
-                  :fill-svg '#f9e2af')" :
+                  :path "assets/icons/wifi/mid.svg"
+                  :fill-svg "#f9e2af")' :
               w.Strength > 20 ?
-                "(image
+                '(image
                   :image-width 42
-                  :path './assets/icons/wifi/low.svg'
-                  :fill-svg '#fab387')" :
-                "(image
+                  :path "assets/icons/wifi/low.svg"
+                  :fill-svg "#fab387")' :
+                '(image
                   :image-width 42
-                  :path './assets/icons/wifi/none.svg'
-                  :fill-svg '#f38ba8')"
+                  :path "assets/icons/wifi/none.svg"
+                  :fill-svg "#f38ba8")'
             }
           )
           (label

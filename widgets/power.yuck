@@ -56,53 +56,53 @@
           :space-evnely false
           :spacing 5
           (eventbox
-            :onclick "eww close-all && hyprctl dispatch exit 1"
+            :onclick `eww close-all && hyprctl dispatch exit 1`
             :tooltip "Exit Hyprland"
             (image
-              :path "./assets/exitDisplay.svg"
+              :path "assets/exitDisplay.svg"
               :image-height 24
             )
           )
           (eventbox
-            :onclick "hyprctl reload"
+            :onclick `hyprctl reload`
             :tooltip "Reload Hyprland"
             (image
-              :path "./assets/reload.svg"
+              :path "assets/reload.svg"
               :image-height 24
             )
           )
           (eventbox
-            :onclick "shutdown -r now"
+            :onclick `shutdown -r now`
             :tooltip "Reboot"
             (image
-              :path "./assets/reboot.svg"
+              :path "assets/reboot.svg"
               :image-height 24
             )
           )
           (eventbox
-            :onclick "eww close-all && hyprctl dispatch exit 1"
+            :onclick `eww close-all && hyprctl dispatch exit 1`
             :tooltip "Logout"
             (image
-              :path "./assets/logout.svg"
+              :path "assets/logout.svg"
               :image-height 24
             )
           )
           (eventbox
-            :onclick "hyprctl reload"
+            :onclick `hyprctl reload`
             :tooltip "Lock Screen"
             (image
-              :path "./assets/lock.svg"
+              :path "assets/lock.svg"
               :image-height 24
             )
           )
         )
       )
       (eventbox
-        :onclick "shutdown -P now"
+        :onclick `shutdown -P now`
         :tooltip "Shutdown"
         (image
           :image-height 24
-          :path "./assets/power.svg"
+          :path "assets/power.svg"
         )
       )
     )

@@ -39,17 +39,17 @@
 ;; "If we listen to each other's hearts. We'll find we're never too far apart."
 ;; ____________________________________________________________________________
 
-(include "./widgets/workspaces.yuck")
-(include "./widgets/audio.yuck")
-(include "./widgets/bluetooth.yuck")
-(include "./widgets/power.yuck")
-(include "./widgets/mic.yuck")
-(include "./widgets/wifi.yuck")
-(include "./widgets/apps.yuck")
-(include "./widgets/PacLog.yuck")
+(include "widgets/workspaces.yuck")
+(include "widgets/audio.yuck")
+(include "widgets/bluetooth.yuck")
+(include "widgets/power.yuck")
+(include "widgets/mic.yuck")
+(include "widgets/wifi.yuck")
+(include "widgets/apps.yuck")
+(include "widgets/PacLog.yuck")
 
 (deflisten Date :initial "{}"
-  `~/.config/eww/bin/date_simple`)
+  `bin/date_simple`)
 
 (defvar networkIndex 0)
 (defvar hover_state "")
@@ -95,7 +95,7 @@
               :anchor "top center")
   (eventbox
     :class "bar-swiper"
-    :onscroll "eww close barMin && eww open bar"))
+    :onscroll `eww close barMin && eww open bar`))
 
 
 (defwindow bar
@@ -108,14 +108,18 @@
               :height 20
               :anchor "top center")
   (eventbox
-    :onscroll "eww close-all && eww open barMin"
+    :onscroll `eww close-all && eww open barMin`
     (box
       :class "bar-box"
       (box
         :halign "start"
         :space-evenly false
         :spacing 5
-        (eventbox :class "large" :onclick "eww open --toggle leftPanel" "󰍜")
+        (eventbox
+          :class "large"
+          :onclick `eww open --toggle leftPanel`
+          "󰍜"
+        )
         ; (workspaces)
       )
       (box
@@ -134,7 +138,7 @@
         (bluetoothButton)
         (wifiButton)
         (eventbox
-          :onclick "eww open --toggle rightPanel"
+          :onclick `eww open --toggle rightPanel`
           (dateStyled)
         )
         (powerRevealer)
@@ -154,8 +158,8 @@
               :width 400
               :vexpand true)
   (eventbox
-    :onhover 'eww update hover_state="leftPanel"'
-    :onhoverlost './scripts/check_hover.sh leftPanel &'
+    :onhover `eww update hover_state="leftPanel"`
+    :onhoverlost `scripts/check_hover.sh leftPanel &`
     (box
       :class "window left"
       (box
@@ -177,8 +181,8 @@
               :width 500
               :vexpand true)
   (eventbox
-    :onhover 'eww update hover_state="rightPanel"'
-    :onhoverlost './scripts/check_hover.sh rightPanel &'
+    :onhover `eww update hover_state="rightPanel"`
+    :onhoverlost `scripts/check_hover.sh rightPanel &`
     (box :class "window right"
       (box
         :orientation "v"
@@ -192,12 +196,12 @@
           :space-evenly false
           (box :class "btns-box" :hexpand true :space-evenly true
             (button
-              :onclick "eww update networkIndex=0"
+              :onclick `eww update networkIndex=0`
               :class "inactive"
               (label :text "bluetooth")
             )
             (button
-              :onclick "eww update networkIndex=1"
+              :onclick `eww update networkIndex=1`
               :class "inactive"
               (label :text "wifi")
             )

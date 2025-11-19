@@ -42,7 +42,7 @@
 (defpoll listOfApplications
   :interval "10s"
   :initial '[{"Name": "Application", "Exec": "echo hello", "Tooltip": "prints hello", "Icon": "world"}]'
-  '/bin/bash ~/.config/eww/scripts/appList.sh')
+  `scripts/appList.sh`)
 
 (defwidget applications []
   (box

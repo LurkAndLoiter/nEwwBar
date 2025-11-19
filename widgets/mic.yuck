@@ -41,16 +41,16 @@
 
 (deflisten audioMonitors
   :initial '[{"id": 1, "mute": true, "volume": 0, "default": true, "source": "pointer", "name": "Name", "icon": "audio-card-analog", "state": "suspended"}]'
-  `~/.config/eww/bin/audio_in`)
+  `bin/audio_in`)
 
 (defwidget micButton []
   (box
     (eventbox
-      :onclick "eww open --toggle micPanel"
-      :onrightclick 'pactl set-source-mute "$(pactl get-default-source)" toggle'
+      :onclick `eww open --toggle micPanel`
+      :onrightclick `pactl set-source-mute "$(pactl get-default-source)" toggle`
       (image
         :image-height 24
-        :path "./assets/icons/mic-${jq(audioMonitors, '.[] | select(.default) | (.state == "suspended")') ? "off" : "on"}.svg"
+        :path "assets/icons/mic-${jq(audioMonitors, '.[] | select(.default) | (.state == "suspended")') ? "off" : "on"}.svg"
         :fill-svg "${jq(audioMonitors, '.[] | select(.default) | (.mute)') ? "#45475a" : "#f38ba8"}"
       )
     )
@@ -64,8 +64,8 @@
               :width 500
               :anchor "top right")
   (eventbox
-    :onhover 'eww update hover_state="micPanel"'
-    :onhoverlost './scripts/check_hover.sh micPanel &'
+    :onhover `eww update hover_state="micPanel"`
+    :onhoverlost `scripts/check_hover.sh micPanel &`
     (box
       :class "window"
       :space-evenly false
@@ -83,15 +83,22 @@
     (for source in audioMonitors
       (eventbox
         ; Do not display Virtual 'Monitors' of sources.
-        :visible "${matches(source.name, "^Monitor") ? false : true}"
-        :class 'btns-bar${source.state == "suspended" ? " disabled" : " enabled"}${source.default ? " active": ""}'
+        :visible "${!(matches(source.name, "^Monitor"))}"
+        :class 'btns-bar${
+          source.state == "suspended" ? " disabled" : " enabled"
+        }${
+          source.default ? " active" : ""
+        }'
         (box :hexpand true :space-evenly false
           (image
             :class "marginleft"
             :halign "start"
             ; :icon "${source.icon}"
             ; :icon-size "dialog"
-            :path "./assets/icons/devices/${source.icon == "audio-headset-bluetooth" ? "audio-earbuds" : "input-microphone"}.svg"
+            :path "assets/icons/devices/${
+              source.icon == "audio-headset-bluetooth" ? "audio-earbuds" :
+              "input-microphone"
+            }.svg"
             :image-height 42
           )
           (label

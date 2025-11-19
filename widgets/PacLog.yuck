@@ -43,19 +43,19 @@
   :initial '[{"transaction": "","command": "", "packages": [{"name": "","change": "", "version":"", "installed": "false"}]}]'
   :interval "30s"
 ; You can query today, month, week, year, all (no value defaults to week)
-  '~/.config/eww/scripts/PacLog.sh week')
+  `scripts/PacLog.sh week`)
 
 (defwidget pacmanButton []
   (eventbox
     :onclick `eww open --toggle pacmanPanel`
-    :onhover "eww update hoverPacDots=true & eww update hoverPacman=true"
-    :onhoverlost "./scripts/hoverPac.sh &"
+    :onhover `eww update hoverPacDots=true & eww update hoverPacman=true`
+    :onhoverlost `scripts/hoverPac.sh &`
     (box :space-evenly false
       :tooltip "Package panel"
       ; (image :path "./assets/pacman.gif")
       (image
         :image-height 18
-        :path "./assets/pacman${! hoverPacman ? ".svg" : ".gif"}"
+        :path "assets/pacman${!(hoverPacman) ? ".svg" : ".gif"}"
       )
       ; (image :image-height 18 :path "./assets/pacmanWide.svg")
       (revealer
@@ -80,14 +80,14 @@
               :width 400
               :vexpand true)
   (eventbox
-    :onhover 'eww update hover_state="pacmanPanel"'
-    ; :onhoverlost './scripts/check_hover.sh pacmanPanel &'
+    :onhover `eww update hover_state="pacmanPanel"`
+    ; :onhoverlost `scripts/check_hover.sh pacmanPanel &`
     (box
       :orientation "v"
       :space-evenly false
       :class "window right"
       ; :timeout "2000ms" ; TODO drawing large json with eww can cause an orphaned window if it times out.
-      (image :image-height 90 :path "./assets/pacman-wide.svg")
+      (image :image-height 90 :path "assets/pacman-wide.svg")
       (pacmanLog)
     )
   )

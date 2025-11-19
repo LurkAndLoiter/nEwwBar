@@ -41,7 +41,7 @@
 
 (deflisten audioPosition ; Seperated from audioSources to limit the GTK redraw
   :initial '{"UUID":90, "UUIDHMS":"1:30"}'
-  `$HOME/.config/eww/bin/mpris_position`
+  `bin/mpris_position`
 )
 
 ;; playbackStatus 0 playing, 1 paused, 2 stopped
@@ -49,12 +49,12 @@
 ;; Shuffle -1 Unsupported, 0 not shuffled, 1 shuffled
 (deflisten audioSources
   :initial '[{"longName": "UUID","name": "firefox","canQuit": true,"canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"playbackStatus": 0, "shuffle": 0, "loop": 0, "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url","length": 1000000,"lengthHMS": "00:01","index": "117","sinkId": 3736,"volume": 100,"isMute": false, "hasPlayer": false}]'
-  `$HOME/.config/eww/bin/mpris_fetch`
+  `bin/mpris_fetch`
 )
 
 (deflisten audioSinks
   :initial '[{"index": "1", "isMute": true, "volume": 0, "isDefault": true, "name": "UUIDname", "description": "description", "icon": "audio-speakers"}]'
-  `$HOME/.config/eww/bin/audio_out`
+  `bin/audio_out`
 )
 
 (defvar playerVolumeIsHovered false)
@@ -67,18 +67,18 @@
 `Audio panel:
 Right click Mute
 Left click open/close panel`
-    :onclick "eww open --toggle audioPanel"
-    :onrightclick "wpctl set-mute @DEFAULT_SINK@ toggle"
+    :onclick `eww open --toggle audioPanel`
+    :onrightclick `wpctl set-mute @DEFAULT_SINK@ toggle`
     (literal :halign "center" :valign "center" :content
       {
         "${jq(audioSinks, '.[] | select(.isDefault) | (.isMute)') ?
           '(image
-            :path "./assets/icons/media/volume-mute.svg"
+            :path "assets/icons/media/volume-mute.svg"
             :image-width 24
             :fill-svg "#f38ba8"
           )':
           '(image
-            :path "./assets/icons/media/volume-high.svg"
+            :path "assets/icons/media/volume-high.svg"
             :image-width 24
             :fill-svg "#a6e3a1"
           )'
@@ -96,8 +96,8 @@ Left click open/close panel`
               :width 500
               :anchor "top right")
   (eventbox
-    :onhover 'eww update hover_state="audioPanel"'
-    :onhoverlost './scripts/check_hover.sh audioPanel &'
+    :onhover `eww update hover_state="audioPanel"`
+    :onhoverlost `./scripts/check_hover.sh audioPanel &`
     (box
       :class "window"
       :space-evenly false
@@ -130,14 +130,14 @@ Left click open/close panel`
         :hexpand true
         :space-evenly false
         (button :class "${s.isDefault ? "active" : "inactive"}"
-          :onclick "pactl set-default-sink ${s.name}"
+          :onclick `pactl set-default-sink ${s.name}`
           :tooltip "${s.description}"
           :width 75
           :height 75
           (image
             ; :icon "${s.icon}"
             ; :icon-size "dialog"
-            :path "./assets/icons/devices/${
+            :path "assets/icons/devices/${
               s.icon == "audio-headset-bluetooth" ? "audio-earbuds" :
               s.icon == "audio-speakers" ? "audio-speakers" :
               "media-tape"
@@ -159,15 +159,15 @@ Left click open/close panel`
               :min 0
               :max 101
               :value "${s.volume}"
-              :onchange "pactl set-sink-volume ${s.name} {}%"
+              :onchange `pactl set-sink-volume ${s.name} {}%`
             )
           )
           (eventbox
             :halign "start"
-            :onclick "pactl set-sink-mute ${s.name} toggle"
+            :onclick `pactl set-sink-mute ${s.name} toggle`
             (image
               :image-width 24
-              :path "./assets/icons/media/volume-${s.isMute ? "mute" : "high"}.svg"
+              :path "assets/icons/media/volume-${s.isMute ? "mute" : "high"}.svg"
               :fill-svg "${s.isMute ? "#f38ba8" : "#a6e3a1" }"
             )
           )
@@ -184,7 +184,7 @@ Left click open/close panel`
     :space-evenly false
     (for p in audioSources
       (box
-        :visible "${! p.hasPlayer}"
+        :visible "${!(p.hasPlayer)}"
         (box
           :class "panel"
           :space-evenly false
@@ -224,8 +224,8 @@ Left click open/close panel`
         :onhover `eww update hoveredPlayer="${p.name}"`
         (box
           :class "panel"
-          ; playbackStatus 0 = playering; 1 = paused; 2 = stopped
-          :visible "${p.playbackStatus == 2 ? false : true}"
+          ; playbackStatus 0 = playing; 1 = paused; 2 = stopped
+          :visible "${!(p.playbackStatus == 2)}"
           :space-evenly false
           :orientation "v"
           (box
@@ -241,15 +241,15 @@ Left click open/close panel`
             )
             (eventbox
               :visible "${p.canQuit}"
-              :onhover 'eww update hoveredClose=true'
-              :onhoverlost 'eww update hoveredClose=false'
-              :onclick "dbus-send \
+              :onhover `eww update hoveredClose=true`
+              :onhoverlost `eww update hoveredClose=false`
+              :onclick `dbus-send \
                        --print-reply \
                        --dest=${p.longName} \
                        /org/mpris/MediaPlayer2 \
-                       org.mpris.MediaPlayer2.Quit"
+                       org.mpris.MediaPlayer2.Quit`
               (image
-                :path "./assets/close.svg"
+                :path "assets/close.svg"
                 :image-height 24
                 :fill-svg "${
                   hoveredClose && p.name == hoveredPlayer ? "#F5C2E7" :
@@ -266,8 +266,7 @@ Left click open/close panel`
               (image
                 :image-height 100
                 :path "${
-                  matches(p.title, " - Twitch$") ?
-                  "./assets/twitch-logo.svg" :
+                  matches(p.title, " - Twitch$") ? "assets/twitch-logo.svg" :
                   p.artUrl
                 }"
               )
@@ -299,13 +298,13 @@ Left click open/close panel`
                 :shuffle "${p.shuffle}"
               )
               (scale
-                :class "${! p.canSeek ? "inactive" :
+                :class "${!(p.canSeek) ? "inactive" :
                   p.lengthHMS == "live" ? "inactive" :
                   ""}"
                 :max 101
-                :onchange "${p.canSeek && p.lengthHMS != 'live' ?
+                :onchange "${p.canSeek && p.lengthHMS != "live" ?
                   `playerctl --player=${p.name} position $(({} * ${p.length} / 100))` :
-                  ''}"
+                  ""}"
                 :value "${100 * audioPosition["${p.longName}"]/p.length}"
               )
               (box
@@ -318,9 +317,11 @@ Left click open/close panel`
                   :text "⬤"
                 )
                 (label
-                  :text "${p.lengthHMS == "live" ? "LIVE" :
+                  :text "${
+                    p.lengthHMS == "live" ? "LIVE" :
                     p.length == 0 ? "--/--" :
-                    "${audioPosition["${p.longName}HMS"]}/${p.lengthHMS}"}"
+                    "${audioPosition["${p.longName}HMS"]}/${p.lengthHMS}"
+                  }"
                 )
               )
             )
@@ -333,10 +334,10 @@ Left click open/close panel`
               :playerIsMute "${p.isMute}"
               :sinkId "${p.sinkId}"
               :pulseAudioID "${p.index}"
-              :playerIsHovered "${p.name == hoveredPlayer ? true : false}")
+              :playerIsHovered "${p.name == hoveredPlayer}")
             (label
               :class "subtext"
-              :hexpand "${p.serial == "" ? true : false}"
+              :hexpand "${p.serial == ""}"
               :halign "end"
               :text "${p.name}"
             )
@@ -356,28 +357,28 @@ Left click open/close panel`
       :class "paddingbottom"
       :spacing 10
       (eventbox
-        :onclick "playerctl --player=${name} previous"
+        :onclick `playerctl --player=${name} previous`
         (image
           :fill-svg "${canGoPrevious ? "#cdd6f4" : "#45475a"}"
           :image-height 18
-          :path "./assets/icons/media/prev.svg"
+          :path "assets/icons/media/prev.svg"
         )
       )
       ;; playbackStatus 0 playing, 1 paused, 2 stopped
       (eventbox
-        :onclick "playerctl --player=${name} play-pause"
+        :onclick `playerctl --player=${name} play-pause`
         (image
           :fill-svg "${canPlay ? "#cdd6f4" : "#45475a"}"
           :image-height 18
-          :path "./assets/icons/media/${playing == 0 ? "pause" : "play"}.svg"
+          :path "assets/icons/media/${playing == 0 ? "pause" : "play"}.svg"
         )
       )
       (eventbox
-        :onclick "playerctl --player=${name} next"
+        :onclick `playerctl --player=${name} next`
         (image
           :fill-svg "${canGoNext ? "#cdd6f4" : "#45475a"}"
           :image-height 18
-          :path "./assets/icons/media/next.svg"
+          :path "assets/icons/media/next.svg"
         )
       )
     )
@@ -389,15 +390,15 @@ Left click open/close panel`
       ;; Loop <0 unsupported, 0 none, 1 track, 2 playlist
       ;; Shuffle <0 Unsupported, 0 not shuffled, 1 shuffled
       (eventbox
-        :onclick "playerctl --player=${name} loop ${
+        :onclick `playerctl --player=${name} loop ${
           loop == 0 ? "track" :
           loop == 1 ? "playlist" :
           "none"
-        }"
+        }`
         (image
           :fill-svg "${loop == 1 || loop == 2 ? "#cdd6f4" : "#45475a"}"
           :image-height 24
-          :path "./assets/icons/media/${
+          :path "assets/icons/media/${
             loop == 1 ? "loop-track" :
             loop == 2 || loop == 0 ? "loop" :
             "loop-disabled"
@@ -405,11 +406,14 @@ Left click open/close panel`
         )
       )
       (eventbox
-        :onclick "playerctl --player=${name} shuffle ${shuffle == 1 ? "off" : "on"}"
+        :onclick `playerctl --player=${name} shuffle ${
+          shuffle == 1 ? "off" :
+          "on"
+        }`
         (image
           :fill-svg "${shuffle == 1 ? "#cdd6f4" : "#45475a"}"
           :image-height 24
-          :path "./assets/icons/media/${
+          :path "assets/icons/media/${
             shuffle == 1 ? "shuffle-on" :
             shuffle == 0 ? "shuffle-off" :
             "shuffle-disabled"
@@ -435,36 +439,36 @@ Left click open/close panel`
       :visible "${arraylength(audioSinks) > 1 && sinkId != 0}"
       (for s in audioSinks
         (eventbox
-          :onclick "pactl move-sink-input ${pulseAudioID} ${s.name}"
+          :onclick `pactl move-sink-input ${pulseAudioID} ${s.name}`
           :tooltip "${s.description}"
           (image
             :class "paddingright"
             :image-height 16
             :fill-svg "${s.index == sinkId ? "#cdd6f4" : "#45475a"}"
-            :path "${s.icon == "audio-speakers" ?
-              "./assets/icons/media/small-speaker.svg" :
-              s.icon == "audio-headset-bluetooth" ?
-              "./assets/icons/media/small-earbuds.svg" :
-              "./assets/icons/missing.svg"}"
+            :path "assets/icons/${
+              s.icon == "audio-speakers" ? "media/small-speaker.svg" :
+              s.icon == "audio-headset-bluetooth" ? "media/small-earbuds.svg" :
+              "missing.svg"
+            }"
           )
         )
       )
     )
     (eventbox
-      :onhover 'eww update playerVolumeIsHovered=true'
-      :onhoverlost 'eww update playerVolumeIsHovered=false'
+      :onhover `eww update playerVolumeIsHovered=true`
+      :onhoverlost `eww update playerVolumeIsHovered=false`
       :visible "${sinkId != 0}"
       (box
         :space-evenly false
         (eventbox
-          :onclick 'pactl set-sink-input-mute ${pulseAudioID} toggle'
+          :onclick `pactl set-sink-input-mute ${pulseAudioID} toggle`
           (box :space-evenly false :valign "center"
             (image
               :class "paddingleft paddingright"
               :image-height 16
               :valign "center"
               :halign "center"
-              :path "./assets/icons/media/volume-${playerIsMute ? "mute" : "high"}.svg"
+              :path "assets/icons/media/volume-${playerIsMute ? "mute" : "high"}.svg"
               :fill-svg "${playerIsMute ? "#f38ba8" : "#a6e3a1"}"
             )
             (label
@@ -475,13 +479,13 @@ Left click open/close panel`
         )
         (revealer
           :transition "slideleft"
-          :reveal "${playerVolumeIsHovered ? playerIsHovered : false}"
+          :reveal "${playerVolumeIsHovered && playerIsHovered}"
           :duration "1000ms"
           (scale
             :class "low-vis marginright marginleft margintop"
             :width 150
             :value playerVolume
-            :onchange "pactl set-sink-input-volume ${pulseAudioID} {}%"
+            :onchange `pactl set-sink-input-volume ${pulseAudioID} {}%`
             :max 101
             :min 0
           )
@@ -502,20 +506,20 @@ Left click open/close panel`
     (box
       :halign "start"
       :valign "center"
-      :visible "${arraylength(audioSinks) > 1 ? true : false}"
+      :visible "${arraylength(audioSinks) > 1}"
       (for s in audioSinks
         (eventbox
-          :onclick "pactl move-sink-input ${pulseAudioID} ${s.name}"
+          :onclick `pactl move-sink-input ${pulseAudioID} ${s.name}`
           :tooltip "${s.description}"
           (image
             :class "paddingright"
             :image-height 16
             :fill-svg "${s.index == sinkId ? "#cdd6f4" : "#45475a"}"
-            :path "${s.icon == "audio-speakers" ?
-              "./assets/icons/media/small-speaker.svg" :
-              s.icon == "audio-headset-bluetooth" ?
-              "./assets/icons/media/small-earbuds.svg" :
-              "./assets/icons/missing.svg"}"
+            :path "assets/icons/${
+              s.icon == "audio-speakers" ? "media/small-speaker.svg" :
+              s.icon == "audio-headset-bluetooth" ? "media/small-earbuds.svg" :
+              "missing.svg"
+            }"
           )
         )
       )
@@ -524,14 +528,14 @@ Left click open/close panel`
       :space-evenly false
       :hexpand true
       (eventbox
-        :onclick 'pactl set-sink-input-mute ${pulseAudioID} toggle'
+        :onclick `pactl set-sink-input-mute ${pulseAudioID} toggle`
         (box :space-evenly false :valign "center"
           (image
             :class "paddingleft paddingright"
             :image-height 16
             :valign "center"
             :halign "center"
-            :path "./assets/icons/media/volume-${playerIsMute ? "mute" : "high"}.svg"
+            :path "assets/icons/media/volume-${playerIsMute ? "mute" : "high"}.svg"
             :fill-svg "${playerIsMute ? "#f38ba8" : "#a6e3a1"}"
           )
           (label
@@ -544,7 +548,7 @@ Left click open/close panel`
           :class "low-vis marginright marginleft margintop"
           :hexpand true
           :value playerVolume
-          :onchange "pactl set-sink-input-volume ${pulseAudioID} {}%"
+          :onchange `pactl set-sink-input-volume ${pulseAudioID} {}%`
           :max 101
           :min 0
         )

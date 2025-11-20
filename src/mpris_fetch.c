@@ -387,17 +387,17 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
                &data->playback_status, NULL);
 
   /* Shuffle (only if supported) */
-  if (data->shuffle >= 0) {
-    g_object_get(data->player, "shuffle", &data->shuffle, NULL);
-  } else {
+  if (data->shuffle == -1) {
     check_can_shuffle(data, pulse);
+  } else {
+    g_object_get(data->player, "shuffle", &data->shuffle, NULL);
   }
 
   /* Loop Status (only if supported) */
-  if (data->loop_status >= 0) {
-    g_object_get(data->player, "loop-status", &data->loop_status, NULL);
-  } else {
+  if (data->loop_status == -1) {
     check_can_loop(data, pulse);
+  } else {
+    g_object_get(data->player, "loop-status", &data->loop_status, NULL);
   }
 
   GError *error = NULL;
@@ -695,7 +695,7 @@ static void on_shuffle(PlayerctlPlayer *player, gboolean shuffle,
   PlayerData *data = find_player_data(pulse, player);
   if (data) {
     data->shuffle = shuffle;
-    DEBUG_MSG("\nUpdating shuffle status for %s", safe_str(data->name));
+    DEBUG_MSG("\nUpdating shuffle status for %s: %d", safe_str(data->name), shuffle);
     print_player_list(*pulse->players, FALSE);
   }
 }
@@ -707,54 +707,57 @@ static void on_loop_status(PlayerctlPlayer *player, PlayerctlLoopStatus status,
   PlayerData *data = find_player_data(pulse, player);
   if (data) {
     data->loop_status = status;
-    DEBUG_MSG("\nUpdating loop status for %s", safe_str(data->name));
+    DEBUG_MSG("\nUpdating loop status for %s: %d", safe_str(data->name), status);
     print_player_list(*pulse->players, FALSE);
   }
 }
 
 /* Determines if the player actually supports shuffle and follows state */
 static void check_can_shuffle(PlayerData *data, PulseData *pulse) {
-  GError *error = NULL;
-  g_object_get(data->player, "shuffle", &data->shuffle, NULL);
-  if (!data->shuffle) {
-    playerctl_player_set_shuffle(data->player, TRUE, &error);
-    if (error) {
-      data->shuffle = -1;
-      return;
-    }
-    g_object_get(data->player, "shuffle", &data->shuffle, NULL);
-    if (!data->shuffle) {
-      data->shuffle = -2;
-    } else {
-      playerctl_player_set_shuffle(data->player, FALSE, NULL);
-    }
-  }
-  if (data->shuffle != -1) {
+  gboolean initial = FALSE;
+  g_object_get(data->player, "shuffle", &initial, NULL);
+
+  if (initial) {
+    data->shuffle = initial;
     g_signal_connect(data->player, "shuffle", G_CALLBACK(on_shuffle), pulse);
+    return;
   }
+
+  GError *error = NULL;
+  playerctl_player_set_shuffle(data->player, TRUE, &error);
+  if (error) {
+    data->shuffle = -1;
+    g_error_free(error);
+    return;
+  }
+
+  playerctl_player_set_shuffle(data->player, initial, NULL);
+  data->shuffle = initial;
+  g_signal_connect(data->player, "shuffle", G_CALLBACK(on_shuffle), pulse);
 }
 
 /* Determines if the player actually supports loop and follows state */
 static void check_can_loop(PlayerData *data, PulseData *pulse) {
+  PlayerctlLoopStatus initial = PLAYERCTL_LOOP_STATUS_NONE;
+  g_object_get(data->player, "loop-status", &initial, NULL);
+
+  if (initial) {
+    data->loop_status = initial;
+    g_signal_connect(data->player, "loop-status", G_CALLBACK(on_loop_status), pulse);
+    return;
+  }
+
   GError *error = NULL;
-  g_object_get(data->player, "loop-status", &data->loop_status, NULL);
-  if (!data->loop_status) {
-    playerctl_player_set_loop_status(data->player, 1, &error);
-    if (error) {
-      data->loop_status = -1;
-      return;
-    }
-    g_object_get(data->player, "loop-status", &data->loop_status, NULL);
-    if (!data->loop_status) {
-      data->loop_status = -2;
-    } else {
-      playerctl_player_set_loop_status(data->player, 0, NULL);
-    }
+  playerctl_player_set_loop_status(data->player, PLAYERCTL_LOOP_STATUS_PLAYLIST, &error);
+  if (error) {
+    data->loop_status = -1;
+    g_error_free(error);
+    return;
   }
-  if (data->loop_status != -1) {
-    g_signal_connect(data->player, "loop-status", G_CALLBACK(on_loop_status),
-                     pulse);
-  }
+
+  playerctl_player_set_loop_status(data->player, initial, NULL);
+  data->loop_status = initial;
+  g_signal_connect(data->player, "loop-status", G_CALLBACK(on_loop_status), pulse);
 }
 
 dbus_bool_t get_can_quit(const char *interface) {

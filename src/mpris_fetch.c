@@ -75,6 +75,7 @@ static unsigned int pa_volume_to_percent(const pa_cvolume *v) {
 /* Structure to hold player data */
 typedef struct {
   gchar *name;
+  gchar *display_name;
   gchar *instance;
   gint source;
   PlayerctlPlayer *player;
@@ -277,6 +278,7 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
     /* Create default PlayerData for unrecognized sink input */
     PlayerData *default_player = g_new0(PlayerData, 1);
     default_player->name = g_strdup(binary_name ? binary_name : "Unknown");
+    default_player->display_name = g_strdup(fallback_name);
     default_player->index = i->index;
     default_player->sink = i->sink;
     default_player->volume = pa_volume_to_percent(&i->volume);
@@ -285,6 +287,8 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
     *pulse->players = g_list_append(*pulse->players, default_player);
   } else {
     /* Update existing player with sink input info */
+    g_free(matched_player->display_name);
+    matched_player->display_name = g_strdup(fallback_name);
     matched_player->index = i->index;
     matched_player->sink = i->sink;
     matched_player->volume = pa_volume_to_percent(&i->volume);
@@ -542,7 +546,7 @@ static void print_player_list(GList *players, gboolean force_output) {
     g_free(long_name);
 
     json_builder_set_member_name(builder, "name");
-    json_builder_add_string_value(builder, data->name ? data->name : "");
+    json_builder_add_string_value(builder, data->display_name ? data->display_name : data->name);
 
     json_builder_set_member_name(builder, "canQuit");
     json_builder_add_boolean_value(builder, data->can_quit);
@@ -860,6 +864,7 @@ static void player_data_free(gpointer data) {
     player_data->player = NULL;
   }
   g_free(player_data->name);
+  g_free(player_data->display_name);
   g_free(player_data->instance);
   g_free(player_data->title);
   g_free(player_data->album);

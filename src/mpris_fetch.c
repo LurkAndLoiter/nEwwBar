@@ -44,6 +44,7 @@
 #include <playerctl/playerctl.h>
 #include <pulse/glib-mainloop.h>
 #include <pulse/pulseaudio.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -189,7 +190,7 @@ void to_hms(int64_t s, int64_t position, char *hms, size_t hms_size) {
    * This could be changed but would result unnecessary gtk redraws with no
    * visible UI changes.
    * */
-  if (s < 0 || (s > 0 && position >= s)) {
+  if (s < 0 || (s > 0 && position >= s) || s == INT64_MAX) {
     snprintf(hms, hms_size, "live");
     return;
   }
@@ -478,7 +479,8 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
   } else if (length_str) {
     char *endptr = NULL;
     /* microseconds to ceiling second */
-    data->length = ((g_ascii_strtoll(length_str, &endptr, 10) + 999999) / 1000000);
+    int64_t len = g_ascii_strtoll(length_str, &endptr, 10);
+    data->length = len <= INT64_MAX - 999999 ? (len + 999999) / 1000000 : INT64_MAX;
     if (endptr == length_str || *endptr != '\0') {
       DEBUG_MSG("Failed to parse length for %s: %s", safe_str(data->name),
                 length_str);
@@ -719,17 +721,15 @@ static void on_loop_status(PlayerctlPlayer *player, PlayerctlLoopStatus status,
 /* Determines if the player actually supports shuffle and follows state */
 static void check_can_shuffle(PlayerData *data, PulseData *pulse) {
   GError *error = NULL;
-  gboolean shuffle_value = FALSE;
-  g_object_get(data->player, "shuffle", &shuffle_value, NULL);
-  data->shuffle = shuffle_value ? 1 : 0;
-  if (!shuffle_value) {
+  g_object_get(data->player, "shuffle", &data->shuffle, NULL);
+  if (!data->shuffle) {
     playerctl_player_set_shuffle(data->player, TRUE, &error);
     if (error) {
       data->shuffle = -1;
       return;
     }
-    g_object_get(data->player, "shuffle", &shuffle_value, NULL);
-    if (!shuffle_value) {
+    g_object_get(data->player, "shuffle", &data->shuffle, NULL);
+    if (!data->shuffle) {
       data->shuffle = -2;
     } else {
       playerctl_player_set_shuffle(data->player, FALSE, NULL);
@@ -743,17 +743,15 @@ static void check_can_shuffle(PlayerData *data, PulseData *pulse) {
 /* Determines if the player actually supports loop and follows state */
 static void check_can_loop(PlayerData *data, PulseData *pulse) {
   GError *error = NULL;
-  int loop_status = 0;
-  g_object_get(data->player, "loop-status", &loop_status, NULL);
-  data->loop_status = loop_status;
-  if (!loop_status) {
+  g_object_get(data->player, "loop-status", &data->loop_status, NULL);
+  if (!data->loop_status) {
     playerctl_player_set_loop_status(data->player, 1, &error);
     if (error) {
       data->loop_status = -1;
       return;
     }
-    g_object_get(data->player, "loop-status", &loop_status, NULL);
-    if (!loop_status) {
+    g_object_get(data->player, "loop-status", &data->loop_status, NULL);
+    if (!data->loop_status) {
       data->loop_status = -2;
     } else {
       playerctl_player_set_loop_status(data->player, 0, NULL);

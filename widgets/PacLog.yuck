@@ -52,12 +52,12 @@
     :onhoverlost `scripts/hoverPac.sh &`
     (box :space-evenly false
       :tooltip "Package panel"
-      ; (image :path "./assets/pacman.gif")
+      ; (image :path "assets/pacman.gif")
       (image
         :image-height 18
         :path "assets/pacman${!(hoverPacman) ? ".svg" : ".gif"}"
       )
-      ; (image :image-height 18 :path "./assets/pacmanWide.svg")
+      ; (image :image-height 18 :path "assets/pacmanWide.svg")
       (revealer
         :transition "slideright"
         :reveal "${hoverPacDots}"

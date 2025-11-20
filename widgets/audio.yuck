@@ -97,7 +97,7 @@ Left click open/close panel`
               :anchor "top right")
   (eventbox
     :onhover `eww update hover_state="audioPanel"`
-    :onhoverlost `./scripts/check_hover.sh audioPanel &`
+    :onhoverlost `scripts/check_hover.sh audioPanel &`
     (box
       :class "window"
       :space-evenly false
@@ -300,13 +300,12 @@ Left click open/close panel`
                 :shuffle "${p.shuffle}"
               )
               (scale
-                :class "${!(p.canSeek) ? "inactive" :
-                  p.lengthHMS == "live" ? "inactive" :
-                  ""}"
+                :class "${!(p.canSeek) || p.lengthHMS == "live" ? "inactive" : ""}"
                 :max 101
                 :onchange "${p.canSeek && p.lengthHMS != "live" ?
                   `playerctl --player=${p.name} position $(({} * ${p.length} / 100))` :
-                  ""}"
+                  ""
+                }"
                 :value "${100 * audioPosition["${p.longName}"]/p.length}"
               )
               (box

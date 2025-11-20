@@ -103,7 +103,6 @@ typedef struct {
   guint32 sink;
   guint32 volume;
   gboolean mute;
-  gint has_player;
   /* Polling timeout ID for artUrl */
   guint art_url_polling_id;
 } PlayerData;
@@ -282,7 +281,6 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
     default_player->sink = i->sink;
     default_player->volume = pa_volume_to_percent(&i->volume);
     default_player->mute = i->mute;
-    default_player->has_player = 0;
 
     *pulse->players = g_list_append(*pulse->players, default_player);
   } else {
@@ -291,8 +289,6 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
     matched_player->sink = i->sink;
     matched_player->volume = pa_volume_to_percent(&i->volume);
     matched_player->mute = i->mute;
-    matched_player->has_player =
-        matched_player->has_player ? matched_player->has_player : 1;
   }
 
   print_player_list(*pulse->players, FALSE);
@@ -479,7 +475,7 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
   } else if (length_str) {
     char *endptr = NULL;
     /* microseconds to ceiling second */
-    int64_t len = g_ascii_strtoll(length_str, &endptr, 10);
+    gint64 len = (gint64)strtod(length_str, &endptr);
     data->length = len <= INT64_MAX - 999999 ? (len + 999999) / 1000000 : INT64_MAX;
     if (endptr == length_str || *endptr != '\0') {
       DEBUG_MSG("Failed to parse length for %s: %s", safe_str(data->name),
@@ -487,6 +483,7 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
       data->length = 0;
     }
     g_free(length_str);
+    length_str = NULL;
   }
 
   /* Position (unfollowed we only use this for flagging LIVE) */
@@ -611,9 +608,6 @@ static void print_player_list(GList *players, gboolean force_output) {
 
     json_builder_set_member_name(builder, "isMute");
     json_builder_add_boolean_value(builder, data->mute);
-
-    json_builder_set_member_name(builder, "hasPlayer");
-    json_builder_add_boolean_value(builder, data->has_player);
 
     json_builder_end_object(builder);
   }
@@ -816,14 +810,12 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
     data->instance = g_strdup(name->instance ? name->instance : "");
     data->can_quit = get_can_quit(data->instance);
     data->source = name->source;
-    data->has_player = 1;
   } else {
     data = g_new0(PlayerData, 1);
     data->name = g_strdup(name->name ? name->name : "Unknown");
     data->instance = g_strdup(name->instance ? name->instance : "");
     data->can_quit = get_can_quit(data->instance);
     data->source = name->source;
-    data->has_player = 1;
   }
   GError *error = NULL;
   data->player = playerctl_player_new_from_name(name, &error);
@@ -831,7 +823,6 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
     DEBUG_MSG("Failed to create player for %s: %s", safe_str(name->name),
               error->message);
     g_error_free(error);
-    data->has_player = -1;
   }
   if (data->player) {
     check_can_shuffle(data, pulse);

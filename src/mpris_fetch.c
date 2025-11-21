@@ -438,7 +438,10 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
     g_free(raw_art_url);
     raw_art_url = NULL;
 
-    if (data->art_url && strlen(data->art_url) > 0 && !g_file_test(data->art_url, G_FILE_TEST_EXISTS)) {
+    if (data->art_url && 
+        strlen(data->art_url) > 0 && 
+        !g_str_has_prefix(data->art_url, "data:image/") &&
+        !g_file_test(data->art_url, G_FILE_TEST_EXISTS))  {
       DEBUG_MSG("Player %s: artUrl file %s does not exist, starting polling",
                 safe_str(data->name), data->art_url);
       ArtUrlPollingData *polling_data = g_new0(ArtUrlPollingData, 1);

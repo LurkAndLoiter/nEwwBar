@@ -438,8 +438,8 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
     g_free(raw_art_url);
     raw_art_url = NULL;
 
-    if (data->art_url && 
-        strlen(data->art_url) > 0 && 
+    if (data->art_url &&
+        strlen(data->art_url) > 0 &&
         !g_str_has_prefix(data->art_url, "data:image/") &&
         !g_file_test(data->art_url, G_FILE_TEST_EXISTS))  {
       DEBUG_MSG("Player %s: artUrl file %s does not exist, starting polling",
@@ -837,7 +837,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
     if (check_can_shuffle(data, pulse) == 0) {
       g_signal_connect(data->player, "shuffle", G_CALLBACK(on_shuffle), pulse);
     }
-    if (check_can_loop(data, pulse) == 0 ) { 
+    if (check_can_loop(data, pulse) == 0 ) {
       g_signal_connect(data->player, "loop-status", G_CALLBACK(on_loop_status), pulse);
     }
     g_signal_connect(data->player, "playback-status",
@@ -933,12 +933,13 @@ static void on_name_vanished(PlayerctlPlayerManager *manager,
     *pulse->players = g_list_delete_link(*pulse->players, node);
     DEBUG_MSG("Player vanished: %s (instance: %s, source: %d)",
               safe_str(data->name), safe_str(data->instance), data->source);
-    print_player_list(*pulse->players, FALSE);
     player_data_free(data);
   } else {
     DEBUG_MSG("Player %s (instance: %s) not found in list",
               safe_str(name->name), safe_str(name->instance));
   }
+
+  print_player_list(*pulse->players, FALSE);
 }
 
 /* Free PulseData */

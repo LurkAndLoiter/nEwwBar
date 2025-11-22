@@ -42,35 +42,48 @@
 (defvar powerHover false)
 
 (defwidget powerRevealer []
+  (image
+    :image-width 24
+    :path "assets/blankSpacer.svg"
+    :tooltip "Shouldn't see this you're missing PowerPanel?"
+  )
+)
+
+(defwindow powerPanel
+  :monitor 1
+  :stacking "fg"
+  :geometry (
+    geometry
+      :y -25
+      :width 44
+      :anchor "right top"
+  )
   (eventbox
     :onhover `eww update powerHover=true`
     :onhoverlost `eww update powerHover=false`
     (box
+      :class "bar-box"
+      :orientation "v"
+      ; :halign "end"
       :space-evenly false
-      :spacing "${powerHover ? 5 : 0}"
+      :spacing "${powerHover ? 10 : 0}"
+      (eventbox
+        :onclick `shutdown -P now &`
+        :tooltip "Shutdown"
+        (image
+          :image-height 24
+          :path "assets/power.svg"
+        )
+      )
       (revealer
-        :transition "slideleft"
+        :transition "slidedown"
         :reveal "${powerHover}"
-        :duration "750ms"
+        :duration: "1000ms"
         (box
-          :space-evnely false
-          :spacing 5
-          (eventbox
-            :onclick `eww close-all && hyprctl dispatch exit 1 &`
-            :tooltip "Exit Hyprland"
-            (image
-              :path "assets/exitDisplay.svg"
-              :image-height 24
-            )
-          )
-          (eventbox
-            :onclick `hyprctl reload &`
-            :tooltip "Reload Hyprland"
-            (image
-              :path "assets/reload.svg"
-              :image-height 24
-            )
-          )
+          :orientation "v"
+          :space-evenly false
+          :halign "end"
+          :spacing 10
           (eventbox
             :onclick `shutdown -r now &`
             :tooltip "Reboot"
@@ -95,14 +108,22 @@
               :image-height 24
             )
           )
-        )
-      )
-      (eventbox
-        :onclick `shutdown -P now &`
-        :tooltip "Shutdown"
-        (image
-          :image-height 24
-          :path "assets/power.svg"
+          (eventbox
+            :onclick `eww close-all && hyprctl dispatch exit 1 &`
+            :tooltip "Exit Hyprland"
+            (image
+              :path "assets/exitDisplay.svg"
+              :image-height 24
+            )
+          )
+          (eventbox
+            :onclick `hyprctl reload &`
+            :tooltip "Reload Hyprland"
+            (image
+              :path "assets/reload.svg"
+              :image-height 24
+            )
+          )
         )
       )
     )

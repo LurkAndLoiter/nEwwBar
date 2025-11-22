@@ -95,7 +95,7 @@
               :anchor "top center")
   (eventbox
     :class "bar-swiper"
-    :onscroll `eww close barMin && eww open bar`))
+    :onscroll `eww close barMin && eww open-many bar powerPanel`))
 
 
 (defwindow bar

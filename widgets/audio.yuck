@@ -302,7 +302,8 @@ Left click open/close panel`
               (scale
                 :class "${!(p.canSeek) || p.lengthHMS == "live" ? "inactive" : ""}"
                 :max 101
-                :onchange "${p.canSeek && p.lengthHMS != "live" ?
+                :onchange "${
+                  p.canSeek && p.lengthHMS != "live"  && p.length != 0 ?
                   `playerctl --player=${p.name} position $(({} * ${p.length} / 100))` :
                   ""
                 }"

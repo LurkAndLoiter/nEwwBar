@@ -123,7 +123,7 @@ static void print_player_list(GList *players) {
     }
     first = FALSE;
 
-    gchar *key = g_strdup_printf("org.mpris.MediaPlayer2.%s", data->instance);
+    gchar *key = g_strdup_printf("%s", data->instance);
     print_json_str(key);
     printf(":%" PRId64, data->local_seconds);
     g_free(key);
@@ -131,7 +131,7 @@ static void print_player_list(GList *players) {
     printf(",");
     char hms[32];
     print_hms(data, hms, sizeof(hms));
-    key = g_strdup_printf("org.mpris.MediaPlayer2.%sHMS", data->instance);
+    key = g_strdup_printf("%sHMS", data->instance);
     print_json_str(key);
     printf(":");
     print_json_str(hms);

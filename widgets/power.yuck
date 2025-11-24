@@ -42,10 +42,17 @@
 (defvar powerHover false)
 
 (defwidget powerRevealer []
-  (image
-    :image-width 24
-    :path "assets/blankSpacer.svg"
-    :tooltip "Shouldn't see this you're missing PowerPanel?"
+  (eventbox
+    :onhover `eww update powerHover=true`
+    ; :onhoverlost `eww update powerHover=false`
+    (eventbox
+      :onclick `shutdown -P now &`
+      :tooltip "Shutdown"
+      (image
+        :image-height 24
+        :path "assets/power.svg"
+      )
+    )
   )
 )
 
@@ -66,14 +73,10 @@
       :orientation "v"
       ; :halign "end"
       :space-evenly false
-      :spacing "${powerHover ? 10 : 0}"
-      (eventbox
-        :onclick `shutdown -P now &`
-        :tooltip "Shutdown"
-        (image
-          :image-height 24
-          :path "assets/power.svg"
-        )
+      :spacing 10
+      (image
+        :image-height 35
+        :path "assets/blankSpacer"
       )
       (revealer
         :transition "slidedown"

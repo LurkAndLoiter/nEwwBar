@@ -40,7 +40,7 @@
 ;; ____________________________________________________________________________
 
 (deflisten audioPosition ; Seperated from audioSources to limit the GTK redraw
-  :initial '{"UUID":90, "UUIDHMS":"1:30"}'
+  :initial '{"firefox.instance0123":90, "firefox.instance0123HMS":"1:30"}'
   `bin/mpris_position`
 )
 
@@ -48,7 +48,7 @@
 ;; Loop -1 unsupported, 0 none, 1 track, 2 playlist
 ;; Shuffle -1 Unsupported, 0 not shuffled, 1 shuffled
 (deflisten audioSources
-  :initial '[{"longName": "UUID","name": "firefox","canQuit": true,"canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"playbackStatus": 0, "shuffle": 0, "loop": 0, "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url", "position": 0, "length": 1000000,"lengthHMS": "00:01","index": "117","sinkId": 3736,"volume": 100,"isMute": false}]'
+  :initial '[{"instance": "firefox.instance0123","name": "firefox","canQuit": true,"canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"playbackStatus": 0, "shuffle": 0, "loop": 0, "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url", "position": 0, "length": 1000000,"lengthHMS": "00:01","index": "117","sinkId": 3736,"volume": 100,"isMute": false}]'
   `bin/mpris_fetch`
 )
 
@@ -223,7 +223,7 @@ Left click open/close panel`
     (for p in audioSources
       (eventbox
         :visible "${p.canControl}"
-        :onhover `eww update hoveredPlayer="${p.name}"`
+        :onhover `eww update hoveredPlayer="${p.instance}"`
         (box
           :class "panel"
           ; playbackStatus 0 = playing; 1 = paused; 2 = stopped
@@ -247,14 +247,14 @@ Left click open/close panel`
               :onhoverlost `eww update hoveredClose=false`
               :onclick `dbus-send \
                        --print-reply \
-                       --dest=${p.longName} \
+                       --dest=org.mpris.MediaPlayer2.${p.instance} \
                        /org/mpris/MediaPlayer2 \
                        org.mpris.MediaPlayer2.Quit`
               (image
                 :path "assets/close.svg"
                 :image-height 24
                 :fill-svg "${
-                  hoveredClose && p.name == hoveredPlayer ? "#F5C2E7" :
+                  hoveredClose && p.instance == hoveredPlayer ? "#F5C2E7" :
                   "#45475A"
                 }"
               )
@@ -295,7 +295,7 @@ Left click open/close panel`
                 :canGoNext "${p.canGoNext}"
                 :canPlay "${p.canPlay}"
                 :playing "${p.playbackStatus}"
-                :name "${p.name}"
+                :instance "${p.instance}"
                 :loop "${p.loop}"
                 :shuffle "${p.shuffle}"
               )
@@ -304,10 +304,10 @@ Left click open/close panel`
                 :max 101
                 :onchange "${
                   p.canSeek && p.lengthHMS != "live"  && p.length != 0 ?
-                  `playerctl --player=${p.name} position $(({} * ${p.length} / 100))` :
+                  `playerctl --player=${p.instance} position $(({} * ${p.length} / 100))` :
                   ""
                 }"
-                :value "${100 * audioPosition["${p.longName}"]/p.length}"
+                :value "${100 * audioPosition["${p.instance}"]/p.length}"
               )
               (box
                 :hexpand true
@@ -322,7 +322,7 @@ Left click open/close panel`
                   :text "${
                     p.lengthHMS == "live" ? "LIVE" :
                     p.length == 0 ? "--/--" :
-                    "${audioPosition["${p.longName}HMS"]}/${p.lengthHMS}"
+                    "${audioPosition["${p.instance}HMS"]}/${p.lengthHMS}"
                   }"
                 )
               )
@@ -336,7 +336,7 @@ Left click open/close panel`
               :playerIsMute "${p.isMute}"
               :sinkId "${p.sinkId}"
               :pulseAudioID "${p.index}"
-              :playerIsHovered "${p.name == hoveredPlayer}")
+              :playerIsHovered "${p.instance == hoveredPlayer}")
             (label
               :class "subtext"
               :hexpand "${p.serial == ""}"
@@ -352,14 +352,14 @@ Left click open/close panel`
 
 
 (defwidget mediaButtons [canGoPrevious canGoNext canPlay
-                         playing name loop shuffle]
+                         playing instance loop shuffle]
   (box
     (box
       :halign "start"
       :class "paddingbottom"
       :spacing 10
       (eventbox
-        :onclick `playerctl --player=${name} previous`
+        :onclick `playerctl --player=${instance} previous`
         (image
           :fill-svg "${canGoPrevious ? "#cdd6f4" : "#45475a"}"
           :image-height 18
@@ -368,7 +368,7 @@ Left click open/close panel`
       )
       ;; playbackStatus 0 playing, 1 paused, 2 stopped
       (eventbox
-        :onclick `playerctl --player=${name} play-pause`
+        :onclick `playerctl --player=${instance} play-pause`
         (image
           :fill-svg "${canPlay ? "#cdd6f4" : "#45475a"}"
           :image-height 18
@@ -376,7 +376,7 @@ Left click open/close panel`
         )
       )
       (eventbox
-        :onclick `playerctl --player=${name} next`
+        :onclick `playerctl --player=${instance} next`
         (image
           :fill-svg "${canGoNext ? "#cdd6f4" : "#45475a"}"
           :image-height 18
@@ -392,7 +392,7 @@ Left click open/close panel`
       ;; Loop <0 unsupported, 0 none, 1 track, 2 playlist
       ;; Shuffle <0 Unsupported, 0 not shuffled, 1 shuffled
       (eventbox
-        :onclick `playerctl --player=${name} loop ${
+        :onclick `playerctl --player=${instance} loop ${
           loop == 0 ? "track" :
           loop == 1 ? "playlist" :
           "none"
@@ -408,7 +408,7 @@ Left click open/close panel`
         )
       )
       (eventbox
-        :onclick `playerctl --player=${name} shuffle ${
+        :onclick `playerctl --player=${instance} shuffle ${
           shuffle == 1 ? "off" :
           "on"
         }`

@@ -527,14 +527,6 @@ static void print_player_list(GList *players, gboolean force_output) {
     PlayerData *data = iter->data;
     json_builder_begin_object(builder);
 
-    json_builder_set_member_name(builder, "longName");
-    gchar *long_name =
-        g_strdup_printf("org.mpris.MediaPlayer2.%s",
-                        data->instance ? data->instance
-                                       : (data->name ? data->name : "Unknown"));
-    json_builder_add_string_value(builder, long_name);
-    g_free(long_name);
-
     json_builder_set_member_name(builder, "instance");
     json_builder_add_string_value(builder, data->instance);
 

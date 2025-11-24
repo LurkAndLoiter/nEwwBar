@@ -85,7 +85,7 @@
 ;)
 
 (defwindow barMin
-  :monitor '["<primary>", "1", "0"]'
+  :monitor '["<primary>",1,0]'
   :stacking "fg"
   :windowtype "dock"
   :wm-ignore true
@@ -99,7 +99,7 @@
 
 
 (defwindow bar
-  :monitor '["<primary>", "1", "0"]'
+  :monitor '["<primary>",1,0]'
   :stacking "fg"
   :windowtype "dock"
   :exclusive true
@@ -149,7 +149,7 @@
 
 
 (defwindow leftPanel
-  :monitor '["<primary>", "1", "0"]'
+  :monitor '["<primary>",1,0]'
   :stacking "fg"
   :focusable false
   :geometry (geometry
@@ -173,7 +173,7 @@
 
 
 (defwindow rightPanel
-  :monitor '["<primary>", "1", "0"]'
+  :monitor '["<primary>",1,0]'
   :stacking "fg"
   :geometry (geometry
               :anchor "top right"

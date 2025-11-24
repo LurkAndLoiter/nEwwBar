@@ -101,7 +101,7 @@
 )
 
 (defwindow wifiPanel
-  :monitor 1
+  :monitor '["<primary>",1,0]'
   :stacking "fg"
   :geometry (geometry
               :width 500

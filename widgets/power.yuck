@@ -57,7 +57,7 @@
 )
 
 (defwindow powerPanel
-  :monitor 1
+  :monitor '["<primary>",1,0]'
   :stacking "fg"
   :geometry (
     geometry

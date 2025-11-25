@@ -5,6 +5,18 @@
 
 A low resource eww bar that intends to implement all the basics one might need from a tray bar. why doesn't my tray bar have all the functionality pavucontrol does? &lt;- This is our goal. what do you open often? why? let us know. We want to implement it.
 
+>[!WARNING]
+>You need to open-many as the panels are all revealers hidden under the bar.
+>
+>```bash
+>eww open-many audioPanel micPanel bluetoothPanel wifiPanel powerPanel bar
+>```
+
+>[!NOTE]
+>Panels can be locked open with by right clicking on the revealer button.
+>
+>Revealer buttons have default actions assigned to left click.
+
 ### Intall
 
 - run `make` in cloned directory.

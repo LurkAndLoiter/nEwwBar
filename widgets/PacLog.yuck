@@ -40,7 +40,20 @@
 ;; ____________________________________________________________________________
 
 (defpoll paclog
-  :initial '[{"transaction": "","command": "", "packages": [{"name": "","change": "", "version":"", "installed": "false"}]}]'
+  :initial '[
+    {
+      "transaction": "",
+      "command": "",
+      "packages": [
+        {
+          "name": "",
+          "change": "",
+          "version": "",
+          "installed": "false"
+        }
+      ]
+    }
+  ]'
   :interval "30s"
 ; You can query today, month, week, year, all (no value defaults to week)
   `scripts/PacLog.sh week`)
@@ -48,7 +61,7 @@
 (defwidget pacmanButton []
   (eventbox
     :onclick `eww open --toggle pacmanPanel`
-    :onhover `eww update hoverPacDots=true & eww update hoverPacman=true`
+    :onhover `eww update hover_state="" && eww update hoverPacDots=true && eww update hoverPacman=true &`
     :onhoverlost `scripts/hoverPac.sh &`
     (box :space-evenly false
       :tooltip "Package panel"

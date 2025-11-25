@@ -40,17 +40,30 @@
 ;; ____________________________________________________________________________
 
 (deflisten wifiScan
-  :initial '[{"SSID": "Catalyst", "Frequency": 5180, "Strength": 63, "connected": true}]'
+  :initial '[
+    {
+      "SSID": "Catalyst",
+      "Frequency": 5180,
+      "Strength": 63,
+      "connected": true
+    }
+  ]'
   `bin/wlan_scan`)
 
 (deflisten wlan-monitor
-  :initial '{"state": 100, "strength": 62}'
+  :initial '{
+    "state": 100,
+    "strength": 62
+  }'
   `bin/wlan_monitor`)
+
+(defvar wifiPanel false)
 
 (defwidget wifiButton []
   (eventbox
-    :onclick `eww open --toggle wifiPanel`
-    :onrightclick `rfkill toggle wlan`
+    :onhover `eww update hover_state="wifiPanel"`
+    :onclick `rfkill toggle wlan`
+    :onrightclick `eww update wifiPanel=${!(wifiPanel)}`
     (literal
       :valign "center"
       :halign "center"
@@ -105,15 +118,15 @@
   :stacking "fg"
   :geometry (geometry
               :width 500
+              :y -25
               :anchor "top right")
   (eventbox
     :onhover `eww update hover_state="wifiPanel"`
-    :onhoverlost `scripts/check_hover.sh wifiPanel &`
-    (box
-      :class "window"
-      :orientation "v"
-      :space-evenly false
-      :spacing 10
+    :onhoverlost `eww update hover_state=""`
+    (revealer
+      :transition "slidedown"
+      :reveal {hover_state == "wifiPanel" || wifiPanel}
+      :duration: "1000ms"
       (wifi)
     )
   )
@@ -123,6 +136,7 @@
 (defwidget wifi []
   (box
     :orientation "v"
+    :class {(hover_state == "wifiPanel" || wifiPanel) ? "base-box" : "bar-box"}
     :space-evenly false
     :spacing 10
     (box
@@ -144,6 +158,7 @@
     (for w in wifiScan
       (eventbox
         :hexpand true
+        :height 42
         :class "btns-bar ${w.connected ? "active enabled" : "enabled"}"
         (box
           :space-evenly false
@@ -156,26 +171,26 @@
             {
               w.Strength > 70 ?
                 '(image
-                  :image-width 42
+                  :image-height 32
                   :path "assets/icons/wifi/full.svg"
                   :fill-svg "#89b4f1")' :
               w.Strength > 50 ?
                 '(image
-                  :image-width 42
+                  :image-height 32
                   :path "assets/icons/wifi/high.svg"
                   :fill-svg "#a6e3a1")' :
               w.Strength > 35 ?
                 '(image
-                  :image-width 42
+                  :image-height 32
                   :path "assets/icons/wifi/mid.svg"
                   :fill-svg "#f9e2af")' :
               w.Strength > 20 ?
                 '(image
-                  :image-width 42
+                  :image-height 32
                   :path "assets/icons/wifi/low.svg"
                   :fill-svg "#fab387")' :
                 '(image
-                  :image-width 42
+                  :image-height 32
                   :path "assets/icons/wifi/none.svg"
                   :fill-svg "#f38ba8")'
             }

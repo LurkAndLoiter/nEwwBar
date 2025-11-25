@@ -95,7 +95,7 @@
               :anchor "top center")
   (eventbox
     :class "bar-swiper"
-    :onscroll `eww close barMin && eww open-many powerPanel bar`))
+    :onscroll `eww close barMin && eww open-many audioPanel micPanel bluetoothPanel wifiPanel powerPanel bar`))
 
 
 (defwindow bar
@@ -138,6 +138,7 @@
         (bluetoothButton)
         (wifiButton)
         (eventbox
+          :onhover `eww update hover_state=""`
           :onclick `eww open --toggle rightPanel`
           (dateStyled)
         )

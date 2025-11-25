@@ -39,12 +39,12 @@
 ;; "If we listen to each other's hearts. We'll find we're never too far apart."
 ;; ____________________________________________________________________________
 
-(defvar powerHover false)
+(defvar powerPanel false)
 
 (defwidget powerRevealer []
   (eventbox
-    :onhover `eww update powerHover=true`
-    ; :onhoverlost `eww update powerHover=false`
+    :onhover `eww update hover_state="powerPanel"`
+    :onrightclick `eww update powerPanel=${!(powerPanel)}`
     (eventbox
       :onclick `shutdown -P now &`
       :tooltip "Shutdown"
@@ -62,70 +62,60 @@
   :geometry (
     geometry
       :y -25
-      :width 44
-      :anchor "right top"
+      :height 20
+      :anchor "top right"
   )
   (eventbox
-    :onhover `eww update powerHover=true`
-    :onhoverlost `eww update powerHover=false`
-    (box
-      :class "bar-box"
-      :orientation "v"
-      ; :halign "end"
-      :space-evenly false
-      :spacing 10
-      (image
-        :image-height 35
-        :path "assets/blankSpacer"
-      )
-      (revealer
-        :transition "slidedown"
-        :reveal "${powerHover}"
-        :duration: "1000ms"
-        (box
-          :orientation "v"
-          :space-evenly false
-          :halign "end"
-          :spacing 10
-          (eventbox
-            :onclick `shutdown -r now &`
-            :tooltip "Reboot"
-            (image
-              :path "assets/reboot.svg"
-              :image-height 24
-            )
+    :onhover `eww update hover_state="powerPanel"`
+    :onhoverlost `eww update hover_state=""`
+    (revealer
+      :transition "slidedown"
+      :reveal {hover_state == "powerPanel" || powerPanel}
+      :duration: "1000ms"
+      (box
+        :orientation "v"
+        :space-evenly false
+        :halign "end"
+        :spacing 10
+        :class {(hover_state == "powerPanel" || powerPanel) ? "base-box" : "bar-box"}
+        (eventbox
+          :onclick `shutdown -r now &`
+          :tooltip "Reboot"
+          (image
+            :path "assets/reboot.svg"
+            :image-height 24
           )
-          (eventbox
-            :onclick `eww close-all && hyprctl dispatch exit 1 &`
-            :tooltip "Logout"
-            (image
-              :path "assets/logout.svg"
-              :image-height 24
-            )
+        )
+        (eventbox
+          :onclick `eww close-all && hyprctl dispatch exit 1 &`
+          :tooltip "Logout"
+          (image
+            :path "assets/logout.svg"
+            :image-height 24
           )
-          (eventbox
-            :onclick `hyprlock &`
-            :tooltip "Lock Screen"
-            (image
-              :path "assets/lock.svg"
-              :image-height 24
-            )
+        )
+        (eventbox
+          :onclick `hyprlock &`
+          :tooltip "Lock Screen"
+          (image
+            :path "assets/lock.svg"
+            :image-height 24
           )
-          (eventbox
-            :onclick `eww close-all && hyprctl dispatch exit 1 &`
-            :tooltip "Exit Hyprland"
-            (image
-              :path "assets/exitDisplay.svg"
-              :image-height 24
-            )
+        )
+        (eventbox
+          :onclick `eww close-all && hyprctl dispatch exit 1 &`
+          :tooltip "Exit Hyprland"
+          (image
+            :path "assets/exitDisplay.svg"
+            :image-height 24
           )
-          (eventbox
-            :onclick `hyprctl reload &`
-            :tooltip "Reload Hyprland"
-            (image
-              :path "assets/reload.svg"
-              :image-height 24
-            )
+        )
+        (eventbox
+          :onclick `hyprctl reload &`
+          :tooltip "Reload Hyprland"
+          (image
+            :path "assets/reload.svg"
+            :image-height 24
           )
         )
       )

@@ -40,7 +40,12 @@
 ;; ____________________________________________________________________________
 
 (deflisten workspaces
-  :initial '[{"WorkspaceID": 1, "hasWindows": 0}]'
+  :initial '[
+    {
+      "WorkspaceID": 1,
+      "hasWindows": 0
+    }
+  ]'
   `bin/workspace_list`)
 
 (deflisten focusedID

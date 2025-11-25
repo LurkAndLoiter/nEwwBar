@@ -40,7 +40,10 @@
 ;; ____________________________________________________________________________
 
 (deflisten audioPosition ; Seperated from audioSources to limit the GTK redraw
-  :initial '{"firefox.instance0123":90, "firefox.instance0123HMS":"1:30"}'
+  :initial '{
+    "firefox.instance0123": 90,
+    "firefox.instance0123HMS": "1:30"
+  }'
   `bin/mpris_position`
 )
 
@@ -48,27 +51,62 @@
 ;; Loop -1 unsupported, 0 none, 1 track, 2 playlist
 ;; Shuffle -1 Unsupported, 0 not shuffled, 1 shuffled
 (deflisten audioSources
-  :initial '[{"instance": "firefox.instance0123","name": "firefox","canQuit": true,"canControl": false,"canGoNext": false,"canGoPrevious": false,"canPause": false,"canPlay": false,"canSeek": false,"playbackStatus": 0, "shuffle": 0, "loop": 0, "title": "title","album": "album","artist": "artist","artUrl": "./assets/pacman.svg","url": "url", "position": 0, "length": 1000000,"lengthHMS": "00:01","index": "117","sinkId": 3736,"volume": 100,"isMute": false}]'
+  :initial '[
+    {
+      "instance": "firefox.instance0123",
+      "name": "firefox",
+      "canQuit": true,
+      "canControl": false,
+      "canGoNext": false,
+      "canGoPrevious": false,
+      "canPause": false,
+      "canPlay": false,
+      "canSeek": false,
+      "playbackStatus": 0,
+      "shuffle": 0,
+      "loop": 0,
+      "title": "title",
+      "album": "album",
+      "artist": "artist",
+      "artUrl": "./assets/pacman.svg",
+      "url": "url",
+      "position": 0,
+      "length": 1000000,
+      "lengthHMS": "00:01",
+      "index": "117",
+      "sinkId": 3736,
+      "volume": 100,
+      "isMute": false
+    }
+  ]'
   `bin/mpris_fetch`
 )
 
 (deflisten audioSinks
-  :initial '[{"index": "1", "isMute": true, "volume": 0, "isDefault": true, "name": "UUIDname", "description": "description", "icon": "audio-speakers"}]'
+  :initial '[
+    {
+      "index": "1",
+      "isMute": true,
+      "volume": 0,
+      "isDefault": true,
+      "name": "UUIDname",
+      "description": "description",
+      "icon": "audio-speakers"
+    }
+  ]'
   `bin/audio_out`
 )
 
+(defvar audioPanel false)
 (defvar playerVolumeIsHovered false)
 (defvar hoveredClose false)
 (defvar hoveredPlayer "")
 
 (defwidget audioButton []
   (eventbox
-    :tooltip
-`Audio panel:
-Right click Mute
-Left click open/close panel`
-    :onclick `eww open --toggle audioPanel`
-    :onrightclick `wpctl set-mute @DEFAULT_SINK@ toggle`
+    :onclick `wpctl set-mute @DEFAULT_SINK@ toggle`
+    :onhover `eww update hover_state="audioPanel"`
+    :onrightclick `eww update audioPanel=${!(audioPanel)}`
     (literal :halign "center" :valign "center" :content
       {
         "${jq(audioSinks, '.[] | select(.isDefault) | (.isMute)') ?
@@ -94,14 +132,15 @@ Left click open/close panel`
   :stacking "fg"
   :geometry (geometry
               :width 500
+              :y -25
               :anchor "top right")
   (eventbox
     :onhover `eww update hover_state="audioPanel"`
-    :onhoverlost `scripts/check_hover.sh audioPanel &`
-    (box
-      :class "window"
-      :space-evenly false
-      :orientation "v"
+    :onhoverlost `eww update hover_state=""`
+    (revealer
+      :transition "slidedown"
+      :reveal {(hover_state == "audioPanel" || audioPanel)}
+      :duration: "1000ms"
       (audio)
     )
   )
@@ -109,16 +148,15 @@ Left click open/close panel`
 
 (defwidget audio []
   (box
-    :space-evenly false
     :orientation "v"
-    :spacing 10
+    :class {(hover_state == "audioPanel" || audioPanel) ? "base-box" : "bar-box"}
+    :space-evenly false
     (audioDevices)
     (box
       :orientation "v"
       :space-evenly false
-      :spacing 10
-      (players)
       (nonPlayers)
+      (players)
     )
   )
 )
@@ -183,32 +221,25 @@ Left click open/close panel`
   (box
     :orientation "v"
     :space-evenly false
-    :spacing 10
     (for p in audioSources
       (box
         :visible "${!(p.canControl)}"
-        (box
-          :class "panel"
-          :space-evenly false
-          :orientation "v"
-          (box
-            :space-evenly false
-            :orientation "v"
-            (label
-              :class "green"
-              :xalign 0
-              :wrap true
-              :hexpand true
-              :show-truncated false
-              :text "${p.name}"
-            )
-            (nonPlayerVolume
-              :playerVolume "${p.volume}"
-              :playerIsMute "${p.isMute}"
-              :sinkId "${p.sinkId}"
-              :pulseAudioID "${p.index}"
-            )
-          )
+        :class "panel"
+        :space-evenly false
+        :orientation "v"
+        (label
+          :class "green"
+          :xalign 0
+          :wrap true
+          :hexpand true
+          :show-truncated false
+          :text "${p.name}"
+        )
+        (nonPlayerVolume
+          :playerVolume "${p.volume}"
+          :playerIsMute "${p.isMute}"
+          :sinkId "${p.sinkId}"
+          :pulseAudioID "${p.index}"
         )
       )
     )
@@ -219,7 +250,6 @@ Left click open/close panel`
   (box
     :orientation "v"
     :space-evenly false
-    :spacing 10
     (for p in audioSources
       (eventbox
         :visible "${p.canControl}"

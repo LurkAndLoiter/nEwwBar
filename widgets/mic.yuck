@@ -40,14 +40,28 @@
 ;; ____________________________________________________________________________
 
 (deflisten audioMonitors
-  :initial '[{"id": 1, "mute": true, "volume": 0, "default": true, "source": "pointer", "name": "Name", "icon": "audio-card-analog", "state": "suspended"}]'
+  :initial '[
+    {
+      "id": 1,
+      "mute": true,
+      "volume": 0,
+      "default": true,
+      "source": "pointer",
+      "name": "Name",
+      "icon": "audio-card-analog",
+      "state": "suspended"
+    }
+  ]'
   `bin/audio_in`)
+
+(defvar micPanel false)
 
 (defwidget micButton []
   (box
     (eventbox
-      :onclick `eww open --toggle micPanel`
-      :onrightclick `pactl set-source-mute "$(pactl get-default-source)" toggle`
+      :onhover `eww update hover_state="micPanel"`
+      :onclick `pactl set-source-mute "$(pactl get-default-source)" toggle`
+      :onrightclick `eww update micPanel=${!(micPanel)}`
       (image
         :image-height 24
         :path "assets/icons/mic-${jq(audioMonitors, '.[] | select(.default) | (.state == "suspended")') ? "off" : "on"}.svg"
@@ -62,16 +76,26 @@
   :stacking "fg"
   :geometry (geometry
               :width 500
+              :y -25
               :anchor "top right")
   (eventbox
     :onhover `eww update hover_state="micPanel"`
-    :onhoverlost `scripts/check_hover.sh micPanel &`
+    :onhoverlost `eww update hover_state=""`
     (box
-      :class "window"
-      :space-evenly false
+      :class {(hover_state == "micPanel" || micPanel)? "base-box" : "bar-box"}
       :orientation "v"
+      :space-evenly false
       :spacing 10
-      (microphone)
+      (image
+        :image-width 1
+        :path "assets/blankSpacer.svg"
+      )
+      (revealer
+        :transition "slidedown"
+        :reveal {(hover_state == "micPanel" || micPanel)}
+        :duration: "1000ms"
+        (microphone)
+      )
     )
   )
 )
@@ -79,11 +103,13 @@
 (defwidget microphone []
   (box
     :orientation "v"
+    :space-evenly false
     :spacing 10
     (for source in audioMonitors
       (eventbox
         ; Do not display Virtual 'Monitors' of sources.
         :visible "${!(matches(source.name, "^Monitor"))}"
+        :height 42
         :class 'btns-bar${
           source.state == "suspended" ? " disabled" : " enabled"
         }${
@@ -99,7 +125,7 @@
               source.icon == "audio-headset-bluetooth" ? "audio-earbuds" :
               "input-microphone"
             }.svg"
-            :image-height 42
+            :image-height 32
           )
           (label
             :class "marginleft marginright"

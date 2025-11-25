@@ -188,6 +188,15 @@ tooltip {
   padding: 0 5px;
 }
 
+/* Box container of bar */
+.base-box {
+  background-color: $Crust;
+  // background-color: transparent;
+  border-radius: 10px;
+  margin: 0 10px;
+  padding: 30px 5px 15px;
+}
+
 /* Base of panels */
 .window {
   margin: 5px 0 32px;
@@ -211,6 +220,7 @@ tooltip {
   background-color: $Base;
   border-radius: 10px;
   padding: 10px 15px 5px;
+  margin: 10px 0 0;
 }
 
 /* Divider used in Panels */
@@ -281,7 +291,7 @@ button {
 
     &:hover {
       color: $Red;
-      background-image: linear-gradient(0deg, $Mauve 3%, transparent 15%);
+      background-image: linear-gradient(0deg, $Green 3%, transparent 15%);
     }
     &.power {
       color: $Red;

@@ -40,23 +40,39 @@
 ;; ____________________________________________________________________________
 
 (deflisten devices
-   :initial '[{"id": "UUID","Name": "Name","Icon": "audio-headset","Connected": false,"Paired": false,"Trusted": false,"Battery": "999"}]'
-  `bin/bluetooth_devices 2> /dev/null`
+  :initial '[
+    {
+      "id": "UUID",
+      "Name": "Name",
+      "Icon": "audio-headset",
+      "Connected": false,
+      "Paired": false,
+      "Trusted": false,
+      "Battery": "999"
+    }
+  ]'
+  `bin/bluetooth_devices`
 )
 
 (deflisten adapter
-  :initial '{"Powered": false, "Pairable": false, "Discovering": false, "Discoverable": false}'
+  :initial '{
+    "Powered": false,
+    "Pairable": false,
+    "Discovering": false,
+    "Discoverable": false
+  }'
   `bin/bluetooth_adapter`
 )
 
-
+(defvar bluetoothPanel false)
 (defvar btHover "")
 (defvar btConnecting "")
 
 (defwidget bluetoothButton []
   (eventbox
-    :onclick `eww open --toggle bluetoothPanel`
-    :onrightclick "bluetoothctl power ${adapter.Powered ? "off" : "on"}"
+    :onhover `eww update hover_state="bluetoothPanel"`
+    :onclick "bluetoothctl power ${adapter.Powered ? "off" : "on"}"
+    :onrightclick `eww update bluetoothPanel=${!(bluetoothPanel)}`
     (image
       :path "assets/icons/bluetooth.svg"
       :image-height 24
@@ -70,16 +86,26 @@
   :stacking "fg"
   :geometry (geometry
               :width 500
+              :y -25
               :anchor "top right")
   (eventbox
     :onhover `eww update hover_state="bluetoothPanel"`
-    :onhoverlost `scripts/check_hover.sh bluetoothPanel &`
+    :onhoverlost `eww update hover_state=""`
     (box
-      :class "window"
+      :class {(hover_state == "bluetoothPanel" || bluetoothPanel) ? "base-box" : "bar-box"}
       :orientation "v"
       :space-evenly false
       :spacing 10
-      (bluetooth)
+      (image
+        :image-width 1
+        :path "assets/blankSpacer.svg"
+      )
+      (revealer
+        :transition "slidedown"
+        :reveal {(hover_state == "bluetoothPanel" || bluetoothPanel)}
+        :duration: "1000ms"
+        (bluetooth)
+      )
     )
   )
 )
@@ -89,48 +115,57 @@
     :orientation "v"
     :space-evenly false
     :spacing 10
+    (bluetoothAdapter)
     (box
-      :class "btns-box"
-      (button
-        :halign "start"
-        :width 75
-        :height 75
-        :onclick `bluetoothctl power ${adapter.Powered ? "off" : "on" }`
-        :class "${adapter.Powered ? "active" : "inactive"}"
-        (image
-          :image-height 42
-          :path "assets/icons/bluetooth-pill.svg"
-          :fill-svg "${adapter.Powered ? "#89b4fa" : "#45475a"}"
-        )
-      )
-      (button
-        :width 75
-        :height 75
-        :class "inactive"
-        :halign "end"
-        ; makes device visible to external bluetooth devices for 15 seconds
-        ; scans for bluetooth devices for 5 seconds
-        ; you can make this longer but I've noticed bluetoothctl really only
-        ; picks up devices in the first few seconds of a scan.
-        ; for this reason it may be more advisable to add sleep and recalls
-        ; instead of simply increasing the scan duration.
-        :onclick `bluetoothctl discoverable-timeout 15 &&
-                  bluetoothctl discoverable on &&
-                  bluetoothctl --timeout 5 -- scan on &`
-        (image
-          :image-height 42
-          :path "assets/icons/wifi/${adapter.Discovering ? 'scan-large' : 'scan-off'}.gif"
-        )
-      )
+      :orientation "v"
+      :space-evenly false
+      :spacing 10
+      (bluetoothDevices)
     )
-    (bluetoothDevices)
   )
 )
 
+(defwidget bluetoothAdapter []
+  (box
+    :class "btns-box"
+    (button
+      :halign "start"
+      :width 75
+      :height 75
+      :onclick `bluetoothctl power ${adapter.Powered ? "off" : "on" }`
+      :class "${adapter.Powered ? "active" : "inactive"}"
+      (image
+        :image-height 42
+        :path "assets/icons/bluetooth-pill.svg"
+        :fill-svg "${adapter.Powered ? "#89b4fa" : "#45475a"}"
+      )
+    )
+    (button
+      :width 75
+      :height 75
+      :class "inactive"
+      :halign "end"
+      ; makes device visible to external bluetooth devices for 15 seconds
+      ; scans for bluetooth devices for 5 seconds
+      ; you can make this longer but I've noticed bluetoothctl really only
+      ; picks up devices in the first few seconds of a scan.
+      ; for this reason it may be more advisable to add sleep and recalls
+      ; instead of simply increasing the scan duration.
+      :onclick `bluetoothctl discoverable-timeout 15 &&
+                bluetoothctl discoverable on &&
+                bluetoothctl --timeout 5 -- scan on &`
+      (image
+        :image-height 42
+        :path "assets/icons/wifi/${adapter.Discovering ? 'scan-large' : 'scan-off'}.gif"
+      )
+    )
+  )
+)
 
 (defwidget bluetoothDevices []
   (box
     :orientation "v"
+    :space-evenly false
     :spacing 10
     (for device in devices
       (eventbox
@@ -138,6 +173,7 @@
         :visible "${substring(device.id,0,2) != substring(device.Name,0,2)}"
         :onhover `eww update btHover="${device.id}"`
         :onhoverlost `eww update btHover=""`
+        :height 42
         :class "btns-bar${adapter.Powered ? " enabled" : " disabled"}${device.Connected ? " active" : ""}${device.Paired ? "" : " newdevice"}${btConnecting == device.id ? " connecting" : ""}"
         (box
           :space-evenly false

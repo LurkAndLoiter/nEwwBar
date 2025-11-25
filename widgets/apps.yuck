@@ -56,6 +56,8 @@
         (for app in row
           (button
             :class "inactive"
+            :width 75
+            :height 75
             :tooltip "${app.Name}: ${app.Tooltip}"
             :onclick "${app.Exec} &"
             (image

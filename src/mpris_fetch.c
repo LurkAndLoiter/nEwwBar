@@ -132,8 +132,8 @@ static guint debounce_timeout_id = 0;
 /* Forward declarations */
 static void print_player_list(GList *players, gboolean force_output);
 static void update_metadata(PlayerData *data, PulseData *pulse);
-static int check_can_loop(PlayerData *data, PulseData *pulse);
-static int check_can_shuffle(PlayerData *data, PulseData *pulse);
+static int check_can_loop(PlayerData *data);
+static int check_can_shuffle(PlayerData *data);
 
 /* Polling callback to check if artUrl file exists */
 static gboolean check_art_url_file(gpointer user_data) {
@@ -702,13 +702,12 @@ static void on_loop_status(PlayerctlPlayer *player, PlayerctlLoopStatus status,
 }
 
 /* Determines if the player actually supports shuffle and follows state */
-static int check_can_shuffle(PlayerData *data, PulseData *pulse) {
+static int check_can_shuffle(PlayerData *data) {
   gboolean initial = FALSE;
   g_object_get(data->player, "shuffle", &initial, NULL);
 
   if (initial) {
     data->shuffle = initial;
-    g_signal_connect(data->player, "shuffle", G_CALLBACK(on_shuffle), pulse);
     return EXIT_SUCCESS;
   }
 
@@ -732,13 +731,12 @@ static int check_can_shuffle(PlayerData *data, PulseData *pulse) {
 }
 
 /* Determines if the player actually supports loop and follows state */
-static int check_can_loop(PlayerData *data, PulseData *pulse) {
+static int check_can_loop(PlayerData *data) {
   PlayerctlLoopStatus initial = PLAYERCTL_LOOP_STATUS_NONE;
   g_object_get(data->player, "loop-status", &initial, NULL);
 
   if (initial) {
     data->loop_status = initial;
-    g_signal_connect(data->player, "loop-status", G_CALLBACK(on_loop_status), pulse);
     return EXIT_SUCCESS;
   }
 
@@ -829,10 +827,10 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
     g_error_free(error);
   }
   if (data->player) {
-    if (check_can_shuffle(data, pulse) == 0) {
+    if (check_can_shuffle(data) == 0) {
       g_signal_connect(data->player, "shuffle", G_CALLBACK(on_shuffle), pulse);
     }
-    if (check_can_loop(data, pulse) == 0 ) {
+    if (check_can_loop(data) == 0 ) {
       g_signal_connect(data->player, "loop-status", G_CALLBACK(on_loop_status), pulse);
     }
     g_signal_connect(data->player, "playback-status",

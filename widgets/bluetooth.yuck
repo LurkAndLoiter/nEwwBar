@@ -81,8 +81,8 @@
   )
 )
 
-(defwindow bluetoothPanel
-  :monitor '["<primary>",1,0]'
+(defwindow bluetoothPanel [monitor]
+  :monitor monitor
   :stacking "fg"
   :geometry (geometry
               :width 500

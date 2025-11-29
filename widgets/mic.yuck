@@ -71,8 +71,8 @@
   )
 )
 
-(defwindow micPanel
-  :monitor '["<primary>",1,0]'
+(defwindow micPanel [monitor]
+  :monitor monitor
   :stacking "fg"
   :geometry (geometry
               :width 500

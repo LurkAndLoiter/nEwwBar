@@ -84,8 +84,9 @@
 ;  )
 ;)
 
-(defwindow barMin
-  :monitor '["<primary>",1,0]'
+(defwindow barMin [monitor]
+  ; :monitor '["<primary>","DP-1","HDMI-A-0"]'
+  :monitor monitor
   :stacking "fg"
   :windowtype "dock"
   :wm-ignore true
@@ -95,11 +96,13 @@
               :anchor "top center")
   (eventbox
     :class "bar-swiper"
-    :onscroll `eww close barMin && eww open-many audioPanel micPanel bluetoothPanel wifiPanel powerPanel bar`))
+    :onscroll `eww close barMin && eww open-many audioPanel micPanel bluetoothPanel wifiPanel powerPanel bar --arg monitor=${monitor}`))
 
 
-(defwindow bar
-  :monitor '["<primary>",1,0]'
+(defwindow bar [monitor]
+  ; :monitor '["<primary>",1,0]'
+  ; :monitor '["<primary>","DP-1","HDMI-A-0"]'
+  :monitor monitor
   :stacking "fg"
   :windowtype "dock"
   :exclusive true
@@ -108,7 +111,7 @@
               :height 20
               :anchor "top center")
   (eventbox
-    :onscroll `eww close-all && eww open barMin`
+    :onscroll `eww close-all && eww open barMin --arg monitor=${monitor}`
     (box
       :class "bar-box"
       (box
@@ -117,7 +120,7 @@
         :spacing 5
         (eventbox
           :class "large"
-          :onclick `eww open --toggle leftPanel`
+          :onclick `eww open --toggle leftPanel --arg monitor=${monitor}`
           "󰍜"
         )
         ; (workspaces)
@@ -132,14 +135,14 @@
         :spacing 5
         :space-evenly false
         (systray :spacing 2)
-        (pacmanButton)
+        (pacmanButton :monitor "${monitor}")
         (audioButton)
         (micButton)
         (bluetoothButton)
         (wifiButton)
         (eventbox
           :onhover `eww update hover_state=""`
-          :onclick `eww open --toggle rightPanel`
+          :onclick `eww open --toggle rightPanel --arg monitor=${monitor}`
           (dateStyled)
         )
         (powerRevealer)
@@ -149,8 +152,8 @@
 )
 
 
-(defwindow leftPanel
-  :monitor '["<primary>",1,0]'
+(defwindow leftPanel [monitor]
+  :monitor monitor
   :stacking "fg"
   :focusable false
   :geometry (geometry
@@ -173,8 +176,8 @@
 )
 
 
-(defwindow rightPanel
-  :monitor '["<primary>",1,0]'
+(defwindow rightPanel [monitor]
+  :monitor monitor
   :stacking "fg"
   :geometry (geometry
               :anchor "top right"

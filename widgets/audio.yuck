@@ -127,8 +127,8 @@
 )
 
 
-(defwindow audioPanel
-  :monitor '["<primary>",1,0]'
+(defwindow audioPanel [monitor]
+  :monitor monitor
   :stacking "fg"
   :geometry (geometry
               :width 500

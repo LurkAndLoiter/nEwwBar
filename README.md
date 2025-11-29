@@ -7,9 +7,12 @@ A low resource eww bar that intends to implement all the basics one might need f
 
 >[!WARNING]
 >You need to open-many as the panels are all revealers hidden under the bar.
+>You MUST declare your monitor ID I'd encourage the name such as DP-1 HDMI-A-1
+>Below is default index 0 monitor
+>You can declare this as a list: monitor='["<primary>",1,0,"DP-1"]'
 >
 >```bash
->eww open-many audioPanel micPanel bluetoothPanel wifiPanel powerPanel bar
+>eww open-many audioPanel micPanel bluetoothPanel wifiPanel powerPanel bar --arg monitor=0
 >```
 
 >[!NOTE]

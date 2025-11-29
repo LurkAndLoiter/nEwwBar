@@ -76,6 +76,7 @@ typedef struct {
 static gboolean on_position_check(gpointer user_data);
 static void on_seeked(PlayerctlPlayer *player, gint64 position, gpointer user_data);
 static void on_playback_status(PlayerctlPlayer *player, PlayerctlPlaybackStatus status, gpointer user_data);
+static void on_metadata(PlayerctlPlayer *player, GVariant *metadata, gpointer user_data);
 
 static guint global_position_timeout_id = 0;
 
@@ -171,6 +172,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name, GList **players) {
     g_object_get(data->player, "playback-status", &data->playback_status, NULL);
     g_signal_connect(data->player, "playback-status", G_CALLBACK(on_playback_status), players);
     g_signal_connect(data->player, "seeked", G_CALLBACK(on_seeked), players);
+    g_signal_connect(data->player, "metadata", G_CALLBACK(on_metadata), players);
   }
 
   DEBUG_MSG("Created PlayerData for %s (instance: %s, player: %p, initial position: %ld, status: %s)",
@@ -250,6 +252,26 @@ static void on_seeked(PlayerctlPlayer *player, gint64 position, gpointer user_da
   update_player_position(data, position / 1000000, players);
   DEBUG_MSG("Player %s (instance: %s): Seeked to %ld seconds",
             data->name, data->instance, data->local_seconds);
+  adjust_global_timer(players);
+}
+
+static void on_metadata(PlayerctlPlayer *player, GVariant *metadata, gpointer user_data) {
+  (void)metadata; // suppress unused paramater warning
+  GList **players = user_data;
+  PlayerData *data = find_player_data(players, player);
+  if (!data || !data->name || !data->instance) {
+    return;
+  }
+
+  GError *error = NULL;
+  gint64 micros = playerctl_player_get_position(data->player, &error);
+  if (error) {
+    g_error_free(error);
+    micros = 0;
+  }
+
+  update_player_position(data, micros / 1000000, players);
+  DEBUG_MSG("Metadata changed; realign position to %ld seconds", micros / 1000000);
   adjust_global_timer(players);
 }
 

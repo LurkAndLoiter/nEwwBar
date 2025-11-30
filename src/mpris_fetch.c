@@ -130,6 +130,7 @@ static gchar *last_json_output = NULL;
 static guint debounce_timeout_id = 0;
 
 /* Forward declarations */
+static void player_data_free(gpointer data);
 static void print_player_list(GList *players, gboolean force_output);
 static void update_metadata(PlayerData *data, PulseData *pulse);
 static int check_can_loop(PlayerData *data);
@@ -234,7 +235,6 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   }
 
   if (i->corked) {
-    DEBUG_MSG("Skipping corked sink input: index=%u", i->index);
     return;
   }
 
@@ -299,25 +299,53 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   print_player_list(*pulse->players, FALSE);
 }
 
-/* PulseAudio subscription callback */
+static void remove_sink_input(PlayerData *player, PulseData *pulse) {
+    if (!player) return;
+
+    if (!player->instance) {
+      GList *link = g_list_find(*pulse->players, player);
+      if (link) {
+        *pulse->players = g_list_delete_link(*pulse->players, link);
+        DEBUG_MSG("Sink-input removed: %s (index: %d)", player->name, player->index);
+        player_data_free(player);
+        print_player_list(*pulse->players, FALSE);
+        return;
+      }
+    }
+
+    player->index = 0;
+    player->sink = 0;
+    player->volume = 0;
+    player->mute = FALSE;
+
+    print_player_list(*pulse->players, FALSE);
+}
+
 static void subscribe_cb(pa_context *c, pa_subscription_event_type_t t,
                          guint32 idx, void *userdata) {
   PulseData *pulse = userdata;
-  pa_subscription_event_type_t facility =
-      t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
+  pa_subscription_event_type_t facility = t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
   pa_subscription_event_type_t type = t & PA_SUBSCRIPTION_EVENT_TYPE_MASK;
 
-  if (type != PA_SUBSCRIPTION_EVENT_CHANGE && type != PA_SUBSCRIPTION_EVENT_NEW) {
+  if (facility != PA_SUBSCRIPTION_EVENT_SINK_INPUT) return;
+  if (type != PA_SUBSCRIPTION_EVENT_NEW &&
+      type != PA_SUBSCRIPTION_EVENT_CHANGE &&
+      type != PA_SUBSCRIPTION_EVENT_REMOVE) return;
+
+  if (type == PA_SUBSCRIPTION_EVENT_REMOVE) {
+    for (GList *l = *pulse->players; l; l = l->next) {
+      PlayerData *p = l->data;
+      if (p->index == idx) {
+        DEBUG_MSG("Received sink-input removal for %s (index: %i)", p->name, p->index);
+        remove_sink_input(p, pulse);
+        break;
+      }
+    }
     return;
   }
 
-  if (facility == PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
-    pa_operation *op =
-        pa_context_get_sink_input_info(c, idx, sink_input_info_cb, pulse);
-    if (op) {
-      pa_operation_unref(op);
-    }
-  }
+  pa_operation *op = pa_context_get_sink_input_info(c, idx, sink_input_info_cb, pulse);
+  if (op) pa_operation_unref(op);
 }
 
 /* PulseAudio context state callback */
@@ -487,6 +515,7 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
               error->message);
     g_error_free(error);
     error = NULL;
+    data->position = 0;
   } else {
     /* microseconds to ceiling second */
     data->position = ((data->position + 999999) / 1000000);

@@ -280,7 +280,7 @@
                        --dest=org.mpris.MediaPlayer2.${p.instance} \
                        /org/mpris/MediaPlayer2 \
                        org.mpris.MediaPlayer2.Quit && \
-                       eww update hoveredClose=false&`
+                       eww update hoveredClose=false &`
               (image
                 :path "assets/close.svg"
                 :image-height 24

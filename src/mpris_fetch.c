@@ -133,8 +133,6 @@ static guint debounce_timeout_id = 0;
 static void player_data_free(gpointer data);
 static void print_player_list(GList *players, gboolean force_output);
 static void update_metadata(PlayerData *data, PulseData *pulse);
-static int check_can_loop(PlayerData *data);
-static int check_can_shuffle(PlayerData *data);
 
 /* Polling callback to check if artUrl file exists */
 static gboolean check_art_url_file(gpointer user_data) {
@@ -730,62 +728,30 @@ static void on_loop_status(PlayerctlPlayer *player, PlayerctlLoopStatus status,
   }
 }
 
-/* Determines if the player actually supports shuffle and follows state */
-static int check_can_shuffle(PlayerData *data) {
-  gboolean initial = FALSE;
-  g_object_get(data->player, "shuffle", &initial, NULL);
+static int check_property_exists(const char *instance, const char *property) {
+    static const char *interface = "org.mpris.MediaPlayer2.Player";
 
-  if (initial) {
-    data->shuffle = initial;
+    char dest[256];
+    snprintf(dest, sizeof(dest), "org.mpris.MediaPlayer2.%s", instance);
+
+    DBusConnection *conn = dbus_bus_get(DBUS_BUS_SESSION, NULL);
+    DBusMessage *msg = dbus_message_new_method_call(
+        dest, "/org/mpris/MediaPlayer2",
+        "org.freedesktop.DBus.Properties", "Get");
+    dbus_message_append_args(msg,
+        DBUS_TYPE_STRING, &interface,
+        DBUS_TYPE_STRING, &property, DBUS_TYPE_INVALID);
+
+    DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg, -1, NULL);
+    dbus_message_unref(msg);
+
+    if (!reply) {
+        dbus_connection_unref(conn);
+        return EXIT_FAILURE;
+    }
+    dbus_message_unref(reply);
+    dbus_connection_unref(conn);
     return EXIT_SUCCESS;
-  }
-
-  GError *error = NULL;
-  playerctl_player_set_shuffle(data->player, TRUE, &error);
-  if (error) {
-    data->shuffle = -1;
-    g_error_free(error);
-    return EXIT_FAILURE;
-  }
-
-  gboolean after = FALSE;
-  g_object_get(data->player, "shuffle", &after, NULL);
-  if (after == initial) {
-    data->shuffle = -1;
-  } else {
-    data->shuffle = initial;
-  }
-  playerctl_player_set_shuffle(data->player, initial, NULL);
-  return EXIT_SUCCESS;
-}
-
-/* Determines if the player actually supports loop and follows state */
-static int check_can_loop(PlayerData *data) {
-  PlayerctlLoopStatus initial = PLAYERCTL_LOOP_STATUS_NONE;
-  g_object_get(data->player, "loop-status", &initial, NULL);
-
-  if (initial) {
-    data->loop_status = initial;
-    return EXIT_SUCCESS;
-  }
-
-  GError *error = NULL;
-  playerctl_player_set_loop_status(data->player, PLAYERCTL_LOOP_STATUS_PLAYLIST, &error);
-  if (error) {
-    data->loop_status = -1;
-    g_error_free(error);
-    return EXIT_FAILURE;
-  }
-
-  PlayerctlLoopStatus after = PLAYERCTL_LOOP_STATUS_NONE;
-  g_object_get(data->player, "loop-status", &after, NULL);
-  if (after == initial) {
-    data->loop_status = -1;
-  } else {
-    data->loop_status = initial;
-  }
-  playerctl_player_set_loop_status(data->player, initial, NULL);
-  return EXIT_SUCCESS;
 }
 
 dbus_bool_t get_can_quit(const char *interface) {
@@ -856,11 +822,19 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
     g_error_free(error);
   }
   if (data->player) {
-    if (check_can_shuffle(data) == 0) {
+    // if (check_can_shuffle(data) == 0) {
+    if (check_property_exists(data->instance, "Shuffle") == 0) {
       g_signal_connect(data->player, "shuffle", G_CALLBACK(on_shuffle), pulse);
+      g_object_get(data->player, "shuffle", &data->shuffle, NULL);
+    } else {
+      data->shuffle = -1;
     }
-    if (check_can_loop(data) == 0 ) {
+    // if (check_can_loop(data) == 0 ) {
+    if (check_property_exists(data->instance, "LoopStatus") == 0) {
       g_signal_connect(data->player, "loop-status", G_CALLBACK(on_loop_status), pulse);
+      g_object_get(data->player, "loop-status", &data->loop_status, NULL);
+    } else {
+      data->loop_status = -1;
     }
     g_signal_connect(data->player, "playback-status",
                      G_CALLBACK(on_playback_status), pulse);

@@ -338,7 +338,7 @@
                   `playerctl --player=${p.instance} position $(({} * ${p.length} / 100))` :
                   ""
                 }"
-                :value "${100 * audioPosition["${p.instance}"]/p.length}"
+                :value "${(audioPosition?.["${p.instance}"] ?: 0) * 100 / p.length}"
               )
               (box
                 :hexpand true
@@ -353,7 +353,7 @@
                   :text "${
                     p.lengthHMS == "live" ? "LIVE" :
                     p.length == 0 ? "--/--" :
-                    "${audioPosition["${p.instance}HMS"]}/${p.lengthHMS}"
+                    "${audioPosition?.["${p.instance}HMS"] ?: "-:--"}/${p.lengthHMS}"
                   }"
                 )
               )

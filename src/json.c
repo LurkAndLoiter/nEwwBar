@@ -1,4 +1,4 @@
-#include "../include/json.h"
+#include "json.h"
 
 #include <stdio.h>
 

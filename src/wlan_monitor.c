@@ -40,7 +40,6 @@
 
 #include <gio/gio.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #define NM_BUS_NAME "org.freedesktop.NetworkManager"
@@ -54,7 +53,7 @@ static char *current_ap_path = NULL;
 static char *device_path = NULL;
 static char last_output[64] = ""; // Buffer for last JSON output
 
-static char *get_device_path() {
+static char *get_device_path(void) {
   GError *error = NULL;
   GVariant *result;
   char *path = NULL;
@@ -231,7 +230,7 @@ static void on_state_changed(GDBusConnection *conn, const gchar *sender_name,
   print_json(state, strength);
 }
 
-int main() {
+int main(void) {
   GError *error = NULL;
   GMainLoop *loop;
 

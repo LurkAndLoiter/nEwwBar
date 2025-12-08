@@ -68,7 +68,7 @@ typedef struct {
 
 Workspace workspaces[MAX_WORKSPACES] = {0};
 
-void print_json() {
+void print_json(void) {
   printf("[");
   for (int i = 0; i < MAX_WORKSPACES; i++) {
     if (i) {
@@ -125,7 +125,7 @@ static void update_workspaces(void) {
   }
 }
 
-int main() {
+int main(void) {
   DEBUG_MSG("DEBUG enabled.");
   char *xdg_runtime = getenv("XDG_RUNTIME_DIR");
   char *hyprland_instance = getenv("HYPRLAND_INSTANCE_SIGNATURE");

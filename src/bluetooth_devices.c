@@ -342,7 +342,7 @@ static void print_devices(Device *devices, int device_count) {
   free(buffer);
 }
 
-int main() {
+int main(void) {
   DEBUG_MSG("Debug enabled");
   DBusError err;
   dbus_error_init(&err);

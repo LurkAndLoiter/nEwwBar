@@ -335,7 +335,7 @@ static DBusHandlerResult signal_handler(DBusConnection *conn, DBusMessage *msg,
   return DBUS_HANDLER_RESULT_HANDLED;
 }
 
-int main() {
+int main(void) {
   DBusConnection *conn;
   DBusError err;
   DBusMessage *msg;

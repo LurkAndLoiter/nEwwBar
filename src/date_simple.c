@@ -57,7 +57,7 @@
 #endif
 
 int main(void) {
-  DEBUG_MSG("DEBUG enabled.");
+  DEBUG_MSG(stdout, "DEBUG enabled.");
   const char *days_of_week[] = {"Sunday",   "Monday", "Tuesday", "Wednesday",
                                 "Thursday", "Friday", "Saturday"};
   const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",

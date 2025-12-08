@@ -42,7 +42,6 @@
 #include <glib.h>
 #include <json-glib/json-glib.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #ifdef DEBUG
 #define DEBUG_MSG(fmt, ...)                                                    \

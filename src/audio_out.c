@@ -38,7 +38,7 @@
  * ____________________________________________________________________________
  */
 
-#include "../include/json.h"
+#include "json.h"
 #include <pulse/pulseaudio.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -226,6 +226,7 @@ int main(void) {
     return 1;
   }
 
+  int ret = 0;
   pa_context_set_state_callback(app.pa_context, pa_state_cb, &app);
   if (pa_context_connect(app.pa_context, NULL, PA_CONTEXT_NOFLAGS, NULL) < 0) {
     fprintf(stderr, "PulseAudio connect failed: %s\n",
@@ -233,7 +234,6 @@ int main(void) {
     goto cleanup;
   }
 
-  int ret = 0;
   if (pa_mainloop_run(app.pa_mainloop, &ret) < 0) {
     ret = 1;
   }

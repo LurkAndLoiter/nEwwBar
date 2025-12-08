@@ -38,7 +38,6 @@
  * ____________________________________________________________________________
  */
 
-#include <ctype.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -76,7 +75,7 @@ static void initialRun(void) {
   pclose(fp);
 }
 
-int main() {
+int main(void) {
   DEBUG_MSG("DEBUG enabled.");
   const char *xdg_runtime = getenv("XDG_RUNTIME_DIR");
   const char *hyprland_instance = getenv("HYPRLAND_INSTANCE_SIGNATURE");
@@ -126,7 +125,7 @@ int main() {
         DEBUG_MSG("Socket closed");
       }
       else
-        DEBUG_MSG("socket read failed: %d", errno);
+        DEBUG_MSG("socket read failed.");
       break;
     }
     buffer_len += bytes;

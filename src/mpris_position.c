@@ -42,7 +42,7 @@
 #include <playerctl/playerctl.h>
 #include <stdio.h>
 #include <string.h>
-#include "../include/json.h"
+#include "json.h"
 
 #ifdef DEBUG
 #define DEBUG_MSG(fmt, ...) printf(fmt "\n", ##__VA_ARGS__)
@@ -175,8 +175,8 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name, GList **players) {
     g_signal_connect(data->player, "metadata", G_CALLBACK(on_metadata), players);
   }
 
-  DEBUG_MSG("Created PlayerData for %s (instance: %s, player: %p, initial position: %ld, status: %s)",
-            data->name, data->instance, data->player, data->local_seconds,
+  DEBUG_MSG("Created PlayerData for %s (instance: %s, initial position: %ld, status: %s)",
+            data->name, data->instance, data->local_seconds,
             playback_status_to_string(data->playback_status));
   return data;
 }

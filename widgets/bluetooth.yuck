@@ -153,7 +153,7 @@
       ; instead of simply increasing the scan duration.
       :onclick `bluetoothctl discoverable-timeout 15 &&
                 bluetoothctl discoverable on &&
-                bluetoothctl --timeout 5 -- scan on &`
+                bluetoothctl --timeout 10 -- scan on &`
       (image
         :image-height 42
         :path "assets/icons/wifi/${adapter.Discovering ? 'scan-large' : 'scan-off'}.gif"

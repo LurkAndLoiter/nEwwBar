@@ -85,7 +85,6 @@
 ;)
 
 (defwindow barMin [monitor]
-  ; :monitor '["<primary>","DP-1","HDMI-A-0"]'
   :monitor monitor
   :stacking "fg"
   :windowtype "dock"
@@ -100,8 +99,6 @@
 
 
 (defwindow bar [monitor]
-  ; :monitor '["<primary>",1,0]'
-  ; :monitor '["<primary>","DP-1","HDMI-A-0"]'
   :monitor monitor
   :stacking "fg"
   :windowtype "dock"
@@ -123,12 +120,12 @@
           :onclick `eww open --toggle leftPanel --arg monitor=${monitor}`
           "󰍜"
         )
-        ; (workspaces)
       )
       (box
         :halign "center"
+        :space-evenly false
         (workspaces)
-        ; (dateStyled)
+        (spotifyWorkspace)
       )
       (box
         :halign "end"

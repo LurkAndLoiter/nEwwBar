@@ -298,9 +298,9 @@
               :halign "start"
               (image
                 :image-height 100
-                :path "${
-                  matches(p.title, " - Twitch$") ? "assets/twitch-logo.svg" :
-                  p.artUrl
+                :path "${p.artUrl ?:
+                  (matches(p.title, " - Twitch$") ? "assets/twitch-logo.svg" :
+                  "")
                 }"
               )
             )

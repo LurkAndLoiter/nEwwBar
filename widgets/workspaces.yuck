@@ -54,10 +54,9 @@
 
 (defwidget workspaces []
   (box
-    :class "workspaces-widget"
-    :space-evenly true
     (for w in workspaces
       (eventbox
+        :visible "${w.WorkspaceID <= 6}"
         :tooltip "${w.WorkspaceID}"
         :onclick `hyprctl dispatch workspace ${w.WorkspaceID}`
         (literal
@@ -79,6 +78,36 @@
           }
         )
       )
+    )
+  )
+)
+
+(defwidget spotifyWorkspace []
+  (box
+    (literal
+      :class "paddingleft paddingright"
+      :valign "center"
+      :content
+      {
+        "${jq(workspaces, '.[] | select(.WorkspaceID == 7) | (.hasWindows)') ?
+          '(eventbox
+            :onclick `hyprctl dispatch workspace 7`
+            (image
+              :path "./assets/source/icons/spotify.svg"
+              :fill-svg "${focusedID != 7 ? "#1DB954" : "#F38BA8"}"
+              :image-width 24
+            )
+          )' :
+          '(eventbox
+            :onclick `./scripts/spotify-wrap &`
+            (image
+              :path "./assets/source/icons/spotify.svg"
+              :fill-svg "${focusedID != 7 ? "#45475A" : "#F38BA8"}"
+              :image-width 24
+            )
+          )'
+        }"
+      }
     )
   )
 )

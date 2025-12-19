@@ -100,6 +100,7 @@
 (defvar audioPanel false)
 (defvar playerVolumeIsHovered false)
 (defvar hoveredClose false)
+(defvar hoveredSeek false)
 (defvar hoveredPlayer "")
 
 (defwidget audioButton []
@@ -136,7 +137,7 @@
               :anchor "top right")
   (eventbox
     :onhover `eww update hover_state="audioPanel"`
-    :onhoverlost `eww update hover_state=""`
+    :onhoverlost `eww update hover_state="" && eww update hoveredPlayer=""`
     (revealer
       :transition "slidedown"
       :reveal {(hover_state == "audioPanel" || audioPanel)}
@@ -330,15 +331,23 @@
                 :loop "${p.loop}"
                 :shuffle "${p.shuffle}"
               )
-              (scale
-                :class "${!(p.canSeek) || p.lengthHMS == "live" ? "inactive" : ""}"
-                :max 101
-                :onchange "${
-                  p.canSeek && p.lengthHMS != "live"  && p.length != 0 ?
-                  `playerctl --player=${p.instance} position $(({} * ${p.length} / 100))` :
-                  ""
-                }"
-                :value "${(audioPosition?.["${p.instance}"] ?: 0) * 100 / p.length}"
+              (eventbox
+                :onhover `eww update hoveredSeek=true`
+                :onhoverlost `eww update hoveredSeek=false`
+                (scale
+                  :class "${!(p.canSeek) || p.lengthHMS == "live" ? "inactive" : ""}"
+                  :max 101
+                  :value "${(audioPosition?.["${p.instance}"] ?: 0) * 100 / p.length}"
+                  :onchange "${
+                    hoveredSeek &&
+                    hoveredPlayer == p.instance &&
+                    p.canSeek &&
+                    p.lengthHMS != "live" &&
+                    p.length != 0 ?
+                    `playerctl --player=${p.instance} position $(({} * ${p.length} / 100))` :
+                    ""
+                  }"
+                )
               )
               (box
                 :hexpand true

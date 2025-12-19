@@ -396,7 +396,6 @@
   (box
     (box
       :halign "start"
-      :class "paddingbottom"
       :spacing 10
       (eventbox
         :onclick `playerctl --player=${instance} previous`
@@ -426,7 +425,6 @@
     )
     (box
       :halign "end"
-      :class "paddingbottom"
       :space-evenly false
       :spacing 10
       ;; Loop <0 unsupported, 0 none, 1 track, 2 playlist

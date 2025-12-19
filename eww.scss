@@ -311,7 +311,7 @@ scale trough {
   border-radius: 9px;
   min-height: 8px;
   min-width: 8px;
-  margin: 0 0 7px;
+  margin: 7px 0;
 }
 
 slider {
@@ -348,21 +348,40 @@ slider {
 
 /* Systray dropdown menus */
 menu {
-  padding: 5px;
+  padding: 10px 15px;
   background-color: $Crust;
   color: $Text;
 
   menuitem {
     font-size: unset;
-    border-radius: 5px;
-    background-color: $Base;
+    // border-radius: 5px;
     padding: 8px 12px;
+    margin: 2px 0;
+    &:nth-child(odd){
+      background-color: $Surface2;
+    }
+    &:nth-child(even){
+      background-color: $Base;
+    }
+    &:hover {
+      color: $Crust;
+      background-color: $Green;
+      transition: 0.5s;
+    }
+    &:disabled {
+      color: $inactive;
+      background-color: $Mantle;
+    }
+    &:active {
+      color: $Crust;
+      background-color: $Mauve;
+    }
   }
 
-  menuitem:hover {
-    color: $Crust;
-    background-color: $Green;
-    transition: 0.5s;
+  separator {
+    min-height: 2px;
+    background-color: $Mauve;
+    margin: 10px 0;
   }
 }
 

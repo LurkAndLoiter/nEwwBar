@@ -194,7 +194,7 @@
             (label :class "green" :text "${s.volume}")
             (scale
               :hexpand true
-              :class "low-vis marginleft margintop"
+              :class "low-vis paddingleft"
               :round-digits 0
               :min 0
               :max 101
@@ -294,7 +294,7 @@
           )
           (box
             :space-evenly false
-            :spacing 10
+            ; :spacing 10
             (box
               :halign "start"
               (image
@@ -394,6 +394,7 @@
 (defwidget mediaButtons [canGoPrevious canGoNext canPlay
                          playing instance loop shuffle]
   (box
+    :class "marginleft paddingleft"
     (box
       :halign "start"
       :spacing 10

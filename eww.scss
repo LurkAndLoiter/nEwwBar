@@ -300,24 +300,25 @@ button {
 }
 
 /* Standard scale/slider */
-trough highlight {
-  background-image: linear-gradient(to right, $Mauve 30%, $Red 100% * 50);
-  border-radius: 4px;
-}
+scale {
+  padding: 7px 0 7px 7px;
+  trough {
+    background-color: rgba($Surface2, 1);
+    box-shadow: 0 1px 2px 1px #06060b;
+    border-radius: 9px;
+    min-height: 8px;
+    min-width: 8px;
 
-scale trough {
-  background-color: rgba($Surface2, 1);
-  box-shadow: 0 1px 2px 1px #06060b;
-  border-radius: 9px;
-  min-height: 8px;
-  min-width: 8px;
-  margin: 7px 0;
-}
-
-slider {
-  border-radius: 10px;
-  background-color: #d8dee9;
-  margin: -7px;
+    highlight {
+      background-image: linear-gradient(to right, $Mauve 30%, $Red 100% * 50);
+      border-radius: 4px;
+    }
+  }
+  slider {
+    border-radius: 10px;
+    background-color: $Text;
+    margin: -7px;
+  }
 }
 
 /* Hide unwanted sliders */

@@ -495,7 +495,7 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
   } else if (length_str) {
     char *endptr = NULL;
     /* microseconds to ceiling second */
-    gint64 len = (gint64)strtod(length_str, &endptr);
+    gint64 len = strtoll(length_str, &endptr, 10);
     data->length = len <= INT64_MAX - 999999 ? (len + 999999) / 1000000 : INT64_MAX;
     if (endptr == length_str || *endptr != '\0') {
       DEBUG_MSG("Failed to parse length for %s: %s", safe_str(data->name),

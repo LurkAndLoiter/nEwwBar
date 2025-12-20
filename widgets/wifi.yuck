@@ -136,7 +136,7 @@
 (defwidget wifi []
   (box
     :orientation "v"
-    :class {(hover_state == "wifiPanel" || wifiPanel) ? "base-box" : "bar-box"}
+    :class {(hover_state == "wifiPanel" || wifiPanel) ? "base-box" : "hide-box"}
     :space-evenly false
     :spacing 10
     (box

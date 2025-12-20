@@ -171,12 +171,11 @@ tooltip {
   border-radius: 5px;
 }
 
-.spacerbar {
-  margin: 5px 30px 20px;
-  min-height: 1px;
-  border-radius: 10px;
-  background-color: transparent;
-  box-shadow: 0 1px 2px 1px $Mauve;
+/* Divider used in Panels */
+.separator {
+  min-height: 2px;
+  background-color: $Mauve;
+  margin: 10px 0;
 }
 
 /* Box container of bar */
@@ -193,8 +192,12 @@ tooltip {
   background-color: $Crust;
   // background-color: transparent;
   border-radius: 10px;
-  margin: 0 10px;
-  padding: 30px 5px 15px;
+  margin: 0 10px 0 0;
+  padding: 30px 10px 15px 10px;
+}
+
+.hide-box {
+  background-color: transparent;
 }
 
 /* Base of panels */
@@ -221,11 +224,6 @@ tooltip {
   border-radius: 10px;
   padding: 10px 15px 5px;
   margin: 10px 0 0;
-}
-
-/* Divider used in Panels */
-.barspacer {
-  margin: 5px;
 }
 
 /* Wide button */

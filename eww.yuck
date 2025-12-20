@@ -54,7 +54,7 @@
 (defvar networkIndex 0)
 (defvar hover_state "")
 
-(defwidget Spacer [] (box :halign "fill" :class "spacerbar"))
+(defwidget Spacer [] (box :halign "fill" :class "separator"))
 
 (defwidget dateStyled []
   (box :class "large" :space-evenly false

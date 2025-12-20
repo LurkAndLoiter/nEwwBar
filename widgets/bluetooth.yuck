@@ -92,7 +92,7 @@
     :onhover `eww update hover_state="bluetoothPanel"`
     :onhoverlost `eww update hover_state=""`
     (box
-      :class {(hover_state == "bluetoothPanel" || bluetoothPanel) ? "base-box" : "bar-box"}
+      :class {(hover_state == "bluetoothPanel" || bluetoothPanel) ? "base-box" : "hide-box"}
       :orientation "v"
       :space-evenly false
       :spacing 10

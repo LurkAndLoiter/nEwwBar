@@ -150,7 +150,7 @@
 (defwidget audio []
   (box
     :orientation "v"
-    :class {(hover_state == "audioPanel" || audioPanel) ? "base-box" : "bar-box"}
+    :class {(hover_state == "audioPanel" || audioPanel) ? "base-box" : "hide-box"}
     :space-evenly false
     (audioDevices)
     (box

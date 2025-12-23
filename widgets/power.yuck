@@ -77,7 +77,7 @@
         :space-evenly false
         :halign "end"
         :spacing 10
-        :class {(hover_state == "powerPanel" || powerPanel) ? "base-box" : "bar-box"}
+        :class {(hover_state == "powerPanel" || powerPanel) ? "base-box" : "hide-box"}
         (eventbox
           :onclick `shutdown -r now &`
           :tooltip "Reboot"

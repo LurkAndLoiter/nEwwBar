@@ -223,7 +223,7 @@
     :hexpand true
     :text "${
       wlan-monitor.state == 10 ? "Not Managed By NetworkManager: Unsupported":
-      wlan-monitor.state == 20 ? "Wireless Dsiabled" :
+      wlan-monitor.state == 20 ? "Wireless Disabled" :
       wlan-monitor.state == 30 ? "Not Connected to Network" :
       wlan-monitor.state == 40 ? "Preparing to connect to Network" :
       wlan-monitor.state == 50 ? "Configuring connection to Network" :

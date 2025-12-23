@@ -174,7 +174,7 @@ tooltip {
 /* Divider used in Panels */
 .separator {
   min-height: 2px;
-  background-color: $Mauve;
+  background-color: $Green;
   margin: 10px 0;
 }
 
@@ -184,7 +184,7 @@ tooltip {
   // background-color: transparent;
   border-radius: 10px;
   margin: 0 10px;
-  padding: 0 5px;
+  padding: 0 10px;
 }
 
 /* Box container of bar */
@@ -198,6 +198,8 @@ tooltip {
 
 .hide-box {
   background-color: transparent;
+  margin: 0 10px 0 0;
+  padding: 30px 10px 15px 10px;
 }
 
 /* Base of panels */
@@ -348,6 +350,7 @@ scale {
 /* Systray dropdown menus */
 menu {
   padding: 10px 15px;
+  border: 2px solid $Mauve;
   background-color: $Crust;
   color: $Text;
 
@@ -379,7 +382,7 @@ menu {
 
   separator {
     min-height: 2px;
-    background-color: $Mauve;
+    background-color: $Green;
     margin: 10px 0;
   }
 }

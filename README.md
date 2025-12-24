@@ -15,10 +15,16 @@ A low resource eww bar that intends to implement all the basics one might need f
 >eww open-many audioPanel micPanel bluetoothPanel wifiPanel powerPanel bar --arg monitor=0
 >```
 
->[!NOTE]
->Panels can be locked open with by right clicking on the revealer button.
+> [!NOTE]
+> Panels can be locked open by right-clicking on the revealer button.
 >
->Revealer buttons have default actions assigned to left click.
+> Revealer buttons have default actions assigned to left-click.
+>
+> Panels can become out of position on forced eww updates where sub-panels draw on top of the bar.
+>
+> In this scenario, you can reload them by scrolling up on the bar to trigger barMin.
+>
+> Then scroll down at the top of the screen (5px) to make barMin return into the bar. This is a good method to reload anything in the event of errors.
 
 ### Intall
 

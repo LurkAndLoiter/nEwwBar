@@ -91,21 +91,11 @@
   (eventbox
     :onhover `eww update hover_state="bluetoothPanel"`
     :onhoverlost `eww update hover_state=""`
-    (box
-      :class {(hover_state == "bluetoothPanel" || bluetoothPanel) ? "base-box" : "hide-box"}
-      :orientation "v"
-      :space-evenly false
-      :spacing 10
-      (image
-        :image-width 1
-        :path "assets/blankSpacer.svg"
-      )
-      (revealer
-        :transition "slidedown"
-        :reveal {(hover_state == "bluetoothPanel" || bluetoothPanel)}
-        :duration: "1000ms"
-        (bluetooth)
-      )
+    (revealer
+      :transition "slidedown"
+      :reveal {(hover_state == "bluetoothPanel" || bluetoothPanel)}
+      :duration: "1000ms"
+      (bluetooth)
     )
   )
 )
@@ -115,13 +105,9 @@
     :orientation "v"
     :space-evenly false
     :spacing 10
+    :class {(hover_state == "bluetoothPanel" || bluetoothPanel) ? "base-box" : "hide-box"}
     (bluetoothAdapter)
-    (box
-      :orientation "v"
-      :space-evenly false
-      :spacing 10
-      (bluetoothDevices)
-    )
+    (bluetoothDevices)
   )
 )
 

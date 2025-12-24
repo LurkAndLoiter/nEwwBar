@@ -81,21 +81,11 @@
   (eventbox
     :onhover `eww update hover_state="micPanel"`
     :onhoverlost `eww update hover_state=""`
-    (box
-      :class {(hover_state == "micPanel" || micPanel)? "base-box" : "hide-box"}
-      :orientation "v"
-      :space-evenly false
-      :spacing 10
-      (image
-        :image-width 1
-        :path "assets/blankSpacer.svg"
-      )
-      (revealer
-        :transition "slidedown"
-        :reveal {(hover_state == "micPanel" || micPanel)}
-        :duration: "1000ms"
-        (microphone)
-      )
+    (revealer
+      :transition "slidedown"
+      :reveal {(hover_state == "micPanel" || micPanel)}
+      :duration: "1000ms"
+      (microphone)
     )
   )
 )
@@ -105,6 +95,11 @@
     :orientation "v"
     :space-evenly false
     :spacing 10
+    :class {(hover_state == "micPanel" || micPanel) ? "base-box" : "hide-box"}
+    (image
+      :image-width 1
+      :path "assets/blankSpacer.svg"
+    )
     (for source in audioMonitors
       (eventbox
         ; Do not display Virtual 'Monitors' of sources.

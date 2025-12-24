@@ -137,7 +137,7 @@
               :anchor "top right")
   (eventbox
     :onhover `eww update hover_state="audioPanel"`
-    :onhoverlost `eww update hover_state="" && eww update hoveredPlayer=""`
+    :onhoverlost `eww update hover_state="" hoveredPlayer=""`
     (revealer
       :transition "slidedown"
       :reveal {(hover_state == "audioPanel" || audioPanel)}

@@ -61,7 +61,7 @@
 (defwidget pacmanButton [monitor]
   (eventbox
     :onclick `eww open --toggle pacmanPanel --arg monitor=${monitor}`
-    :onhover `eww update hover_state="" && eww update hoverPacDots=true && eww update hoverPacman=true &`
+    :onhover `eww update hover_state="" hoverPacDots=true hoverPacman=true`
     :onhoverlost `scripts/hoverPac.sh &`
     (box :space-evenly false
       :tooltip "Package panel"

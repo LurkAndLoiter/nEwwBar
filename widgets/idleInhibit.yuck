@@ -42,16 +42,17 @@
 (defpoll ifHypridle
   :interval 36000 ;we update in onclick this is just to populate initial value.
   :initial false
-  `pgrep -x hypridle >/dev/null && echo true || echo false`)
+  `pgrep -x hypridle >/dev/null && echo true || echo false`
+)
 
 (defwidget hypridleButton []
   (eventbox
-    :onclick `(if pgrep -x hypridle >/dev/null;
+    :onclick `if pgrep -x hypridle >/dev/null;
                 then pkill -x hypridle >/dev/null 2>&1 &&
                 eww update ifHypridle=false;
               else hypridle >/dev/null 2>&1 &
                 eww update ifHypridle=true;
-              fi) &`
+              fi &`
     :tooltip "Inhibit Hypridle"
     (box :space-evenly false
       (label :text "${ifHypridle ? "Idle" : "Inhibit"}")

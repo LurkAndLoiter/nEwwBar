@@ -219,7 +219,7 @@ DBusHandlerResult agent_message_handler(DBusConnection *conn, DBusMessage *msg,
   const char *interface = dbus_message_get_interface(msg);
   const char *member = dbus_message_get_member(msg);
 
-  if (strcmp(interface, "org.bluez.AgentManager1") != 0) {
+  if (strcmp(interface, "org.bluez.Agent1") != 0) {
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
   }
 

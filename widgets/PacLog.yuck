@@ -74,7 +74,7 @@
       (revealer
         :transition "slideright"
         :reveal "${hoverPacDots}"
-        :duration "1000ms"
+        :duration "600ms"
         (label :text "")
       )
     )

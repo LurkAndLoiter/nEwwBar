@@ -1,0 +1,215 @@
+;; -*- mode: lisp -*-
+
+;;  _               _        _              _ _          _ _
+;; | |   _   _ _ __| | __   / \   _ __   __| | |    ___ (_) |_ ___ _ __
+;; | |  | | | | '__| |/ /  / _ \ | '_ \ / _` | |   / _ \| | __/ _ \ '__|
+;; | |__| |_| | |  |   <  / ___ \| | | | (_| | |__| (_) | | ||  __/ |
+;; |_____\__,_|_|  |_|\_\/_/   \_\_| |_|\__,_|_____\___/|_|\__\___|_|
+;; ____________________________________________________________________________
+;; ----------------------------------------------------------------------------
+;; Copyright 2025 LurkAndLoiter.
+;; ____________________________________________________________________________
+;;  __  __ ___ _____   _     _
+;; |  \/  |_ _|_   _| | |   (_) ___ ___ _ __  ___  ___
+;; | |\/| || |  | |   | |   | |/ __/ _ \ '_ \/ __|/ _ \
+;; | |  | || |  | |   | |___| | (_|  __/ | | \__ \  __/
+;; |_|  |_|___| |_|   |_____|_|\___\___|_| |_|___/\___|
+;;
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to
+;; deal in the Software without restriction, including without limitation the
+;; rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+;; sell copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+;;
+;; The above copyright notice and this permission notice shall be included in
+;; all copies or substantial portions of the Software.
+;;
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+;; IN THE SOFTWARE.
+;; ____________________________________________________________________________
+;; ----------------------------------------------------------------------------
+;; "Zetus Lupetus" "Omelette du fromage" "You're killing me smalls" "Ugh As If"
+;; "Hey. Listen!" "Do a barrel roll!" "Dear Darla, I hate your stinking guts."
+;; "If we listen to each other's hearts. We'll find we're never too far apart."
+;; ____________________________________________________________________________
+
+(deflisten Date :initial "{}"
+  `bin/date_simple`)
+
+(defvar networkIndex 0)
+(defvar hover_state "")
+
+(defwidget Spacer [] (box :halign "fill" :class "separator"))
+
+(defwidget dateStyled []
+  (box :class "large" :space-evenly false
+    (label :class "bold" :text "${Date.H}:${Date.M}")
+    (label
+      :valign "start"
+      :class "medium italic colorMe"
+      :text "${Date.Day}"
+    )
+    (box :orientation "v" :space-evenly false
+      (label
+        :class "small italic"
+        :text "${Date.Month} ${Date.Year}"
+      )
+      (label
+        :halign "end"
+        :class "small italic colorMe"
+        :text "${Date.DayOfWeek}"
+      )
+    )
+  )
+)
+
+;(defwidget dateStyled []
+;  (box :space-evenly false
+;    (label :text "${Date.DayOfWeek} ${Date.H}:${Date.M}")
+;  )
+;)
+
+(defwindow barMin [monitor]
+  :monitor monitor
+  :stacking "fg"
+  :windowtype "dock"
+  :wm-ignore true
+  :geometry (geometry
+              :width "100%"
+              :height 5
+              :anchor "top center")
+  (eventbox
+    :class "bar-swiper"
+    :onscroll `eww close barMin && eww open-many audioPanel micPanel bluetoothPanel wifiPanel powerPanel bar --arg monitor=${monitor}`
+  )
+)
+
+
+(defwindow bar [monitor]
+  :monitor monitor
+  :stacking "fg"
+  :windowtype "dock"
+  :exclusive true
+  :geometry (geometry
+              :width "100%"
+              :height 20
+              :anchor "top center")
+  (eventbox
+    :onscroll `eww close-all && eww open barMin --arg monitor=${monitor}`
+    (box
+      :class "bar-box"
+      (box
+        :halign "start"
+        :space-evenly false
+        :spacing 5
+        (eventbox
+          :class "large"
+          :onclick `eww open --toggle leftPanel --arg monitor=${monitor}`
+          "󰍜"
+        )
+      )
+      (box
+        :halign "center"
+        :space-evenly false
+        (workspaces)
+      )
+      (box
+        :halign "end"
+        :spacing 5
+        :space-evenly false
+        (systray :spacing 2)
+        (hypridleButton)
+        (pacmanButton :monitor "${monitor}")
+        (audioButton)
+        (micButton)
+        (bluetoothButton)
+        (wifiButton)
+        (eventbox
+          :onhover `eww update hover_state=""`
+          :onclick `eww open --toggle rightPanel --arg monitor=${monitor}`
+          (dateStyled)
+        )
+        (powerRevealer)
+      )
+    )
+  )
+)
+
+
+(defwindow leftPanel [monitor]
+  :monitor monitor
+  :stacking "fg"
+  :focusable false
+  :geometry (geometry
+              :anchor "top left"
+              :height "100%"
+              :width 400
+              :vexpand true)
+  (eventbox
+    :onhover `eww update hover_state="leftPanel"`
+    :onhoverlost `scripts/check_hover.sh leftPanel &`
+    (box
+      :class "window left"
+      (box
+        :orientation "v"
+        :space-evenly false
+        (applications)
+      )
+    )
+  )
+)
+
+
+(defwindow rightPanel [monitor]
+  :monitor monitor
+  :stacking "fg"
+  :geometry (geometry
+              :anchor "top right"
+              :height "100%"
+              :width 500
+              :vexpand true)
+  (eventbox
+    :onhover `eww update hover_state="rightPanel"`
+    :onhoverlost `scripts/check_hover.sh rightPanel &`
+    (box :class "window right"
+      (box
+        :orientation "v"
+        :space-evenly false
+        (audio)
+        (Spacer)
+        (box
+          :valign "start"
+          :orientation "v"
+          :vexpand true
+          :space-evenly false
+          (box :class "btns-box" :hexpand true :space-evenly true
+            (button
+              :onclick `eww update networkIndex=0`
+              :class "inactive"
+              (label :text "bluetooth")
+            )
+            (button
+              :onclick `eww update networkIndex=1`
+              :class "inactive"
+              (label :text "wifi")
+            )
+          )
+          (stack
+            :selected networkIndex
+            :transition "${networkIndex == 0 ? "slideleft": "slideright"}"
+            :same-size true
+            (bluetooth)
+            (wifi)
+          )
+        )
+      )
+    )
+  )
+)
+

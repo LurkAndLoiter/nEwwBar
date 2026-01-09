@@ -39,86 +39,17 @@
 ;; "If we listen to each other's hearts. We'll find we're never too far apart."
 ;; ____________________________________________________________________________
 
-(defvar powerPanel false)
+(defpoll ifHypridle
+  :interval 3600
+  :initial false
+  `pgrep -x hypridle >/dev/null && echo true || echo false &`)
 
-(defwidget powerRevealer []
+(defwidget hypridleButton []
   (eventbox
-    :onhover `eww update hover_state="powerPanel"`
-    :onrightclick `eww update powerPanel=${!(powerPanel)}`
-    (eventbox
-      :onclick `shutdown -P now &`
-      :tooltip "Shutdown"
-      (image
-        :image-height 24
-        :path "assets/power.svg"
-      )
-    )
-  )
-)
-
-(defwindow powerPanel [monitor]
-  :monitor monitor
-  :stacking "fg"
-  :geometry (
-    geometry
-      :y -25
-      :height 20
-      :anchor "top right"
-  )
-  (eventbox
-    :onhover `eww update hover_state="powerPanel"`
-    :onhoverlost `eww update hover_state=""`
-    (revealer
-      :transition "slidedown"
-      :reveal {hover_state == "powerPanel" || powerPanel}
-      :duration "600ms"
-      (box
-        :orientation "v"
-        :space-evenly false
-        :halign "end"
-        :spacing 10
-        :class {(hover_state == "powerPanel" || powerPanel) ? "base-box" : "hide-box"}
-        (eventbox
-          :onclick `shutdown -r now &`
-          :tooltip "Reboot"
-          (image
-            :path "assets/reboot.svg"
-            :image-height 24
-          )
-        )
-        (eventbox
-          :onclick `eww close-all && hyprctl dispatch exit 1 &`
-          :tooltip "Logout"
-          (image
-            :path "assets/logout.svg"
-            :image-height 24
-          )
-        )
-        (eventbox
-          :onclick `hyprlock &`
-          :tooltip "Lock Screen"
-          (image
-            :path "assets/lock.svg"
-            :image-height 24
-          )
-        )
-        (eventbox
-          :onclick `eww close-all && hyprctl dispatch exit 1 &`
-          :tooltip "Exit Hyprland"
-          (image
-            :path "assets/exitDisplay.svg"
-            :image-height 24
-          )
-        )
-        (eventbox
-          :onclick `hyprctl reload &`
-          :tooltip "Reload Hyprland"
-          (image
-            :path "assets/reload.svg"
-            :image-height 24
-          )
-        )
-      )
+    :onclick `pkill hypridle || hypridle; eww update ifHypridle="$(pgrep -x hypridle >/dev/null && echo true || echo false)"`
+    :tooltip "Inhibit Hypridle"
+    (box :space-evenly false
+      (label :text "${ifHypridle ? "Idle" : "Inhibit"}")
     )
   )
 )

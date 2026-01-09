@@ -126,7 +126,7 @@
     (revealer
       :transition "slidedown"
       :reveal {hover_state == "wifiPanel" || wifiPanel}
-      :duration: "1000ms"
+      :duration "600ms"
       (wifi)
     )
   )

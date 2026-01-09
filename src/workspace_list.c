@@ -46,7 +46,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#define MAX_WORKSPACES 10
+#define MAX_WORKSPACES 6
 #define BUFFER_SIZE 64
 
 #ifdef DEBUG

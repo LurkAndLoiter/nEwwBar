@@ -55,7 +55,10 @@
               fi &`
     :tooltip "Inhibit Hypridle"
     (box :space-evenly false
-      (label :text "${ifHypridle ? "Idle" : "Inhibit"}")
+      (image
+        :image-height 18
+        :path "assets/icons/idle-${ifHypridle ? "on" : "off"}.svg"
+      )
     )
   )
 )

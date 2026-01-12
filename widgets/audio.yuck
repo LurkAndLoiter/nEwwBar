@@ -267,6 +267,7 @@
             (label
               :class "green"
               :xalign 0
+              :yalign 1
               :wrap true
               :hexpand true
               :show-truncated false
@@ -312,13 +313,13 @@
               :space-evenly false
               (label
                 :truncate true
-                :class "subtext"
+                :class "subtext marginleft"
                 :xalign 0
                 :text "${p.artist}"
               )
               (label
                 :truncate true
-                :class "subtext"
+                :class "subtext marginleft"
                 :xalign 0
                 :text "${p.album}"
               )
@@ -394,7 +395,7 @@
 (defwidget mediaButtons [canGoPrevious canGoNext canPlay
                          playing instance loop shuffle]
   (box
-    :class "marginleft paddingleft"
+    :class "marginleft margintop paddingleft"
     (box
       :halign "start"
       :spacing 10

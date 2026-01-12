@@ -8,7 +8,6 @@ if (( ${#pids[@]} > 1 )); then
     done
 fi
 
-sleep 5
 eww update hoverPacDots=false
-sleep 1
+sleep 0.6
 eww update hoverPacman=false

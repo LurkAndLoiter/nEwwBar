@@ -39,8 +39,16 @@
 ;; "If we listen to each other's hearts. We'll find we're never too far apart."
 ;; ____________________________________________________________________________
 
-(deflisten Date :initial "{}"
-  `bin/date_simple`)
+(deflisten Date
+  :initial "{}"
+  `bin/date_simple`
+)
+
+(defpoll monitorList
+  :initial "[]"
+  :interval 36000
+  `hyprctl monitors -j | jq '[.[].name]'`
+)
 
 (defvar networkIndex 0)
 (defvar hover_state "")
@@ -64,6 +72,22 @@
         :halign "end"
         :class "small italic colorMe"
         :text "${Date.DayOfWeek}"
+      )
+    )
+  )
+)
+
+(defwidget monitorSwitcher [monitor]
+  (box
+    (for mon in monitorList
+      (eventbox
+        :visible "${monitor != mon}"
+        :tooltip "Move bar to ${mon}"
+        :onclick `eww close-all && eww open-many wifiPanel micPanel bluetoothPanel audioPanel powerPanel bar --arg monitor=${mon}`
+        (image
+          :image-height 16
+          :path "assets/icons/swapMon.svg"
+        )
       )
     )
   )
@@ -113,6 +137,7 @@
           :onclick `eww open --toggle leftPanel --arg monitor=${monitor}`
           "󰍜"
         )
+        (monitorSwitcher :monitor "${monitor}")
       )
       (box
         :halign "center"

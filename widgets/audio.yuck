@@ -301,8 +301,8 @@
               (image
                 :image-height 100
                 :path "${p.artUrl ?:
-                  (matches(p.title, " - Twitch$") ? "assets/twitch-logo.svg" :
-                  "")
+                  ; matches(p.title, " - Twitch$") ? "assets/twitch-logo.svg" :
+                  "assets/image-blank.svg"
                 }"
               )
             )

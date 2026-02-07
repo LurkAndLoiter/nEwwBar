@@ -269,6 +269,7 @@
               :xalign 0
               :yalign 1
               :wrap true
+              :wrap-mode "wordchar"
               :hexpand true
               :show-truncated false
               :text "${p.title}"

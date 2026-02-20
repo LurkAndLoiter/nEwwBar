@@ -148,6 +148,7 @@
         :halign "end"
         :spacing 5
         :space-evenly false
+        (eventbox :onhover `eww update hover_state=""`)
         (systray :spacing 2)
         (hypridleButton)
         (pacmanButton :monitor "${monitor}")
@@ -161,6 +162,8 @@
           (dateStyled)
         )
         (powerRevealer)
+        (eventbox :onhover `eww update hover_state=""`)
+
       )
     )
   )

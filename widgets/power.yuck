@@ -62,6 +62,7 @@
   :geometry (
     geometry
       :y -25
+      :x 5 ;compensates for trayend eventbox
       :height 20
       :anchor "top right"
   )

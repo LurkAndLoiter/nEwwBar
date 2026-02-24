@@ -270,9 +270,11 @@
               :yalign 1
               :wrap true
               :wrap-mode "wordchar"
+              :limit-width -1
+              :lines 2
               :hexpand true
-              :show-truncated false
               :text "${p.title}"
+              :tooltip "${p.title}"
             )
             (eventbox
               :visible "${p.canQuit}"

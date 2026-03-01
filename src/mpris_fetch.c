@@ -264,7 +264,8 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
         binary_name = "chromium";
         match_player(pulse, binary_name, &matched_player);
     } else if (g_ascii_strcasecmp(binary_name, "librewolf") == 0 ||
-                 g_ascii_strcasecmp(binary_name, "zen-bin") == 0) {
+                 g_ascii_strcasecmp(binary_name, "zen-bin") == 0 ||
+                 g_ascii_strcasecmp(binary_name, "mullvadbrowser.real") == 0) {
         binary_name = "firefox";
         match_player(pulse, binary_name, &matched_player);
     } else if (g_ascii_strcasecmp(binary_name, "msedge") == 0) {

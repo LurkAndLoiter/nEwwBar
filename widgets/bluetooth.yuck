@@ -137,9 +137,13 @@
       ; picks up devices in the first few seconds of a scan.
       ; for this reason it may be more advisable to add sleep and recalls
       ; instead of simply increasing the scan duration.
-      :onclick `bluetoothctl discoverable-timeout 15 &&
-                bluetoothctl discoverable on &&
-                bluetoothctl --timeout 10 -- scan on &`
+      :onclick `if pgrep -x bluetoothctl >/dev/null;
+                  then pkill -x bluetoothctl >/dev/null 2>&1;
+                else 
+                  bluetoothctl discoverable-timeout 60 &&
+                  bluetoothctl discoverable on &&
+                  bluetoothctl --timeout 60 -- scan on &
+                fi;`
       (image
         :image-height 42
         :path "assets/icons/wifi/${adapter.Discovering ? 'scan-large' : 'scan-off'}.gif"

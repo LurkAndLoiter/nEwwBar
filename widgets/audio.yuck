@@ -527,7 +527,7 @@
           :reveal "${playerVolumeIsHovered && playerIsHovered}"
           :duration "1000ms"
           (scale
-            :class "low-vis marginright marginleft margintop"
+            :class "low-vis marginright"
             :width 150
             :value playerVolume
             :onchange `pactl set-sink-input-volume ${pulseAudioID} {}%`

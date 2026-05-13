@@ -66,7 +66,7 @@
             :width 75
             :height 75
             :tooltip "${app.Name}: ${app.Tooltip}"
-            :onclick "${app.Exec} &"
+            :onclick `eww close "leftPanel" && ${app.Exec} &`
             (image
               :halign "center"
               :valign "center"

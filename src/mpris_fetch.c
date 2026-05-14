@@ -223,6 +223,33 @@ static gboolean match_player(PulseData *pulse, const char *name, PlayerData **ou
   return FALSE;
 }
 
+static gboolean buildInstance(PulseData *pulse, const char *app_id, const char *name, PlayerData **out_player)
+{
+  if (!name || !out_player || !app_id) return FALSE;
+  *out_player = NULL;
+
+  char path[32]; sprintf(path, "/proc/%s/stat", app_id);
+  FILE *f = fopen(path, "r");
+  pid_t ppid = -1;
+  if (f) { fscanf(f, "%*d (%*[^)]) %*c %d", &ppid); fclose(f); }
+
+  char *instance_str = g_strdup_printf("%s.instance%d", name, ppid);
+  DEBUG_MSG("Matching Against Instace: %s\n\n", instance_str);
+
+  for (GList *iter = *pulse->players; iter; iter = iter->next) {
+    PlayerData *player = iter->data;
+    if (player && player->instance && g_ascii_strcasecmp(instance_str, player->instance) == 0) {
+      *out_player = player;
+      g_free(instance_str);
+      instance_str = NULL;
+      return TRUE;
+    }
+  }
+  g_free(instance_str);
+  instance_str = NULL;
+  return FALSE;
+}
+
 /* PulseAudio sink input info callback */
 static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
                                int eol, void *userdata) {
@@ -238,6 +265,7 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
 
   const char *binary_name = pa_proplist_gets(i->proplist, "application.process.binary");
   const char *fallback_name = pa_proplist_gets(i->proplist, "application.name");
+  const char *app_id = pa_proplist_gets(i->proplist, "application.process.id");
 
   if (!binary_name) {
     if (!fallback_name) {
@@ -249,13 +277,18 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
     }
   }
 
-  DEBUG_MSG("Sink input: index=%u, binary_name=%s, fallback_name=%s",
-            i->index, safe_str(binary_name), safe_str(fallback_name));
+  DEBUG_MSG("Sink input: index=%u, binary_name=%s, fallback_name=%s, application_ID=%s",
+            i->index, safe_str(binary_name), safe_str(fallback_name), safe_str(app_id));
 
   /* Find matching player */
   PlayerData *matched_player = NULL;
 
-  match_player(pulse, binary_name, &matched_player);
+  if (app_id) {
+      buildInstance(pulse, app_id, binary_name, &matched_player);
+  } else {
+      match_player(pulse, binary_name, &matched_player);
+  }
+
 
   /* Browser remap table */
   if (!matched_player) {
@@ -795,7 +828,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
   PlayerData *existing = NULL;
   for (GList *iter = *pulse->players; iter; iter = iter->next) {
     PlayerData *d = iter->data;
-    if (g_ascii_strcasecmp(d->name, name->name) == 0) {
+    if (g_ascii_strcasecmp(d->instance, name->instance) == 0) {
       existing = d;
       break;
     }

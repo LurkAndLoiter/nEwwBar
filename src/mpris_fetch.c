@@ -265,13 +265,18 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
 
   const char *binary_name = pa_proplist_gets(i->proplist, "application.process.binary");
   const char *fallback_name = pa_proplist_gets(i->proplist, "application.name");
+  const char *spotify_patch = pa_proplist_gets(i->proplist, "media.name");
   const char *app_id = pa_proplist_gets(i->proplist, "application.process.id");
 
   if (!binary_name) {
     if (!fallback_name) {
-      DEBUG_MSG("Skipping sink input with no binary_name or fallback_name: index=%u",
-              i->index);
-      return;
+        if (g_ascii_strcasecmp(spotify_patch, "audio_src")) {
+            binary_name = "spotify";
+        } else {
+            DEBUG_MSG("Skipping sink input with no binary_name or fallback_name: index=%u",
+                    i->index);
+            return;
+        }
     } else {
       binary_name = fallback_name;
     }

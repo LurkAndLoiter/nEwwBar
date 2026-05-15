@@ -305,7 +305,9 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
 
   if (app_id) {
       buildInstance(pulse, app_id, binary_name, &matched_player);
-  } else {
+  }
+
+  if (!matched_player) {
       match_player(pulse, binary_name, &matched_player);
   }
 

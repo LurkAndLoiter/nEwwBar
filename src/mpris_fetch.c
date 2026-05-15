@@ -288,28 +288,25 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   /* Find matching player */
   PlayerData *matched_player = NULL;
 
+  /* Browser remap table */
+  if (g_ascii_strcasecmp(binary_name, "chrome") == 0 ||
+      g_ascii_strcasecmp(binary_name, "opera") == 0) {
+      binary_name = "chromium";
+      match_player(pulse, binary_name, &matched_player);
+  } else if (g_ascii_strcasecmp(binary_name, "librewolf") == 0 ||
+               g_ascii_strcasecmp(binary_name, "zen-bin") == 0 ||
+               g_ascii_strcasecmp(binary_name, "mullvadbrowser.real") == 0) {
+      binary_name = "firefox";
+      match_player(pulse, binary_name, &matched_player);
+  } else if (g_ascii_strcasecmp(binary_name, "msedge") == 0) {
+      binary_name = "edge";
+      match_player(pulse, binary_name, &matched_player);
+  }
+
   if (app_id) {
       buildInstance(pulse, app_id, binary_name, &matched_player);
   } else {
       match_player(pulse, binary_name, &matched_player);
-  }
-
-
-  /* Browser remap table */
-  if (!matched_player) {
-    if (g_ascii_strcasecmp(binary_name, "chrome") == 0 ||
-        g_ascii_strcasecmp(binary_name, "opera") == 0) {
-        binary_name = "chromium";
-        match_player(pulse, binary_name, &matched_player);
-    } else if (g_ascii_strcasecmp(binary_name, "librewolf") == 0 ||
-                 g_ascii_strcasecmp(binary_name, "zen-bin") == 0 ||
-                 g_ascii_strcasecmp(binary_name, "mullvadbrowser.real") == 0) {
-        binary_name = "firefox";
-        match_player(pulse, binary_name, &matched_player);
-    } else if (g_ascii_strcasecmp(binary_name, "msedge") == 0) {
-        binary_name = "edge";
-        match_player(pulse, binary_name, &matched_player);
-    }
   }
 
   if (!matched_player) {

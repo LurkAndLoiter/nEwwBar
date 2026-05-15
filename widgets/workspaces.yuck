@@ -58,7 +58,7 @@
       (eventbox
         :visible "${w.WorkspaceID <= 6}"
         :tooltip "${w.WorkspaceID}"
-        :onclick `hyprctl dispatch workspace ${w.WorkspaceID}`
+        :onclick `hyprctl dispatch 'hl.dsp.focus({ workspace = ${w.WorkspaceID} })'`
         (literal
           :valign "center"
           :class "paddingleft paddingright"

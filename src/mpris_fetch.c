@@ -208,46 +208,49 @@ void to_hms(int64_t s, int64_t position, char *hms, size_t hms_size) {
   }
 }
 
-static gboolean match_player(PulseData *pulse, const char *name, PlayerData **out_player)
+static void match_player(PulseData *pulse, const char *key, PlayerData **out_player)
 {
-  if (!name || !out_player) return FALSE;
+  if (!key || !out_player) return;
   *out_player = NULL;
 
   for (GList *iter = *pulse->players; iter; iter = iter->next) {
     PlayerData *player = iter->data;
-    if (player && player->name && g_ascii_strcasecmp(name, player->name) == 0) {
+    if ((player && player->name && g_ascii_strcasecmp(key, player->name) == 0) ||
+        (player && player->instance && g_ascii_strcasecmp(key, player->instance) == 0)) {
       *out_player = player;
-      return TRUE;
+      DEBUG_MSG("Matched player '%s'", key);
+      return;
     }
   }
-  return FALSE;
+  DEBUG_MSG("Failed to match '%s' with any player.", key);
+  return;
 }
 
-static gboolean buildInstance(PulseData *pulse, const char *app_id, const char *name, PlayerData **out_player)
+static void buildInstance(PulseData *pulse, const char *pid, const char *name, PlayerData **out_player)
 {
-  if (!name || !out_player || !app_id) return FALSE;
-  *out_player = NULL;
+  if (!name || !out_player || !pid) return;
 
-  char path[32]; sprintf(path, "/proc/%s/stat", app_id);
-  FILE *f = fopen(path, "r");
-  pid_t ppid = -1;
-  if (f) { fscanf(f, "%*d (%*[^)]) %*c %d", &ppid); fclose(f); }
+  char *key = g_strdup_printf("%s.instance%s", name, pid);
+  DEBUG_MSG("Attempting player match for pid: %s", key);
+  match_player(pulse, key, out_player);
 
-  char *instance_str = g_strdup_printf("%s.instance%d", name, ppid);
-  DEBUG_MSG("Matching Against Instace: %s\n\n", instance_str);
+  if (!*out_player) {
+    char path[32]; sprintf(path, "/proc/%s/stat", pid);
+    FILE *f = fopen(path, "r");
+    pid_t ppid = -1;
+    if (f) { fscanf(f, "%*d (%*[^)]) %*c %d", &ppid); fclose(f); }
 
-  for (GList *iter = *pulse->players; iter; iter = iter->next) {
-    PlayerData *player = iter->data;
-    if (player && player->instance && g_ascii_strcasecmp(instance_str, player->instance) == 0) {
-      *out_player = player;
-      g_free(instance_str);
-      instance_str = NULL;
-      return TRUE;
-    }
+    key = g_strdup_printf("%s.instance%d", name, ppid);
+    DEBUG_MSG("Attempting player match for ppid: %s", key);
+    match_player(pulse, key, out_player);
   }
-  g_free(instance_str);
-  instance_str = NULL;
-  return FALSE;
+
+  if (key) {
+    g_free(key);
+    key = NULL;
+  }
+
+  return;
 }
 
 /* PulseAudio sink input info callback */
@@ -266,7 +269,7 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   const char *binary_name = pa_proplist_gets(i->proplist, "application.process.binary");
   const char *fallback_name = pa_proplist_gets(i->proplist, "application.name");
   const char *spotify_patch = pa_proplist_gets(i->proplist, "media.name");
-  const char *app_id = pa_proplist_gets(i->proplist, "application.process.id");
+  const char *pid = pa_proplist_gets(i->proplist, "application.process.id");
 
   if (!binary_name) {
     if (!fallback_name) {
@@ -283,7 +286,7 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   }
 
   DEBUG_MSG("Sink input: index=%u, binary_name=%s, fallback_name=%s, application_ID=%s",
-            i->index, safe_str(binary_name), safe_str(fallback_name), safe_str(app_id));
+            i->index, safe_str(binary_name), safe_str(fallback_name), safe_str(pid));
 
   /* Find matching player */
   PlayerData *matched_player = NULL;
@@ -292,27 +295,26 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   if (g_ascii_strcasecmp(binary_name, "chrome") == 0 ||
       g_ascii_strcasecmp(binary_name, "opera") == 0) {
       binary_name = "chromium";
-      match_player(pulse, binary_name, &matched_player);
   } else if (g_ascii_strcasecmp(binary_name, "librewolf") == 0 ||
-               g_ascii_strcasecmp(binary_name, "zen-bin") == 0 ||
-               g_ascii_strcasecmp(binary_name, "mullvadbrowser.real") == 0) {
+             g_ascii_strcasecmp(binary_name, "zen-bin") == 0 ||
+             g_ascii_strcasecmp(binary_name, "mullvadbrowser.real") == 0) {
       binary_name = "firefox";
-      match_player(pulse, binary_name, &matched_player);
   } else if (g_ascii_strcasecmp(binary_name, "msedge") == 0) {
       binary_name = "edge";
-      match_player(pulse, binary_name, &matched_player);
   }
 
-  if (app_id) {
-      buildInstance(pulse, app_id, binary_name, &matched_player);
+  if (pid) {
+      buildInstance(pulse, pid, binary_name, &matched_player);
   }
 
   if (!matched_player) {
+      DEBUG_MSG("Attempting player match for name: %s", binary_name);
       match_player(pulse, binary_name, &matched_player);
   }
 
   if (!matched_player) {
     /* Create default PlayerData for unrecognized sink input */
+    DEBUG_MSG("Non-Player Pulseaudio Sink: %d", i->index);
     PlayerData *default_player = g_new0(PlayerData, 1);
     default_player->name = g_strdup(binary_name ? binary_name : "Unknown");
     default_player->display_name = g_strdup(fallback_name);

@@ -151,7 +151,7 @@ static gboolean on_art_file_created(GIOChannel *source, GIOCondition condition, 
     if (len > 0) {
         struct inotify_event *event = (struct inotify_event *)buf;
         if (event->len > 0 && watch_data->player_data->art_url) {
-            const char *filename = g_path_get_basename(watch_data->player_data->art_url);
+            char *filename = g_path_get_basename(watch_data->player_data->art_url);
             if (g_strcmp0(event->name, filename) == 0) {
                 DEBUG_MSG("INFO:  Player %s: artUrl file %s created via inotify", 
                           safe_str(watch_data->player_data->name), watch_data->player_data->art_url);
@@ -159,7 +159,7 @@ static gboolean on_art_file_created(GIOChannel *source, GIOCondition condition, 
                 if (watch_data->player_data)
                     watch_data->player_data->art_url_watch_id = 0;
             }
-            g_free((gchar*)filename);
+            g_free(filename);
         }
     }
 
@@ -261,16 +261,13 @@ static void buildInstance(PulseData *pulse, const char *pid, const char *name, P
     pid_t ppid = -1;
     if (f) { fscanf(f, "%*d (%*[^)]) %*c %d", &ppid); fclose(f); }
 
+    if (key) { g_free(key); }
     key = g_strdup_printf("%s.instance%d", name, ppid);
     DEBUG_MSG("INFO:  Attempting player match for ppid: %s", key);
     match_player(pulse, key, out_player);
   }
 
-  if (key) {
-    g_free(key);
-    key = NULL;
-  }
-
+  if (key) { g_free(key); key = NULL; }
   return;
 }
 
@@ -783,6 +780,7 @@ static int check_property_exists(const char *instance, const char *property) {
     snprintf(dest, sizeof(dest), "org.mpris.MediaPlayer2.%s", instance);
 
     DBusConnection *conn = dbus_bus_get(DBUS_BUS_SESSION, NULL);
+    int result = EXIT_FAILURE;
     DBusMessage *msg = dbus_message_new_method_call(
         dest, "/org/mpris/MediaPlayer2",
         "org.freedesktop.DBus.Properties", "Get");
@@ -793,13 +791,12 @@ static int check_property_exists(const char *instance, const char *property) {
     DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg, -1, NULL);
     dbus_message_unref(msg);
 
-    if (!reply) {
-        dbus_connection_unref(conn);
-        return EXIT_FAILURE;
+    if (reply) {
+        result = EXIT_SUCCESS;
+        dbus_message_unref(reply);
     }
-    dbus_message_unref(reply);
     dbus_connection_unref(conn);
-    return EXIT_SUCCESS;
+    return result;
 }
 
 dbus_bool_t get_can_quit(const char *interface) {

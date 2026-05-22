@@ -247,7 +247,7 @@ tooltip {
     &.active {
       background-image: linear-gradient(0deg, $Mauve 5%, transparent 15%);
 
-      &:hover {
+      &:hover:not(.NoRemove) {
         background-image: linear-gradient(0deg, $Red 5%, transparent 15%);
       }
     }
@@ -280,7 +280,7 @@ button {
     color: rgba($Red, 1);
     background-image: linear-gradient(0deg, $Mauve 3%, transparent 15%);
 
-    &:hover {
+    &:hover:not(.NoRemove) {
       color: $Text;
       background-image: linear-gradient(0deg, $Red 3%, transparent 15%);
     }
@@ -289,7 +289,7 @@ button {
   &.inactive {
     color: $Text;
 
-    &:hover {
+    &:hover:not(.NoRemove) {
       color: $Red;
       background-image: linear-gradient(0deg, $Green 3%, transparent 15%);
     }

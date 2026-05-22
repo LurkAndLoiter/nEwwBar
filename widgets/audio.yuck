@@ -169,7 +169,7 @@
       (box
         :hexpand true
         :space-evenly false
-        (button :class "${s.isDefault ? "active" : "inactive"}"
+        (button :class "${s.isDefault ? "active" : "inactive"} NoRemove"
           :onclick `pactl set-default-sink ${s.name}`
           :tooltip "${s.description}"
           :width 75

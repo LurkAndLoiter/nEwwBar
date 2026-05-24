@@ -189,7 +189,10 @@
                   bluetoothctl --timeout 5 -- connect ${device.id} &&
                   bluetoothctl untrust ${device.id} &&
                   eww update btConnecting="" &' :
-                'bin/bluetooth_connect ${device.id} &'
+                ; set to 50% volume because my poor ears and bluetooth pipewire vs bluez5 hw-volume is a disaster
+                'bin/bluetooth_connect ${device.id} &&
+                  sleep 2 &&
+                  wpctl set-volume @DEFAULT_SINK@ 0.5 &'
               }'
             }`
             (box

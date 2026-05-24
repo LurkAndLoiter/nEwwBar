@@ -62,12 +62,6 @@ static const gchar *safe_str(const gchar *s) { return s ? s : ""; }
   } while (0)
 #endif
 
-/* Constants to make behavior easier to tweak */
-#define ART_POLL_INTERVAL_SEC 1
-#define ART_POLL_MAX_CHECKS 10
-#define CAN_CHECK_INTERVAL_SEC 1
-#define CAN_CHECK_MAX_ATTEMPTS 2
-
 /* Small helpers */
 static unsigned int pa_volume_to_percent(const pa_cvolume *v) {
   guint32 avg = pa_cvolume_avg(v);

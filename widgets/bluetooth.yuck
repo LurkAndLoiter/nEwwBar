@@ -190,8 +190,10 @@
                   bluetoothctl untrust ${device.id} &&
                   eww update btConnecting="" &' :
                 ; set to 50% volume because my poor ears and bluetooth pipewire vs bluez5 hw-volume is a disaster
-                'bin/bluetooth_connect ${device.id} &&
-                  sleep 2 &&
+                'eww update btConnecting="${device.id}" &&
+                  bin/bluetooth_connect ${device.id} &&
+                  eww update btConnecting="" &&
+                  sleep 1 &&
                   wpctl set-volume @DEFAULT_SINK@ 0.5 &'
               }'
             }`

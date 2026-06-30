@@ -64,6 +64,7 @@ typedef struct {
   gchar *instance;
   gint source;
   PlayerctlPlayer *player;
+  gboolean is_live;
   gint64 local_seconds;
   gint hours;
   gint minutes;
@@ -146,6 +147,7 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name, GList **players) {
   PlayerData *data = g_new0(PlayerData, 1);
   data->name = g_strdup(name->name);
   data->instance = g_strdup(name->instance);
+  data->is_live = FALSE;
   data->source = name->source;
   data->local_seconds = 0;
   data->playback_status = PLAYERCTL_PLAYBACK_STATUS_STOPPED;
@@ -279,7 +281,6 @@ static gboolean on_position_check(gpointer user_data) {
   GList **players = user_data;
   global_position_timeout_id = 0;
   gboolean any_changed = FALSE;
-
   for (GList *iter = *players; iter; iter = iter->next) {
     PlayerData *data = iter->data;
     if (!data->player || data->playback_status != PLAYERCTL_PLAYBACK_STATUS_PLAYING) {
@@ -287,36 +288,38 @@ static gboolean on_position_check(gpointer user_data) {
     }
 
     gint64 old_seconds = data->local_seconds;
-    data->local_seconds += 1;
-    data->seconds += 1;
-    if (data->seconds >= 60) {
-      data->seconds = 0;
-      data->minutes += 1;
-      if (data->minutes >= 60) {
-        data->minutes = 0;
-        data->hours += 1;
+    GError *error = NULL;
+    gint64 micros = playerctl_player_get_position(data->player, &error);
+    if (error) {
+      g_error_free(error);
+    } else {
+      gint64 curr_sec = (micros + 500000) / 1000000;
+      if (curr_sec == 0 && data->local_seconds == 0) {
+        data->is_live = TRUE;
+      } else if (curr_sec > 0) {
+        data->is_live = FALSE;
+        data->local_seconds = curr_sec;
       }
     }
 
-    data->update_counter = (data->update_counter + 1) % 60;
-    if (data->update_counter == 0) {
-      GError *error = NULL;
-      gint64 micros = playerctl_player_get_position(data->player, &error);
-      if (error) {
-        DEBUG_MSG("Failed to get position for %s: %s", data->name, error->message);
-        g_error_free(error);
-      } else {
-        /* Rounds to nearest second */
-        data->local_seconds = (micros + 500000) / 1000000;
-        update_time_components(data);
+    if (!data->is_live) {
+      data->local_seconds += 1;
+      data->seconds += 1;
+      if (data->seconds >= 60) {
+        data->seconds = 0;
+        data->minutes += 1;
+        if (data->minutes >= 60) {
+          data->minutes = 0;
+          data->hours += 1;
+        }
       }
     }
+    data->update_counter = (data->update_counter + 1) % 60;
 
     if (data->local_seconds != old_seconds) {
       any_changed = TRUE;
     }
   }
-
   if (any_changed) {
     print_player_list(*players);
   }

@@ -55,6 +55,7 @@
     {
       "instance": "firefox.instance0123",
       "name": "firefox",
+      "mediaName": "TitleofMedia",
       "canQuit": true,
       "canControl": false,
       "canGoNext": false,
@@ -234,7 +235,7 @@
           :wrap true
           :hexpand true
           :show-truncated false
-          :text "${p.name}"
+          :text "${p.mediaName}"
         )
         (nonPlayerVolume
           :playerVolume "${p.volume}"
@@ -484,7 +485,9 @@
       :visible "${arraylength(audioSinks) > 1 && sinkId != 0}"
       (for s in audioSinks
         (eventbox
-          :onclick `pactl move-sink-input ${pulseAudioID} ${s.name}`
+          ; :onclick `pactl move-sink-input ${pulseAudioID} ${s.name}`
+          ; Above is MPRIS sink; below moves any sink that belongs to the same pid(ie all firefox tabs)
+          :onclick `scripts/sinkByPid.sh move ${pulseAudioID} ${s.name}`
           :tooltip "${s.description}"
           (image
             :class "paddingright"
@@ -506,7 +509,9 @@
       (box
         :space-evenly false
         (eventbox
-          :onclick `pactl set-sink-input-mute ${pulseAudioID} toggle`
+          ; :onclick `pactl set-sink-input-mute ${pulseAudioID}`
+          ; Above is MPRIS sink; below moves any sink that belongs to the same pid(ie all firefox tabs)
+          :onclick `scripts/sinkByPid.sh mute ${pulseAudioID}`
           (box :space-evenly false :valign "center"
             (image
               :class "paddingleft paddingright"

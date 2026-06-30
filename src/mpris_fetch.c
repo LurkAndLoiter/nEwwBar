@@ -73,6 +73,8 @@ typedef struct {
   gchar *name;
   gchar *display_name;
   gchar *instance;
+  gchar *media_name;
+  pid_t busPID;
   gint source;
   PlayerctlPlayer *player;
   /* Cached MediaPlayer2 properties */
@@ -205,7 +207,7 @@ void to_hms(int64_t s, int64_t position, char *hms, size_t hms_size) {
    * This could be changed but would result unnecessary gtk redraws with no
    * visible UI changes.
    * */
-  if (s < 0 || (s > 0 && position >= s) || s == INT64_MAX) {
+  if (s < 0 || (s > 0 && position >= s) || s == INT64_MAX || (s == 0 && position == 0)) {
     snprintf(hms, hms_size, "live");
     return;
   }
@@ -241,28 +243,43 @@ static void match_player(PulseData *pulse, const char *key, PlayerData **out_pla
   return;
 }
 
-static void buildInstance(PulseData *pulse, const char *pid, const char *name, PlayerData **out_player)
+static PlayerData* find_player_by_pid(GList *players, pid_t target)
 {
-  if (!name || !out_player || !pid) return;
+  for (GList *iter = players; iter; iter = iter->next) {
+    PlayerData *p = iter->data;
+    if (p && p->busPID && target == p->busPID) {
+      return p;
+    }
+  }
+  return NULL;
+}
 
-  char *key = g_strdup_printf("%s.instance%s", name, pid);
-  DEBUG_MSG("INFO:  Attempting player match for pid: %s", key);
-  match_player(pulse, key, out_player);
+static void match_pid(PulseData *pulse, const pid_t pid, PlayerData **out_player)
+{
+  if (!pid || !out_player) return;
+  *out_player = NULL;
 
-  if (!*out_player) {
-    char path[32]; sprintf(path, "/proc/%s/stat", pid);
-    FILE *f = fopen(path, "r");
-    pid_t ppid = -1;
-    if (f) { fscanf(f, "%*d (%*[^)]) %*c %d", &ppid); fclose(f); }
-
-    if (key) { g_free(key); }
-    key = g_strdup_printf("%s.instance%d", name, ppid);
-    DEBUG_MSG("INFO:  Attempting player match for ppid: %s", key);
-    match_player(pulse, key, out_player);
+  *out_player = find_player_by_pid(*pulse->players, pid);
+  if (*out_player) {
+    DEBUG_MSG("INFO:  Matched player PID '%u'", pid);
+    return;
   }
 
-  if (key) { g_free(key); key = NULL; }
-  return;
+  /* chrome PPID check */
+  char path[32]; sprintf(path, "/proc/%d/stat", pid);
+  FILE *f = fopen(path, "r");
+  pid_t ppid = -1;
+  if (f) { fscanf(f, "%*d (%*[^)]) %*c %d", &ppid); fclose(f); }
+
+  if (ppid > 0) {
+    *out_player = find_player_by_pid(*pulse->players, ppid);
+    if (*out_player) {
+      DEBUG_MSG("INFO:  Matched player PPID '%u'", ppid);
+      return;
+    }
+  }
+
+  DEBUG_MSG("INFO:  Failed to match '%u' with any PID.", pid);
 }
 
 /* PulseAudio sink input info callback */
@@ -280,12 +297,12 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
 
   const char *binary_name = pa_proplist_gets(i->proplist, "application.process.binary");
   const char *fallback_name = pa_proplist_gets(i->proplist, "application.name");
-  const char *spotify_patch = pa_proplist_gets(i->proplist, "media.name");
-  const char *pid = pa_proplist_gets(i->proplist, "application.process.id");
+  const char *media_name = pa_proplist_gets(i->proplist, "media.name");
+  const pid_t pid = atoi(pa_proplist_gets(i->proplist, "application.process.id"));
 
   if (!binary_name) {
     if (!fallback_name) {
-        if (g_ascii_strcasecmp(spotify_patch, "audio_src")) {
+        if (g_ascii_strcasecmp(media_name, "audio_src")) {
             binary_name = "spotify";
         } else {
             DEBUG_MSG("INFO:  Skipping sink input with no binary_name or fallback_name: index=%u",
@@ -297,8 +314,8 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
     }
   }
 
-  DEBUG_MSG("INFO:  PulseAudio index %u sink info: binary_name=%s, fallback_name=%s, application_ID=%s",
-            i->index, safe_str(binary_name), safe_str(fallback_name), safe_str(pid));
+  DEBUG_MSG("INFO:  PulseAudio index %u sink info: binary_name=%s, fallback_name=%s, application_ID=%u",
+            i->index, safe_str(binary_name), safe_str(fallback_name), pid);
 
   /* Find matching player */
   PlayerData *matched_player = NULL;
@@ -316,7 +333,8 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   }
 
   if (pid) {
-      buildInstance(pulse, pid, binary_name, &matched_player);
+      DEBUG_MSG("INFO:  Attempting player match for PID: %u", pid);
+      match_pid(pulse, pid, &matched_player);
   }
 
   if (!matched_player) {
@@ -330,6 +348,7 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
     PlayerData *default_player = g_new0(PlayerData, 1);
     default_player->name = g_strdup(binary_name ? binary_name : "Unknown");
     default_player->display_name = g_strdup(fallback_name);
+    default_player->media_name = g_strdup(media_name);
     default_player->index = i->index;
     default_player->sink = i->sink;
     default_player->volume = pa_volume_to_percent(&i->volume);
@@ -339,7 +358,9 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   } else {
     /* Update existing player with sink input info */
     g_free(matched_player->display_name);
+    g_free(matched_player->media_name);
     matched_player->display_name = g_strdup(fallback_name);
+    matched_player->media_name = g_strdup(media_name);
     matched_player->index = i->index;
     matched_player->sink = i->sink;
     matched_player->volume = pa_volume_to_percent(&i->volume);
@@ -597,6 +618,9 @@ static void print_player_list(GList *players, gboolean force_output) {
     json_builder_set_member_name(builder, "name");
     json_builder_add_string_value(builder, data->display_name ? data->display_name : data->name);
 
+    json_builder_set_member_name(builder, "mediaName");
+    json_builder_add_string_value(builder, data->media_name ? data->media_name : data->name);
+
     json_builder_set_member_name(builder, "canQuit");
     json_builder_add_boolean_value(builder, data->can_quit);
 
@@ -823,6 +847,49 @@ dbus_bool_t get_can_quit(const char *interface) {
     return value;
 }
 
+static pid_t get_pid_for_bus_name(const char *interface)
+{
+    GError *error = NULL;
+    GDBusConnection *conn = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
+    if (!conn) {
+        g_printerr("Failed to connect to session bus: %s\n",
+                   error ? error->message : "unknown");
+        g_clear_error(&error);
+        return -1;
+    }
+
+    char dest[256];
+    snprintf(dest, sizeof(dest), "org.mpris.MediaPlayer2.%s", interface);
+
+    GVariant *res = g_dbus_connection_call_sync(
+        conn,
+        "org.freedesktop.DBus",
+        "/org/freedesktop/DBus",
+        "org.freedesktop.DBus",
+        "GetConnectionUnixProcessID",
+        g_variant_new("(s)", dest),
+        G_VARIANT_TYPE("(u)"),
+        G_DBUS_CALL_FLAGS_NONE,
+        -1,
+        NULL,
+        &error);
+
+    if (!res) {
+        g_printerr("GetConnectionUnixProcessID failed: %s\n",
+                   error ? error->message : "unknown");
+        g_clear_error(&error);
+        g_object_unref(conn);
+        return -1;
+    }
+
+    guint pid_u = 0;
+    g_variant_get(res, "(u)", &pid_u);
+    g_variant_unref(res);
+    g_object_unref(conn);
+
+    return (pid_t)pid_u;
+}
+
 /* Helper function to create PlayerData from PlayerctlPlayerName */
 static PlayerData *player_data_new(PlayerctlPlayerName *name,
                                    PulseData *pulse, gboolean *is_new) {
@@ -846,12 +913,15 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
     data->instance = g_strdup(name->instance ? name->instance : "");
     data->can_quit = get_can_quit(data->instance);
     data->source = name->source;
+    data->busPID = get_pid_for_bus_name(data->instance);
   } else {
     data = g_new0(PlayerData, 1);
     data->name = g_strdup(name->name ? name->name : "Unknown");
     data->instance = g_strdup(name->instance ? name->instance : "");
     data->can_quit = get_can_quit(data->instance);
     data->source = name->source;
+    data->busPID = get_pid_for_bus_name(data->instance);
+    DEBUG_MSG("INFO:  New PlayerData with BusPID: %u", data->busPID);
   }
   GError *error = NULL;
   data->player = playerctl_player_new_from_name(name, &error);
@@ -900,6 +970,7 @@ static void player_data_free(gpointer data) {
   }
   g_free(player_data->name);
   g_free(player_data->display_name);
+  g_free(player_data->media_name);
   g_free(player_data->instance);
   g_free(player_data->title);
   g_free(player_data->album);

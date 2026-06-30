@@ -206,8 +206,9 @@ void to_hms(int64_t s, int64_t position, char *hms, size_t hms_size) {
    * event meaning the position will increment but duration will be static.
    * This could be changed but would result unnecessary gtk redraws with no
    * visible UI changes.
+   * 50390 is an abitrary length youtube uses for many live broadcasts 
    * */
-  if (s < 0 || (s > 0 && position >= s) || s == INT64_MAX || (s == 0 && position == 0)) {
+  if (s <= 0 || (s > 0 && position >= s) || s == INT64_MAX || s == 50390) {
     snprintf(hms, hms_size, "live");
     return;
   }

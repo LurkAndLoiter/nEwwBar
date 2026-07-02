@@ -299,7 +299,13 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   const char *binary_name = pa_proplist_gets(i->proplist, "application.process.binary");
   const char *fallback_name = pa_proplist_gets(i->proplist, "application.name");
   const char *media_name = pa_proplist_gets(i->proplist, "media.name");
-  const pid_t pid = atoi(pa_proplist_gets(i->proplist, "application.process.id"));
+  pid_t pid = 0;
+  const char *str = pa_proplist_gets(i->proplist, "application.process.id");
+  if (str) {
+      char *end;
+      long val = strtol(str, &end, 10);
+      pid = (pid_t)(*end == '\0' && val > 0 ? val : 0);
+  }
 
   if (!binary_name) {
     if (!fallback_name) {
@@ -311,7 +317,9 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
             return;
         }
     } else {
+      DEBUG_MSG("INFO:  No binary name Attempting fallback.");
       binary_name = fallback_name;
+      DEBUG_MSG("INFO:  fallback success: %s", safe_str(binary_name));
     }
   }
 

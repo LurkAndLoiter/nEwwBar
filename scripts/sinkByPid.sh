@@ -13,6 +13,10 @@ INDICES=$(echo "$JSON" | jq -r --arg pid "$PID" '
   .[] | select(.pid == $pid) | .index
 ')
 
+if [ -z $INDICES ]; then
+  INDICES=$IDX
+fi
+
 case "$CALL" in
   mute)
     MUTE=$(echo "$JSON" | jq -r --arg idx "$IDX" '

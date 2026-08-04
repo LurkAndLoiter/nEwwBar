@@ -175,9 +175,9 @@ int main(void) {
       break;
     }
     buffer[bytes] = '\0';
-    if (strncmp(buffer, "closewindow>", 12) == 0 ||
-        strncmp(buffer, "openwindow>", 11) == 0 ||
-        strncmp(buffer, "movewindow>", 11) == 0) {
+    if (strncmp(buffer, "closewindow>>", 13) == 0 ||
+        strncmp(buffer, "openwindow>>", 12) == 0 ||
+        strncmp(buffer, "movewindow>>", 12) == 0) {
       DEBUG_MSG("CAUGHT:windows %s\n", buffer);
       update_workspaces();
     }

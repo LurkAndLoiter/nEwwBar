@@ -62,7 +62,7 @@
 
 static void initialRun(void) {
   FILE *fp = popen(
-      "hyprctl monitors -j | jq '.[] | select(.focused == true) | .id'", "r");
+      "hyprctl monitors -j | jq '.[] | select(.focused == true ) | .activeWorkspace.id'", "r");
   if (!fp) {
     DEBUG_MSG("popen failed");
     return;

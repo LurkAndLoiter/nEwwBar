@@ -46,7 +46,7 @@
     :onhover `eww update hover_state="powerPanel"`
     :onrightclick `eww update powerPanel=${!(powerPanel)}`
     (eventbox
-      :onclick `shutdown -P now &`
+      :onclick `hyprshutdown -t 'Shutting down...' --post-cmd 'shutdown -P now' &`
       :tooltip "Shutdown"
       (image
         :image-height 24
@@ -80,7 +80,7 @@
         :spacing 10
         :class {(hover_state == "powerPanel" || powerPanel) ? "base-box" : "hide-box"}
         (eventbox
-          :onclick `shutdown -r now &`
+          :onclick `hyprshutdown -t 'Rebooting...' --post-cmd 'shutdown -r now' &`
           :tooltip "Reboot"
           (image
             :path "assets/reboot.svg"
@@ -88,7 +88,7 @@
           )
         )
         (eventbox
-          :onclick `eww close-all && hyprctl dispatch exit 1 &`
+          :onclick `eww close-all && hyprshutdown -t 'Logging Out...' &`
           :tooltip "Logout"
           (image
             :path "assets/logout.svg"
@@ -104,7 +104,7 @@
           )
         )
         (eventbox
-          :onclick `eww close-all && hyprctl dispatch exit 1 &`
+          :onclick `eww close-all && hyprshutdown -t 'Exiting Hyprland...' &`
           :tooltip "Exit Hyprland"
           (image
             :path "assets/exitDisplay.svg"

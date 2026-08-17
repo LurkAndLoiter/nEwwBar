@@ -44,6 +44,11 @@
 #include <playerctl/playerctl.h>
 #include <pulse/glib-mainloop.h>
 #include <pulse/pulseaudio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <errno.h>
+#include <limits.h>
+#include <sys/stat.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -129,8 +134,9 @@ static void print_player_list(GList *players, gboolean force_output);
 static void update_metadata(PlayerData *data, PulseData *pulse);
 
 void cleanup_art_url_watch(PlayerData *data) {
-  if (!data || data->art_url_watch_id == 0)
+  if (!data || data->art_url_watch_id == 0) {
     return;
+  }
 
   DEBUG_MSG("INFO:  Art Url watch cleanup: %s", data->instance);
   g_source_remove(data->art_url_watch_id);
@@ -141,26 +147,42 @@ static gboolean on_art_file_created(GIOChannel *source, GIOCondition condition,
                                     gpointer user_data) {
   (void)condition;
   ArtUrlWatchData *watch_data = user_data;
-  if (!watch_data)
+  if (!watch_data) {
     return G_SOURCE_REMOVE;
+  }
 
   char buf[4096];
   ssize_t len = read(g_io_channel_unix_get_fd(source), buf, sizeof(buf));
 
-  if (len > 0) {
-    struct inotify_event *event = (struct inotify_event *)buf;
-    if (event->len > 0 && watch_data->player_data->art_url) {
+  if (len <= 0) {
+    g_free(watch_data);
+    return G_SOURCE_REMOVE;
+  }
+
+  char *ptr = buf;
+  char *end = buf + len;
+  while (ptr + (ssize_t)sizeof(struct inotify_event) <= end) {
+    struct inotify_event *event = (struct inotify_event *)ptr;
+    if ((char *)event + sizeof(struct inotify_event) + event->len > end) {
+      break;
+    }
+
+    if ((event->mask & IN_CLOSE_WRITE) && event->len > 0 &&
+        watch_data->player_data->art_url) {
       char *filename = g_path_get_basename(watch_data->player_data->art_url);
       if (g_strcmp0(event->name, filename) == 0) {
         DEBUG_MSG("INFO:  Player %s: artUrl file %s created via inotify",
                   safe_str(watch_data->player_data->name),
                   watch_data->player_data->art_url);
         print_player_list(*watch_data->pulse->players, TRUE);
-        if (watch_data->player_data)
+        if (watch_data->player_data) {
           watch_data->player_data->art_url_watch_id = 0;
+        }
       }
       g_free(filename);
     }
+
+    ptr += sizeof(struct inotify_event) + event->len;
   }
 
   g_free(watch_data);
@@ -168,8 +190,9 @@ static gboolean on_art_file_created(GIOChannel *source, GIOCondition condition,
 }
 
 void setup_art_url_inotify(PlayerData *data, PulseData *pulse) {
-  if (!data || !data->art_url)
+  if (!data || !data->art_url) {
     return;
+  }
 
   cleanup_art_url_watch(data);
 
@@ -179,9 +202,15 @@ void setup_art_url_inotify(PlayerData *data, PulseData *pulse) {
     return;
   }
 
+  const gchar *runtime = g_get_user_runtime_dir();
+  if (!runtime || *runtime == '\0') {
+    runtime = "/run/user/1000";
+  }
+  gchar *watch_dir = g_build_filename(runtime, "album_art_cache", NULL);
   int wd_watch =
-      inotify_add_watch(inotify_fd, "/run/user/1000/album_art_cache/",
-                        IN_CLOSE_WRITE | IN_ONESHOT);
+      inotify_add_watch(inotify_fd, watch_dir, IN_CLOSE_WRITE | IN_ONESHOT);
+  g_free(watch_dir);
+
   if (wd_watch < 0) {
     DEBUG_MSG("ERROR: inotify add dirextory watch failed");
     close(inotify_fd);
@@ -216,12 +245,12 @@ void to_hms(int64_t s, int64_t position, char *hms, size_t hms_size) {
    * visible UI changes.
    * 50390 is an abitrary length youtube uses for many live broadcasts
    * */
-  if (s <= 0 || (s > 0 && position >= s) || s == INT64_MAX || s == 50390) {
-    snprintf(hms, hms_size, "live");
-    return;
-  }
   if (s == 0) {
     snprintf(hms, hms_size, "0:00");
+    return;
+  }
+  if (s < 0 || (s > 0 && position >= s) || s == INT64_MAX || s == 50390) {
+    snprintf(hms, hms_size, "live");
     return;
   }
   long hours = s / 3600;
@@ -236,8 +265,9 @@ void to_hms(int64_t s, int64_t position, char *hms, size_t hms_size) {
 
 static void match_player(PulseData *pulse, const char *key,
                          PlayerData **out_player) {
-  if (!key || !out_player)
+  if (!key || !out_player) {
     return;
+  }
   *out_player = NULL;
 
   for (GList *iter = *pulse->players; iter; iter = iter->next) {
@@ -267,8 +297,9 @@ static PlayerData *find_player_by_pid(GList *players, pid_t target) {
 
 static void match_pid(PulseData *pulse, const pid_t pid,
                       PlayerData **out_player) {
-  if (!pid || !out_player)
+  if (!pid || !out_player) {
     return;
+  }
   *out_player = NULL;
 
   *out_player = find_player_by_pid(*pulse->players, pid);
@@ -278,8 +309,8 @@ static void match_pid(PulseData *pulse, const pid_t pid,
   }
 
   /* chrome PPID check */
-  char path[32];
-  sprintf(path, "/proc/%d/stat", pid);
+  char path[64];
+  snprintf(path, sizeof(path), "/proc/%d/stat", pid);
   FILE *f = fopen(path, "r");
   pid_t ppid = -1;
   if (f) {
@@ -400,8 +431,9 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
 }
 
 static void remove_sink_input(PlayerData *player, PulseData *pulse) {
-  if (!player)
+  if (!player) {
     return;
+  }
 
   if (!player->instance) {
     GList *link = g_list_find(*pulse->players, player);
@@ -430,12 +462,14 @@ static void subscribe_cb(pa_context *c, pa_subscription_event_type_t t,
       t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
   pa_subscription_event_type_t type = t & PA_SUBSCRIPTION_EVENT_TYPE_MASK;
 
-  if (facility != PA_SUBSCRIPTION_EVENT_SINK_INPUT)
+  if (facility != PA_SUBSCRIPTION_EVENT_SINK_INPUT) {
     return;
+  }
   if (type != PA_SUBSCRIPTION_EVENT_NEW &&
       type != PA_SUBSCRIPTION_EVENT_CHANGE &&
-      type != PA_SUBSCRIPTION_EVENT_REMOVE)
+      type != PA_SUBSCRIPTION_EVENT_REMOVE) {
     return;
+  }
 
   if (type == PA_SUBSCRIPTION_EVENT_REMOVE) {
     for (GList *l = *pulse->players; l; l = l->next) {
@@ -452,8 +486,9 @@ static void subscribe_cb(pa_context *c, pa_subscription_event_type_t t,
 
   pa_operation *op =
       pa_context_get_sink_input_info(c, idx, sink_input_info_cb, pulse);
-  if (op)
+  if (op) {
     pa_operation_unref(op);
+  }
 }
 
 /* PulseAudio context state callback */
@@ -501,44 +536,49 @@ static void context_state_cb(pa_context *c, void *userdata) {
 }
 
 static gsize find_image_offset(const guchar *data, gsize len) {
-  if (len < 8)
+  if (len < 8) {
     return 0;
+  }
 
   /* PNG */
   for (gsize i = 0; i + 8 <= len; i++) {
     if (data[i] == 0x89 && data[i + 1] == 'P' && data[i + 2] == 'N' &&
         data[i + 3] == 'G' && data[i + 4] == 0x0D && data[i + 5] == 0x0A &&
-        data[i + 6] == 0x1A && data[i + 7] == 0x0A)
+        data[i + 6] == 0x1A && data[i + 7] == 0x0A) {
       return i;
+    }
   }
 
   /* JPEG */
   for (gsize i = 0; i + 3 <= len; i++) {
-    if (data[i] == 0xFF && data[i + 1] == 0xD8 && data[i + 2] == 0xFF)
+    if (data[i] == 0xFF && data[i + 1] == 0xD8 && data[i + 2] == 0xFF) {
       return i;
+    }
   }
 
   /* WebP (RIFF....WEBP) */
   for (gsize i = 0; i + 12 <= len; i++) {
     if (data[i] == 'R' && data[i + 1] == 'I' && data[i + 2] == 'F' &&
         data[i + 3] == 'F' && data[i + 8] == 'W' && data[i + 9] == 'E' &&
-        data[i + 10] == 'B' && data[i + 11] == 'P')
+        data[i + 10] == 'B' && data[i + 11] == 'P') {
       return i;
+    }
   }
 
   return 0;
 }
 
 gboolean base64_art_to_file(const gchar *filename, const gchar *base64) {
-  if (!filename || !base64 || !*base64)
+  if (!filename || !base64 || !*base64) {
     return FALSE;
+  }
 
   /* Strip data: URI if present */
   const gchar *pure = base64;
   const gchar *comma = strstr(base64, "base64,");
-  if (comma)
+  if (comma) {
     pure = comma + 7;
-  else if ((comma = strchr(base64, ',')))
+  } else if ((comma = strchr(base64, ',')))
     pure = comma + 1;
 
   gsize len = 0;

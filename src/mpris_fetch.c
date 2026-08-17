@@ -38,8 +38,8 @@
  * ____________________________________________________________________________
  */
 
-#include <glib.h>
 #include <dbus/dbus.h>
+#include <glib.h>
 #include <json-glib/json-glib.h>
 #include <playerctl/playerctl.h>
 #include <pulse/glib-mainloop.h>
@@ -129,71 +129,79 @@ static void print_player_list(GList *players, gboolean force_output);
 static void update_metadata(PlayerData *data, PulseData *pulse);
 
 void cleanup_art_url_watch(PlayerData *data) {
-    if (!data || data->art_url_watch_id == 0) return;
+  if (!data || data->art_url_watch_id == 0)
+    return;
 
-    DEBUG_MSG("INFO:  Art Url watch cleanup: %s", data->instance);
-    g_source_remove(data->art_url_watch_id);
-    data->art_url_watch_id = 0;
+  DEBUG_MSG("INFO:  Art Url watch cleanup: %s", data->instance);
+  g_source_remove(data->art_url_watch_id);
+  data->art_url_watch_id = 0;
 }
 
-static gboolean on_art_file_created(GIOChannel *source, GIOCondition condition, gpointer user_data) {
-    (void)condition;
-    ArtUrlWatchData *watch_data = user_data;
-    if (!watch_data) return G_SOURCE_REMOVE;
-
-    char buf[4096];
-    ssize_t len = read(g_io_channel_unix_get_fd(source), buf, sizeof(buf));
-
-    if (len > 0) {
-        struct inotify_event *event = (struct inotify_event *)buf;
-        if (event->len > 0 && watch_data->player_data->art_url) {
-            char *filename = g_path_get_basename(watch_data->player_data->art_url);
-            if (g_strcmp0(event->name, filename) == 0) {
-                DEBUG_MSG("INFO:  Player %s: artUrl file %s created via inotify", 
-                          safe_str(watch_data->player_data->name), watch_data->player_data->art_url);
-                print_player_list(*watch_data->pulse->players, TRUE);
-                if (watch_data->player_data)
-                    watch_data->player_data->art_url_watch_id = 0;
-            }
-            g_free(filename);
-        }
-    }
-
-    g_free(watch_data);
+static gboolean on_art_file_created(GIOChannel *source, GIOCondition condition,
+                                    gpointer user_data) {
+  (void)condition;
+  ArtUrlWatchData *watch_data = user_data;
+  if (!watch_data)
     return G_SOURCE_REMOVE;
+
+  char buf[4096];
+  ssize_t len = read(g_io_channel_unix_get_fd(source), buf, sizeof(buf));
+
+  if (len > 0) {
+    struct inotify_event *event = (struct inotify_event *)buf;
+    if (event->len > 0 && watch_data->player_data->art_url) {
+      char *filename = g_path_get_basename(watch_data->player_data->art_url);
+      if (g_strcmp0(event->name, filename) == 0) {
+        DEBUG_MSG("INFO:  Player %s: artUrl file %s created via inotify",
+                  safe_str(watch_data->player_data->name),
+                  watch_data->player_data->art_url);
+        print_player_list(*watch_data->pulse->players, TRUE);
+        if (watch_data->player_data)
+          watch_data->player_data->art_url_watch_id = 0;
+      }
+      g_free(filename);
+    }
+  }
+
+  g_free(watch_data);
+  return G_SOURCE_REMOVE;
 }
 
 void setup_art_url_inotify(PlayerData *data, PulseData *pulse) {
-    if (!data || !data->art_url) return;
+  if (!data || !data->art_url)
+    return;
 
-    cleanup_art_url_watch(data);
+  cleanup_art_url_watch(data);
 
-    int inotify_fd = inotify_init1(IN_NONBLOCK);
-    if (inotify_fd < 0) {
-        DEBUG_MSG("ERROR: inotify_init failed");
-        return;
-    }
+  int inotify_fd = inotify_init1(IN_NONBLOCK);
+  if (inotify_fd < 0) {
+    DEBUG_MSG("ERROR: inotify_init failed");
+    return;
+  }
 
-    int wd_watch = inotify_add_watch(inotify_fd, "/run/user/1000/album_art_cache/", IN_CLOSE_WRITE | IN_ONESHOT);
-    if (wd_watch < 0) {
-        DEBUG_MSG("ERROR: inotify add dirextory watch failed");
-        close(inotify_fd);
-        return;
-    }
+  int wd_watch =
+      inotify_add_watch(inotify_fd, "/run/user/1000/album_art_cache/",
+                        IN_CLOSE_WRITE | IN_ONESHOT);
+  if (wd_watch < 0) {
+    DEBUG_MSG("ERROR: inotify add dirextory watch failed");
+    close(inotify_fd);
+    return;
+  }
 
-    DEBUG_MSG("INFO:  Inotify waiting event on: %s", safe_str(data->art_url));
+  DEBUG_MSG("INFO:  Inotify waiting event on: %s", safe_str(data->art_url));
 
-    ArtUrlWatchData *watch_data = g_new0(ArtUrlWatchData, 1);
-    watch_data->player_data = data;
-    watch_data->pulse = pulse;
+  ArtUrlWatchData *watch_data = g_new0(ArtUrlWatchData, 1);
+  watch_data->player_data = data;
+  watch_data->pulse = pulse;
 
-    GIOChannel *channel = g_io_channel_unix_new(inotify_fd);
-    g_io_channel_set_encoding(channel, NULL, NULL);
-    g_io_channel_set_close_on_unref(channel, TRUE);
+  GIOChannel *channel = g_io_channel_unix_new(inotify_fd);
+  g_io_channel_set_encoding(channel, NULL, NULL);
+  g_io_channel_set_close_on_unref(channel, TRUE);
 
-    data->art_url_watch_id = g_io_add_watch(channel, G_IO_IN, on_art_file_created, watch_data);
+  data->art_url_watch_id =
+      g_io_add_watch(channel, G_IO_IN, on_art_file_created, watch_data);
 
-    g_io_channel_unref(channel);
+  g_io_channel_unref(channel);
 }
 
 // Convert seconds to HMS (MM:SS or H:MM:SS), or "live" for specified max
@@ -206,7 +214,7 @@ void to_hms(int64_t s, int64_t position, char *hms, size_t hms_size) {
    * event meaning the position will increment but duration will be static.
    * This could be changed but would result unnecessary gtk redraws with no
    * visible UI changes.
-   * 50390 is an abitrary length youtube uses for many live broadcasts 
+   * 50390 is an abitrary length youtube uses for many live broadcasts
    * */
   if (s <= 0 || (s > 0 && position >= s) || s == INT64_MAX || s == 50390) {
     snprintf(hms, hms_size, "live");
@@ -226,15 +234,18 @@ void to_hms(int64_t s, int64_t position, char *hms, size_t hms_size) {
   }
 }
 
-static void match_player(PulseData *pulse, const char *key, PlayerData **out_player)
-{
-  if (!key || !out_player) return;
+static void match_player(PulseData *pulse, const char *key,
+                         PlayerData **out_player) {
+  if (!key || !out_player)
+    return;
   *out_player = NULL;
 
   for (GList *iter = *pulse->players; iter; iter = iter->next) {
     PlayerData *player = iter->data;
-    if ((player && player->name && g_ascii_strcasecmp(key, player->name) == 0) ||
-        (player && player->instance && g_ascii_strcasecmp(key, player->instance) == 0)) {
+    if ((player && player->name &&
+         g_ascii_strcasecmp(key, player->name) == 0) ||
+        (player && player->instance &&
+         g_ascii_strcasecmp(key, player->instance) == 0)) {
       *out_player = player;
       DEBUG_MSG("INFO:  Matched player '%s'", key);
       return;
@@ -244,8 +255,7 @@ static void match_player(PulseData *pulse, const char *key, PlayerData **out_pla
   return;
 }
 
-static PlayerData* find_player_by_pid(GList *players, pid_t target)
-{
+static PlayerData *find_player_by_pid(GList *players, pid_t target) {
   for (GList *iter = players; iter; iter = iter->next) {
     PlayerData *p = iter->data;
     if (p && p->busPID && target == p->busPID) {
@@ -255,9 +265,10 @@ static PlayerData* find_player_by_pid(GList *players, pid_t target)
   return NULL;
 }
 
-static void match_pid(PulseData *pulse, const pid_t pid, PlayerData **out_player)
-{
-  if (!pid || !out_player) return;
+static void match_pid(PulseData *pulse, const pid_t pid,
+                      PlayerData **out_player) {
+  if (!pid || !out_player)
+    return;
   *out_player = NULL;
 
   *out_player = find_player_by_pid(*pulse->players, pid);
@@ -267,10 +278,14 @@ static void match_pid(PulseData *pulse, const pid_t pid, PlayerData **out_player
   }
 
   /* chrome PPID check */
-  char path[32]; sprintf(path, "/proc/%d/stat", pid);
+  char path[32];
+  sprintf(path, "/proc/%d/stat", pid);
   FILE *f = fopen(path, "r");
   pid_t ppid = -1;
-  if (f) { fscanf(f, "%*d (%*[^)]) %*c %d", &ppid); fclose(f); }
+  if (f) {
+    fscanf(f, "%*d (%*[^)]) %*c %d", &ppid);
+    fclose(f);
+  }
 
   if (ppid > 0) {
     *out_player = find_player_by_pid(*pulse->players, ppid);
@@ -296,26 +311,29 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
     return;
   }
 
-  const char *binary_name = pa_proplist_gets(i->proplist, "application.process.binary");
+  const char *binary_name =
+      pa_proplist_gets(i->proplist, "application.process.binary");
   const char *fallback_name = pa_proplist_gets(i->proplist, "application.name");
   const char *media_name = pa_proplist_gets(i->proplist, "media.name");
   pid_t pid = 0;
   const char *str = pa_proplist_gets(i->proplist, "application.process.id");
   if (str) {
-      char *end;
-      long val = strtol(str, &end, 10);
-      pid = (pid_t)(*end == '\0' && val > 0 ? val : 0);
+    char *end;
+    long val = strtol(str, &end, 10);
+    pid = (pid_t)(*end == '\0' && val > 0 ? val : 0);
   }
 
   if (!binary_name) {
     if (!fallback_name) {
-        if (g_ascii_strcasecmp(media_name, "audio_src")) {
-            binary_name = "spotify";
-        } else {
-            DEBUG_MSG("INFO:  Skipping sink input with no binary_name or fallback_name: index=%u",
-                    i->index);
-            return;
-        }
+      if (g_ascii_strcasecmp(media_name, "audio_src")) {
+        binary_name = "spotify";
+      } else {
+        DEBUG_MSG(
+            "INFO:  Skipping sink input with no binary_name or fallback_name: "
+            "index=%u",
+            i->index);
+        return;
+      }
     } else {
       DEBUG_MSG("INFO:  No binary name Attempting fallback.");
       binary_name = fallback_name;
@@ -323,8 +341,10 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
     }
   }
 
-  DEBUG_MSG("INFO:  PulseAudio index %u sink info: binary_name=%s, fallback_name=%s, application_ID=%u",
-            i->index, safe_str(binary_name), safe_str(fallback_name), pid);
+  DEBUG_MSG(
+      "INFO:  PulseAudio index %u sink info: binary_name=%s, fallback_name=%s, "
+      "application_ID=%u",
+      i->index, safe_str(binary_name), safe_str(fallback_name), pid);
 
   /* Find matching player */
   PlayerData *matched_player = NULL;
@@ -332,23 +352,23 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
   /* Browser remap table */
   if (g_ascii_strcasecmp(binary_name, "chrome") == 0 ||
       g_ascii_strcasecmp(binary_name, "opera") == 0) {
-      binary_name = "chromium";
+    binary_name = "chromium";
   } else if (g_ascii_strcasecmp(binary_name, "librewolf") == 0 ||
              g_ascii_strcasecmp(binary_name, "zen-bin") == 0 ||
              g_ascii_strcasecmp(binary_name, "mullvadbrowser.real") == 0) {
-      binary_name = "firefox";
+    binary_name = "firefox";
   } else if (g_ascii_strcasecmp(binary_name, "msedge") == 0) {
-      binary_name = "edge";
+    binary_name = "edge";
   }
 
   if (pid) {
-      DEBUG_MSG("INFO:  Attempting player match for PID: %u", pid);
-      match_pid(pulse, pid, &matched_player);
+    DEBUG_MSG("INFO:  Attempting player match for PID: %u", pid);
+    match_pid(pulse, pid, &matched_player);
   }
 
   if (!matched_player) {
-      DEBUG_MSG("INFO:  Attempting player match for name: %s", binary_name);
-      match_player(pulse, binary_name, &matched_player);
+    DEBUG_MSG("INFO:  Attempting player match for name: %s", binary_name);
+    match_player(pulse, binary_name, &matched_player);
   }
 
   if (!matched_player) {
@@ -380,43 +400,49 @@ static void sink_input_info_cb(pa_context *c, const pa_sink_input_info *i,
 }
 
 static void remove_sink_input(PlayerData *player, PulseData *pulse) {
-    if (!player) return;
+  if (!player)
+    return;
 
-    if (!player->instance) {
-      GList *link = g_list_find(*pulse->players, player);
-      if (link) {
-        *pulse->players = g_list_delete_link(*pulse->players, link);
-        DEBUG_MSG("INFO:  Sink-input removed: %s (index: %d)", player->name, player->index);
-        player_data_free(player);
-        print_player_list(*pulse->players, FALSE);
-        return;
-      }
+  if (!player->instance) {
+    GList *link = g_list_find(*pulse->players, player);
+    if (link) {
+      *pulse->players = g_list_delete_link(*pulse->players, link);
+      DEBUG_MSG("INFO:  Sink-input removed: %s (index: %d)", player->name,
+                player->index);
+      player_data_free(player);
+      print_player_list(*pulse->players, FALSE);
+      return;
     }
+  }
 
-    player->index = 0;
-    player->sink = 0;
-    player->volume = 0;
-    player->mute = FALSE;
+  player->index = 0;
+  player->sink = 0;
+  player->volume = 0;
+  player->mute = FALSE;
 
-    print_player_list(*pulse->players, FALSE);
+  print_player_list(*pulse->players, FALSE);
 }
 
 static void subscribe_cb(pa_context *c, pa_subscription_event_type_t t,
                          guint32 idx, void *userdata) {
   PulseData *pulse = userdata;
-  pa_subscription_event_type_t facility = t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
+  pa_subscription_event_type_t facility =
+      t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK;
   pa_subscription_event_type_t type = t & PA_SUBSCRIPTION_EVENT_TYPE_MASK;
 
-  if (facility != PA_SUBSCRIPTION_EVENT_SINK_INPUT) return;
+  if (facility != PA_SUBSCRIPTION_EVENT_SINK_INPUT)
+    return;
   if (type != PA_SUBSCRIPTION_EVENT_NEW &&
       type != PA_SUBSCRIPTION_EVENT_CHANGE &&
-      type != PA_SUBSCRIPTION_EVENT_REMOVE) return;
+      type != PA_SUBSCRIPTION_EVENT_REMOVE)
+    return;
 
   if (type == PA_SUBSCRIPTION_EVENT_REMOVE) {
     for (GList *l = *pulse->players; l; l = l->next) {
       PlayerData *p = l->data;
       if (p->index == idx) {
-        DEBUG_MSG("INFO:  Received sink-input removal for %s (index: %i)", p->name, p->index);
+        DEBUG_MSG("INFO:  Received sink-input removal for %s (index: %i)",
+                  p->name, p->index);
         remove_sink_input(p, pulse);
         break;
       }
@@ -424,8 +450,10 @@ static void subscribe_cb(pa_context *c, pa_subscription_event_type_t t,
     return;
   }
 
-  pa_operation *op = pa_context_get_sink_input_info(c, idx, sink_input_info_cb, pulse);
-  if (op) pa_operation_unref(op);
+  pa_operation *op =
+      pa_context_get_sink_input_info(c, idx, sink_input_info_cb, pulse);
+  if (op)
+    pa_operation_unref(op);
 }
 
 /* PulseAudio context state callback */
@@ -470,6 +498,77 @@ static void context_state_cb(pa_context *c, void *userdata) {
     DEBUG_MSG("WARN: Unknown PulseAudio context state: %d", state);
     break;
   }
+}
+
+static gsize find_image_offset(const guchar *data, gsize len) {
+  if (len < 8)
+    return 0;
+
+  /* PNG */
+  for (gsize i = 0; i + 8 <= len; i++) {
+    if (data[i] == 0x89 && data[i + 1] == 'P' && data[i + 2] == 'N' &&
+        data[i + 3] == 'G' && data[i + 4] == 0x0D && data[i + 5] == 0x0A &&
+        data[i + 6] == 0x1A && data[i + 7] == 0x0A)
+      return i;
+  }
+
+  /* JPEG */
+  for (gsize i = 0; i + 3 <= len; i++) {
+    if (data[i] == 0xFF && data[i + 1] == 0xD8 && data[i + 2] == 0xFF)
+      return i;
+  }
+
+  /* WebP (RIFF....WEBP) */
+  for (gsize i = 0; i + 12 <= len; i++) {
+    if (data[i] == 'R' && data[i + 1] == 'I' && data[i + 2] == 'F' &&
+        data[i + 3] == 'F' && data[i + 8] == 'W' && data[i + 9] == 'E' &&
+        data[i + 10] == 'B' && data[i + 11] == 'P')
+      return i;
+  }
+
+  return 0;
+}
+
+gboolean base64_art_to_file(const gchar *filename, const gchar *base64) {
+  if (!filename || !base64 || !*base64)
+    return FALSE;
+
+  /* Strip data: URI if present */
+  const gchar *pure = base64;
+  const gchar *comma = strstr(base64, "base64,");
+  if (comma)
+    pure = comma + 7;
+  else if ((comma = strchr(base64, ',')))
+    pure = comma + 1;
+
+  gsize len = 0;
+  guchar *bin = g_base64_decode(pure, &len);
+  if (!bin || len < 16) {
+    g_free(bin);
+    return FALSE;
+  }
+
+  /* Skip any leading garbage */
+  gsize offset = find_image_offset(bin, len);
+  const guchar *image_data = bin + offset;
+  gsize image_len = len - offset;
+
+  /* Make sure parent directory exists */
+  gchar *dir = g_path_get_dirname(filename);
+  g_mkdir_with_parents(dir, 0755);
+  g_free(dir);
+
+  FILE *fp = fopen(filename, "wb");
+  if (!fp) {
+    g_free(bin);
+    return FALSE;
+  }
+
+  size_t written = fwrite(image_data, 1, image_len, fp);
+  fclose(fp);
+  g_free(bin);
+
+  return written == image_len;
 }
 
 /* Helper function to update metadata and properties */
@@ -533,23 +632,31 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
     g_error_free(error);
     error = NULL;
   } else if (raw_art_url) {
-    if (g_str_has_prefix(raw_art_url, "file:///")) {
-      data->art_url = g_strdup(raw_art_url + 7); /* "file://" */
+    if (g_str_has_prefix(raw_art_url, "data:image/")) {
+      const gchar *runtime = g_get_user_runtime_dir();
+      gchar *path = g_strconcat(runtime, "/album_art_cache/", data->instance, ".png", NULL);
+
+      if (base64_art_to_file(path, raw_art_url)) {
+        data->art_url = path;
+      } else {
+        data->art_url = g_strdup(raw_art_url);
+        g_free(path);
+      }
     } else if (g_str_has_prefix(raw_art_url, "https://i.scdn.co/image/")) {
-      /* Map common Spotify CDN to local cache path */
-      data->art_url =
-          g_strconcat("/run/user/1000/album_art_cache", raw_art_url + 23, NULL);
+      const gchar *runtime = g_get_user_runtime_dir();
+      data->art_url = g_strconcat(runtime, "/album_art_cache/", raw_art_url + 23, NULL);
+    } else if (g_str_has_prefix(raw_art_url, "file:///")) {
+      data->art_url = g_strdup(raw_art_url + 7);
     } else {
       data->art_url = g_strdup(raw_art_url);
     }
     g_free(raw_art_url);
     raw_art_url = NULL;
 
-    if (data->art_url &&
-        strlen(data->art_url) > 0 &&
+    if (data->art_url && strlen(data->art_url) > 0 &&
         !g_str_has_prefix(data->art_url, "data:image/") &&
-        !g_file_test(data->art_url, G_FILE_TEST_EXISTS))  {
-            setup_art_url_inotify(data, pulse);
+        !g_file_test(data->art_url, G_FILE_TEST_EXISTS)) {
+      setup_art_url_inotify(data, pulse);
     }
   }
 
@@ -565,10 +672,11 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
     char *endptr = NULL;
     /* microseconds to ceiling second */
     gint64 len = strtoll(length_str, &endptr, 10);
-    data->length = len <= INT64_MAX - 999999 ? (len + 999999) / 1000000 : INT64_MAX;
+    data->length =
+        len <= INT64_MAX - 999999 ? (len + 999999) / 1000000 : INT64_MAX;
     if (endptr == length_str || *endptr != '\0') {
-      DEBUG_MSG("ERROR: Failed to parse length for %s: %s", safe_str(data->name),
-                length_str);
+      DEBUG_MSG("ERROR: Failed to parse length for %s: %s",
+                safe_str(data->name), length_str);
       data->length = 0;
     }
     g_free(length_str);
@@ -625,10 +733,12 @@ static void print_player_list(GList *players, gboolean force_output) {
     json_builder_add_string_value(builder, data->instance);
 
     json_builder_set_member_name(builder, "name");
-    json_builder_add_string_value(builder, data->display_name ? data->display_name : data->name);
+    json_builder_add_string_value(
+        builder, data->display_name ? data->display_name : data->name);
 
     json_builder_set_member_name(builder, "mediaName");
-    json_builder_add_string_value(builder, data->media_name ? data->media_name : data->name);
+    json_builder_add_string_value(builder, data->media_name ? data->media_name
+                                                            : data->name);
 
     json_builder_set_member_name(builder, "canQuit");
     json_builder_add_boolean_value(builder, data->can_quit);
@@ -707,7 +817,8 @@ static void print_player_list(GList *players, gboolean force_output) {
   gchar *json_str = json_generator_to_data(generator, NULL);
 
   /* should print? */
-  if (!(force_output || last_json_output == NULL || strcmp(json_str, last_json_output) != 0)) {
+  if (!(force_output || last_json_output == NULL ||
+        strcmp(json_str, last_json_output) != 0)) {
     g_free(json_str);
     json_node_free(root);
     g_object_unref(generator);
@@ -783,7 +894,8 @@ static void on_shuffle(PlayerctlPlayer *player, gboolean shuffle,
   PlayerData *data = find_player_data(pulse, player);
   if (data) {
     data->shuffle = shuffle;
-    DEBUG_MSG("Updating shuffle status for %s: %d", safe_str(data->name), shuffle);
+    DEBUG_MSG("Updating shuffle status for %s: %d", safe_str(data->name),
+              shuffle);
     print_player_list(*pulse->players, FALSE);
   }
 }
@@ -801,107 +913,99 @@ static void on_loop_status(PlayerctlPlayer *player, PlayerctlLoopStatus status,
 }
 
 static int check_property_exists(const char *instance, const char *property) {
-    static const char *interface = "org.mpris.MediaPlayer2.Player";
+  static const char *interface = "org.mpris.MediaPlayer2.Player";
 
-    char dest[256];
-    snprintf(dest, sizeof(dest), "org.mpris.MediaPlayer2.%s", instance);
+  char dest[256];
+  snprintf(dest, sizeof(dest), "org.mpris.MediaPlayer2.%s", instance);
 
-    DBusConnection *conn = dbus_bus_get(DBUS_BUS_SESSION, NULL);
-    int result = EXIT_FAILURE;
-    DBusMessage *msg = dbus_message_new_method_call(
-        dest, "/org/mpris/MediaPlayer2",
-        "org.freedesktop.DBus.Properties", "Get");
-    dbus_message_append_args(msg,
-        DBUS_TYPE_STRING, &interface,
-        DBUS_TYPE_STRING, &property, DBUS_TYPE_INVALID);
+  DBusConnection *conn = dbus_bus_get(DBUS_BUS_SESSION, NULL);
+  int result = EXIT_FAILURE;
+  DBusMessage *msg =
+      dbus_message_new_method_call(dest, "/org/mpris/MediaPlayer2",
+                                   "org.freedesktop.DBus.Properties", "Get");
+  dbus_message_append_args(msg, DBUS_TYPE_STRING, &interface, DBUS_TYPE_STRING,
+                           &property, DBUS_TYPE_INVALID);
 
-    DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg, -1, NULL);
-    dbus_message_unref(msg);
+  DBusMessage *reply =
+      dbus_connection_send_with_reply_and_block(conn, msg, -1, NULL);
+  dbus_message_unref(msg);
 
-    if (reply) {
-        result = EXIT_SUCCESS;
-        dbus_message_unref(reply);
-    }
-    dbus_connection_unref(conn);
-    return result;
+  if (reply) {
+    result = EXIT_SUCCESS;
+    dbus_message_unref(reply);
+  }
+  dbus_connection_unref(conn);
+  return result;
 }
 
 dbus_bool_t get_can_quit(const char *interface) {
-    static const char *interface_str = "org.mpris.MediaPlayer2";
-    static const char *property_str = "CanQuit";
+  static const char *interface_str = "org.mpris.MediaPlayer2";
+  static const char *property_str = "CanQuit";
 
-    char dest[256];
-    snprintf(dest, sizeof(dest), "org.mpris.MediaPlayer2.%s", interface);
+  char dest[256];
+  snprintf(dest, sizeof(dest), "org.mpris.MediaPlayer2.%s", interface);
 
-    DBusConnection *conn = dbus_bus_get(DBUS_BUS_SESSION, NULL);
-    DBusMessage *msg = dbus_message_new_method_call(
-        dest, "/org/mpris/MediaPlayer2",
-        "org.freedesktop.DBus.Properties", "Get");
-    dbus_message_append_args(msg,
-        DBUS_TYPE_STRING, &interface_str,
-        DBUS_TYPE_STRING, &property_str, DBUS_TYPE_INVALID);
+  DBusConnection *conn = dbus_bus_get(DBUS_BUS_SESSION, NULL);
+  DBusMessage *msg =
+      dbus_message_new_method_call(dest, "/org/mpris/MediaPlayer2",
+                                   "org.freedesktop.DBus.Properties", "Get");
+  dbus_message_append_args(msg, DBUS_TYPE_STRING, &interface_str,
+                           DBUS_TYPE_STRING, &property_str, DBUS_TYPE_INVALID);
 
-    DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg, -1, NULL);
-    dbus_message_unref(msg);
+  DBusMessage *reply =
+      dbus_connection_send_with_reply_and_block(conn, msg, -1, NULL);
+  dbus_message_unref(msg);
 
-    dbus_bool_t value = FALSE;
-    if (reply) {
-        DBusMessageIter iter, sub;
-        dbus_message_iter_init(reply, &iter);
-        dbus_message_iter_recurse(&iter, &sub);
-        dbus_message_iter_get_basic(&sub, &value);
-        dbus_message_unref(reply);
-    }
-    dbus_connection_unref(conn);
-    return value;
+  dbus_bool_t value = FALSE;
+  if (reply) {
+    DBusMessageIter iter, sub;
+    dbus_message_iter_init(reply, &iter);
+    dbus_message_iter_recurse(&iter, &sub);
+    dbus_message_iter_get_basic(&sub, &value);
+    dbus_message_unref(reply);
+  }
+  dbus_connection_unref(conn);
+  return value;
 }
 
-static pid_t get_pid_for_bus_name(const char *interface)
-{
-    GError *error = NULL;
-    GDBusConnection *conn = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
-    if (!conn) {
-        g_printerr("Failed to connect to session bus: %s\n",
-                   error ? error->message : "unknown");
-        g_clear_error(&error);
-        return -1;
-    }
+static pid_t get_pid_for_bus_name(const char *interface) {
+  GError *error = NULL;
+  GDBusConnection *conn = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
+  if (!conn) {
+    g_printerr("Failed to connect to session bus: %s\n",
+               error ? error->message : "unknown");
+    g_clear_error(&error);
+    return -1;
+  }
 
-    char dest[256];
-    snprintf(dest, sizeof(dest), "org.mpris.MediaPlayer2.%s", interface);
+  char dest[256];
+  snprintf(dest, sizeof(dest), "org.mpris.MediaPlayer2.%s", interface);
 
-    GVariant *res = g_dbus_connection_call_sync(
-        conn,
-        "org.freedesktop.DBus",
-        "/org/freedesktop/DBus",
-        "org.freedesktop.DBus",
-        "GetConnectionUnixProcessID",
-        g_variant_new("(s)", dest),
-        G_VARIANT_TYPE("(u)"),
-        G_DBUS_CALL_FLAGS_NONE,
-        -1,
-        NULL,
-        &error);
+  GVariant *res = g_dbus_connection_call_sync(
+      conn, "org.freedesktop.DBus", "/org/freedesktop/DBus",
+      "org.freedesktop.DBus", "GetConnectionUnixProcessID",
+      g_variant_new("(s)", dest), G_VARIANT_TYPE("(u)"), G_DBUS_CALL_FLAGS_NONE,
+      -1, NULL, &error);
 
-    if (!res) {
-        g_printerr("GetConnectionUnixProcessID failed: %s\n",
-                   error ? error->message : "unknown");
-        g_clear_error(&error);
-        g_object_unref(conn);
-        return -1;
-    }
-
-    guint pid_u = 0;
-    g_variant_get(res, "(u)", &pid_u);
-    g_variant_unref(res);
+  if (!res) {
+    g_printerr("GetConnectionUnixProcessID failed: %s\n",
+               error ? error->message : "unknown");
+    g_clear_error(&error);
     g_object_unref(conn);
+    return -1;
+  }
 
-    return (pid_t)pid_u;
+  guint pid_u = 0;
+  g_variant_get(res, "(u)", &pid_u);
+  g_variant_unref(res);
+  g_object_unref(conn);
+
+  return (pid_t)pid_u;
 }
 
 /* Helper function to create PlayerData from PlayerctlPlayerName */
-static PlayerData *player_data_new(PlayerctlPlayerName *name,
-                                   PulseData *pulse, gboolean *is_new) {
+static PlayerData *player_data_new(PlayerctlPlayerName *name, PulseData *pulse,
+                                   gboolean *is_new) {
   if (!name || !is_new) {
     return NULL;
   }
@@ -949,7 +1053,8 @@ static PlayerData *player_data_new(PlayerctlPlayerName *name,
     }
     // if (check_can_loop(data) == 0 ) {
     if (check_property_exists(data->instance, "LoopStatus") == 0) {
-      g_signal_connect(data->player, "loop-status", G_CALLBACK(on_loop_status), pulse);
+      g_signal_connect(data->player, "loop-status", G_CALLBACK(on_loop_status),
+                       pulse);
       g_object_get(data->player, "loop-status", &data->loop_status, NULL);
     } else {
       data->loop_status = -1;
@@ -1129,7 +1234,8 @@ int main(void) {
     g_error_free(error);
     error = NULL;
   } else {
-    DEBUG_MSG("INFO:  Found %d initial players", g_list_length(current_players));
+    DEBUG_MSG("INFO:  Found %d initial players",
+              g_list_length(current_players));
     if (g_list_length(current_players) == 0) {
       print_player_list(players, FALSE);
     } else {

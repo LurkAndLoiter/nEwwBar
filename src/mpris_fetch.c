@@ -536,31 +536,75 @@ static void context_state_cb(pa_context *c, void *userdata) {
 }
 
 static gsize find_image_offset(const guchar *data, gsize len) {
-  if (len < 8) {
+  if (!data || len == 0) {
     return 0;
   }
 
-  /* PNG */
-  for (gsize i = 0; i + 8 <= len; i++) {
-    if (data[i] == 0x89 && data[i + 1] == 'P' && data[i + 2] == 'N' &&
-        data[i + 3] == 'G' && data[i + 4] == 0x0D && data[i + 5] == 0x0A &&
-        data[i + 6] == 0x1A && data[i + 7] == 0x0A) {
-      return i;
+  /* Quick checks for the very common headers at 0 */
+  if (len >= 8 &&
+      data[0] == 0x89 && data[1] == 'P' && data[2] == 'N' && data[3] == 'G' &&
+      data[4] == 0x0D && data[5] == 0x0A && data[6] == 0x1A && data[7] == 0x0A) {
+    return 0;
+  }
+  if (len >= 3 && data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF) {
+    return 0;
+  }
+  if (len >= 12 &&
+      data[0] == 'R' && data[1] == 'I' && data[2] == 'F' && data[3] == 'F' &&
+      data[8] == 'W' && data[9] == 'E' && data[10] == 'B' && data[11] == 'P') {
+    return 0;
+  }
+  if (len >= 6 && (memcmp(data, "GIF89a", 6) == 0 || memcmp(data, "GIF87a", 6) == 0)) {
+    return 0;
+  }
+  if (len >= 2 && data[0] == 'B' && data[1] == 'M') {
+    return 0;
+  }
+  if (len >= 4 && ((data[0] == 'I' && data[1] == 'I' && data[2] == 0x2A && data[3] == 0x00) ||
+                    (data[0] == 'M' && data[1] == 'M' && data[2] == 0x00 && data[3] == 0x2A))) {
+    return 0; /* TIFF */
+  }
+  /* Text-based SVG: typical start is '<' optionally preceded by UTF BOM */
+  for (gsize i = 0; i < len && i < 4; i++) { /* check small leading BOM variants */
+    if (len >= i + 4 && data[i] == '<' && (data[i+1] == '?' || data[i+1] == 's' || data[i+1] == 'S')) {
+      return 0;
     }
   }
 
-  /* JPEG */
-  for (gsize i = 0; i + 3 <= len; i++) {
-    if (data[i] == 0xFF && data[i + 1] == 0xD8 && data[i + 2] == 0xFF) {
+  /* If not at 0, scan for known signatures elsewhere within a reasonable window.
+     Limit scanning to first e.g. 64 KiB to avoid pathological costs. */
+  gsize scan_limit = len < 65536 ? len : 65536;
+  for (gsize i = 0; i + 12 <= scan_limit; i++) {
+    /* PNG */
+    if (data[i] == 0x89 && data[i+1] == 'P' && data[i+2] == 'N' && data[i+3] == 'G' &&
+        data[i+4] == 0x0D && data[i+5] == 0x0A && data[i+6] == 0x1A && data[i+7] == 0x0A) {
       return i;
     }
-  }
-
-  /* WebP (RIFF....WEBP) */
-  for (gsize i = 0; i + 12 <= len; i++) {
-    if (data[i] == 'R' && data[i + 1] == 'I' && data[i + 2] == 'F' &&
-        data[i + 3] == 'F' && data[i + 8] == 'W' && data[i + 9] == 'E' &&
-        data[i + 10] == 'B' && data[i + 11] == 'P') {
+    /* JPEG */
+    if (data[i] == 0xFF && data[i+1] == 0xD8 && data[i+2] == 0xFF) {
+      return i;
+    }
+    /* WebP */
+    if (data[i] == 'R' && data[i+1] == 'I' && data[i+2] == 'F' && data[i+3] == 'F' &&
+        data[i+8] == 'W' && data[i+9] == 'E' && data[i+10] == 'B' && data[i+11] == 'P') {
+      return i;
+    }
+    /* GIF */
+    if (i + 6 <= scan_limit && (memcmp(data + i, "GIF89a", 6) == 0 || memcmp(data + i, "GIF87a", 6) == 0)) {
+      return i;
+    }
+    /* BMP */
+    if (data[i] == 'B' && data[i+1] == 'M') {
+      return i;
+    }
+    /* TIFF */
+    if ((data[i] == 'I' && data[i+1] == 'I' && data[i+2] == 0x2A && data[i+3] == 0x00) ||
+        (data[i] == 'M' && data[i+1] == 'M' && data[i+2] == 0x00 && data[i+3] == 0x2A)) {
+      return i;
+    }
+    /* basic SVG detection: angle bracket followed by possible '!' or '?' or 's' */
+    if (data[i] == '<' && (i + 4 <= scan_limit) &&
+        (data[i+1] == '?' || data[i+1] == '!' || data[i+1] == 's' || data[i+1] == 'S')) {
       return i;
     }
   }
@@ -573,42 +617,96 @@ gboolean base64_art_to_file(const gchar *filename, const gchar *base64) {
     return FALSE;
   }
 
-  /* Strip data: URI if present */
-  const gchar *pure = base64;
-  const gchar *comma = strstr(base64, "base64,");
-  if (comma) {
-    pure = comma + 7;
-  } else if ((comma = strchr(base64, ',')))
-    pure = comma + 1;
+  const gchar *payload = base64;
+  gchar *mime = NULL;
 
-  gsize len = 0;
-  guchar *bin = g_base64_decode(pure, &len);
-  if (!bin || len < 16) {
+  if (g_str_has_prefix(base64, "data:")) {
+    const gchar *comma = strchr(base64, ',');
+    if (comma) {
+      const gchar *meta_start = base64 + 5;
+      const gchar *meta_end = comma;
+      gsize mlen = meta_end - meta_start;
+      mime = g_strndup(meta_start, mlen);
+
+      payload = comma + 1;
+    }
+  } else {
+    payload = base64;
+  }
+
+  /* Decode base64 */
+  gsize bin_len = 0;
+  guchar *bin = g_base64_decode(payload, &bin_len);
+  if (!bin || bin_len == 0) {
     g_free(bin);
+    g_free(mime);
     return FALSE;
   }
 
-  /* Skip any leading garbage */
-  gsize offset = find_image_offset(bin, len);
-  const guchar *image_data = bin + offset;
-  gsize image_len = len - offset;
+  gboolean wrote = FALSE;
+  gsize offset = 0;
 
-  /* Make sure parent directory exists */
+  /* Helper: check header matches mime */
+  gboolean header_matches_mime = FALSE;
+  if (mime && g_str_has_prefix(mime, "image/")) {
+    if (g_str_has_prefix(mime + 6, "png")) {
+      if (bin_len >= 8 && memcmp(bin, "\x89PNG\x0D\x0A\x1A\x0A", 8) == 0) {
+        header_matches_mime = TRUE;
+      }
+    } else if (g_str_has_prefix(mime + 6, "jpeg") || g_str_has_prefix(mime + 6, "jpg")) {
+      if (bin_len >= 3 && bin[0] == 0xFF && bin[1] == 0xD8 && bin[2] == 0xFF) {
+        header_matches_mime = TRUE;
+      }
+    } else if (g_str_has_prefix(mime + 6, "webp")) {
+      if (bin_len >= 12 && memcmp(bin, "RIFF", 4) == 0 && memcmp(bin + 8, "WEBP", 4) == 0) {
+        header_matches_mime = TRUE;
+      }
+    } else if (g_str_has_prefix(mime + 6, "gif")) {
+      if (bin_len >= 6 && (memcmp(bin, "GIF89a", 6) == 0 || memcmp(bin, "GIF87a", 6) == 0)) {
+        header_matches_mime = TRUE;
+      }
+    } else if (g_str_has_prefix(mime + 6, "svg") || g_str_has_prefix(mime + 6, "svg+xml")) {
+      for (gsize i = 0; i < bin_len && i < 64; i++) {
+        if (bin[i] == '<') {
+          header_matches_mime = TRUE; break;
+        }
+        if (bin[i] > 0x7F) {
+          break;
+        }
+      }
+    } else {
+      header_matches_mime = FALSE;
+    }
+  }
+
+  if (header_matches_mime) {
+    offset = 0;
+  } else {
+    gsize found = find_image_offset(bin, bin_len);
+    if (found > 0) {
+      offset = found;
+    } else {
+      offset = 0;
+    }
+  }
+
   gchar *dir = g_path_get_dirname(filename);
   g_mkdir_with_parents(dir, 0755);
   g_free(dir);
 
   FILE *fp = fopen(filename, "wb");
-  if (!fp) {
-    g_free(bin);
-    return FALSE;
+  if (fp) {
+    size_t written = fwrite(bin + offset, 1, bin_len - offset, fp);
+    fclose(fp);
+    if (written == (size_t)(bin_len - offset)) {
+      wrote = TRUE;
+    }
   }
 
-  size_t written = fwrite(image_data, 1, image_len, fp);
-  fclose(fp);
   g_free(bin);
+  g_free(mime);
 
-  return written == image_len;
+  return wrote;
 }
 
 /* Helper function to update metadata and properties */
@@ -674,7 +772,7 @@ static void update_metadata(PlayerData *data, PulseData *pulse) {
   } else if (raw_art_url) {
     if (g_str_has_prefix(raw_art_url, "data:image/")) {
       const gchar *runtime = g_get_user_runtime_dir();
-      gchar *path = g_strconcat(runtime, "/album_art_cache/", data->instance, ".png", NULL);
+      gchar *path = g_strconcat(runtime, "/album_art_cache/", data->instance, NULL);
 
       if (base64_art_to_file(path, raw_art_url)) {
         data->art_url = path;
